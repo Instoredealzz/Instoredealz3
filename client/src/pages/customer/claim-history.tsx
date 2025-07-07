@@ -391,8 +391,8 @@ export default function ClaimHistory() {
           
           {billingClaim && (
             <div className="space-y-4 py-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-1">{billingClaim.deal?.title}</h3>
+              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                <h3 className="font-semibold text-lg mb-1 text-gray-900 dark:text-gray-100">{billingClaim.deal?.title}</h3>
                 <p className="text-sm text-muted-foreground">Discount: {billingClaim.deal?.discountPercentage}% OFF</p>
               </div>
               
@@ -413,14 +413,14 @@ export default function ClaimHistory() {
               </div>
               
               {billAmount && calculatedSavings > 0 && (
-                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-green-700">Your Savings:</span>
-                    <span className="text-xl font-bold text-green-600">
+                    <span className="text-sm text-green-700 dark:text-green-300">Your Savings:</span>
+                    <span className="text-xl font-bold text-green-600 dark:text-green-400">
                       ₹{calculatedSavings.toFixed(2)}
                     </span>
                   </div>
-                  <div className="text-xs text-green-600 mt-1">
+                  <div className="text-xs text-green-600 dark:text-green-400 mt-1">
                     {billingClaim.deal?.discountPercentage}% off ₹{billAmount}
                   </div>
                 </div>

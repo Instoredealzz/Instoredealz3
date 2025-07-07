@@ -222,7 +222,7 @@ export default function CustomerDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-success">
-                          Saved ₹{parseFloat(claim.savingsAmount).toLocaleString('en-IN')}
+                          Saved ₹{parseFloat(claim.actualSavings || claim.savingsAmount).toLocaleString('en-IN')}
                         </p>
                         <Badge 
                           variant={claim.status === "used" ? "default" : "secondary"}
