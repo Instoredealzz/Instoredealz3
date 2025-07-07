@@ -368,7 +368,6 @@ export default function DealRecommendationWizard() {
                 <div className="grid grid-cols-1 gap-2">
                   {[
                     { id: 'discount', label: 'Discount Deals', icon: Tag },
-                    { id: 'cashback', label: 'Cashback Offers', icon: DollarSign },
                     { id: 'bundle', label: 'Bundle Deals', icon: Star },
                     { id: 'all', label: 'All Types', icon: Sparkles }
                   ].map((type) => (

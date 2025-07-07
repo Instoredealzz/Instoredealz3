@@ -47,8 +47,7 @@ export default function Pricing() {
         "Digital membership card",
         "Priority customer support",
         "Unlimited deal claims",
-        "Advanced deal alerts",
-        "Cashback rewards"
+        "Advanced deal alerts"
       ],
       buttonText: "Choose Premium",
       buttonVariant: "default" as const,

@@ -87,8 +87,7 @@ const membershipPlans = [
       'VIP customer support',
       'Exclusive ultimate deals',
       'Personal deal concierge',
-      'Custom deal alerts',
-      'Cashback on purchases'
+      'Custom deal alerts'
     ],
     limitations: [],
     popular: false
@@ -341,6 +340,8 @@ export default function UpgradeMembership() {
                         ? 'bg-gray-500 hover:bg-gray-600'
                         : plan.popular
                         ? 'bg-blue-600 hover:bg-blue-700'
+                        : plan.id === 'ultimate'
+                        ? 'bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white'
                         : 'bg-gray-900 hover:bg-gray-800'
                     }`}
                     onClick={() => handleUpgrade(plan.id)}
