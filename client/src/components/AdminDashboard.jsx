@@ -137,22 +137,26 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>Overview</span>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center justify-center space-x-1 md:space-x-2 text-xs md:text-sm">
+              <Activity className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="admin-logins" className="flex items-center space-x-2">
-              <Users className="h-4 w-4" />
-              <span>Admin Logins</span>
+            <TabsTrigger value="admin-logins" className="flex items-center justify-center space-x-1 md:space-x-2 text-xs md:text-sm">
+              <Users className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Admin Logins</span>
+              <span className="sm:hidden">Logins</span>
             </TabsTrigger>
-            <TabsTrigger value="api-keys" className="flex items-center space-x-2">
-              <Key className="h-4 w-4" />
-              <span>API Keys</span>
+            <TabsTrigger value="api-keys" className="flex items-center justify-center space-x-1 md:space-x-2 text-xs md:text-sm">
+              <Key className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">API Keys</span>
+              <span className="sm:hidden">Keys</span>
             </TabsTrigger>
-            <TabsTrigger value="claims" className="flex items-center space-x-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Claims</span>
+            <TabsTrigger value="claims" className="flex items-center justify-center space-x-1 md:space-x-2 text-xs md:text-sm">
+              <BarChart3 className="h-3 w-3 md:h-4 md:w-4" />
+              <span className="hidden sm:inline">Claims</span>
+              <span className="sm:hidden">Claims</span>
             </TabsTrigger>
           </TabsList>
 
