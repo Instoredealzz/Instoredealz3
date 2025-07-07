@@ -49,15 +49,10 @@ export default function VendorDashboard() {
   // Debug vendor approval status
   const isApproved = vendor?.isApproved;
   
-  // Add debug logging for vendor approval status
+  // Track vendor approval status for conditional rendering
   useEffect(() => {
     if (vendor) {
-      console.log('Vendor data loaded:', {
-        businessName: vendor.businessName,
-        isApproved: vendor.isApproved,
-        vendorId: vendor.id,
-        approvalStatus: typeof vendor.isApproved
-      });
+      // Vendor data loaded - check approval status for dashboard features
     }
   }, [vendor]);
   const totalDeals = deals?.length || 0;

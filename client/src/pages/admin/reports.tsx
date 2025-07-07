@@ -249,7 +249,7 @@ export default function AdminReports() {
       setReportColumns(columns);
       
     } catch (error) {
-      console.error('Error viewing report:', error);
+      // Error handled by toast notification
       toast({
         title: "View Failed",
         description: `Failed to load ${reportType} data. Please try again.`,
@@ -326,7 +326,7 @@ export default function AdminReports() {
         description: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report downloaded successfully`,
       });
     } catch (error) {
-      console.error('Error downloading report:', error);
+      // Error handled by toast notification
       toast({
         title: "Download Failed",
         description: `Failed to download ${reportType} report. Please try again.`,

@@ -177,7 +177,7 @@ const DealList = () => {
             
             // Debug logging for troubleshooting
             if (hasClaimedDeal) {
-              console.log(`Deal ${deal.id} - Claim Status: ${userClaim?.status}, Show Button: ${showBillAmountButton}`, userClaim);
+              // Debug: Deal claim status and button visibility logic
             }
             
             return (

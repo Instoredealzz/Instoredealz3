@@ -178,7 +178,7 @@ export default function ReviewDialog({
 
       handleClose();
     } catch (error) {
-      console.error('Failed to submit review:', error);
+      // Error handled by mutation onError callback
       toast({
         title: "Submission Failed",
         description: "Failed to submit your review. Please try again.",

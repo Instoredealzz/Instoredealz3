@@ -208,7 +208,7 @@ const Subscription = () => {
               userId: user?.id || 0,
             });
           } catch (error) {
-            console.error('Failed to save subscription:', error);
+            // Error handled by onError callback
           }
         },
         prefill: {
@@ -220,7 +220,7 @@ const Subscription = () => {
       const razorpay = new window.Razorpay(options);
       razorpay.open();
     } catch (error) {
-      console.error('Payment initialization failed:', error);
+      // Payment initialization failed - error shown via toast
       toast({
         title: "Payment Failed",
         description: "Failed to initialize payment. Please try again.",

@@ -62,7 +62,6 @@ export interface IStorage {
 
   // Deal claim operations
   claimDeal(claim: InsertDealClaim): Promise<DealClaim>;
-  createDealClaim(claim: InsertDealClaim): Promise<DealClaim>;
   getUserClaims(userId: number): Promise<DealClaim[]>;
   getDealClaims(dealId: number): Promise<DealClaim[]>;
   getAllDealClaims(): Promise<DealClaim[]>;
@@ -867,10 +866,6 @@ export class MemStorage implements IStorage {
     };
     this.dealClaims.set(claim.id, claim);
     return claim;
-  }
-
-  async createDealClaim(insertClaim: InsertDealClaim): Promise<DealClaim> {
-    return this.claimDeal(insertClaim);
   }
 
   async incrementDealRedemptions(dealId: number): Promise<void> {

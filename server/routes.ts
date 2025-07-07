@@ -830,7 +830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create claim automatically if none exists (merged workflow)
       let currentClaim = existingClaim;
       if (!currentClaim) {
-        currentClaim = await storage.createDealClaim({
+        currentClaim = await storage.claimDeal({
           dealId,
           userId,
           status: "pending",
@@ -2367,7 +2367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create deal claim record if customer is provided
       if (customerId && transactionType === 'redeem') {
-        await storage.createDealClaim({
+        await storage.claimDeal({
           userId: customerId,
           dealId,
           savingsAmount,

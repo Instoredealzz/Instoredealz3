@@ -140,7 +140,7 @@ export default function ImageUpload({
         // Trigger camera immediately
         cameraInputRef.current.click();
       } catch (error) {
-        console.warn('Camera access failed:', error);
+        // Camera access failed - silently fall back to file upload
         setError('Camera access not available. Please use file upload instead.');
       }
     } else {
