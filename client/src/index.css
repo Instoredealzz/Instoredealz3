@@ -28,6 +28,24 @@
   animation-play-state: paused;
 }
 
+/* Scrolling text animation for logo */
+@keyframes scroll-text {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll-text {
+  animation: scroll-text 12s linear infinite;
+}
+
+.animate-scroll-text:hover {
+  animation-play-state: paused;
+}
+
 :root {
   --background: hsl(260, 25%, 97%);
   --foreground: hsl(260, 20%, 15%);
