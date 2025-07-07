@@ -156,22 +156,23 @@ export default function VendorDashboard() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                 {(vendor as any) ? `Welcome, ${(vendor as any).businessName}!` : 'Vendor Dashboard'}
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground text-sm sm:text-base mt-1">
                 Manage your deals and track your business performance
               </p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <Tutorial type="vendor" />
               <Button variant="outline" size="sm" asChild>
                 <Link to="/vendor/deals">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Manage Deals
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline">Manage Deals</span>
+                  <span className="xs:hidden">Deals</span>
                 </Link>
               </Button>
             </div>
@@ -241,29 +242,29 @@ export default function VendorDashboard() {
 
         {/* Stats Grid */}
         {(vendor as any) && isApproved && (
-          <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               const gradientClass = index === 0 ? 'stat-card-primary' : 
                                    index === 1 ? 'stat-card-success' : 
                                    index === 2 ? 'stat-card-warning' : 'stat-card-danger';
               return (
-                <div key={stat.title} className={`stat-card ${gradientClass} rounded-xl p-6 shadow-lg`}>
+                <div key={stat.title} className={`stat-card ${gradientClass} rounded-xl p-4 sm:p-6 shadow-lg`}>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-white/80 text-sm font-medium">{stat.title}</p>
-                      <p className="text-3xl font-bold text-white mt-2">{stat.value}</p>
-                      <div className="flex items-center mt-2">
-                        <span className="text-white/90 text-sm">{stat.change}</span>
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">{stat.title}</p>
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mt-1 sm:mt-2">{stat.value}</p>
+                      <div className="flex items-center mt-1 sm:mt-2">
+                        <span className="text-white/90 text-xs sm:text-sm">{stat.change}</span>
                         {stat.changeType === 'increase' ? (
-                          <TrendingUp className="h-4 w-4 text-white/90 ml-1" />
+                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-white/90 ml-1" />
                         ) : (
-                          <TrendingUp className="h-4 w-4 text-white/90 ml-1 rotate-180" />
+                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-white/90 ml-1 rotate-180" />
                         )}
                       </div>
                     </div>
-                    <div className="bg-card/20 p-4 rounded-full backdrop-blur-sm">
-                      <Icon className="h-8 w-8 text-white" />
+                    <div className="bg-card/20 p-2 sm:p-3 lg:p-4 rounded-full backdrop-blur-sm">
+                      <Icon className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-white" />
                     </div>
                   </div>
                 </div>
