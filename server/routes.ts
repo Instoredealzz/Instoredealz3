@@ -923,16 +923,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Find the most recent pending claim for this deal
+      // Find the most recent claim for this deal (any status)
       const existingClaims = await storage.getUserClaims(userId);
       const dealClaim = existingClaims
-        .filter(claim => claim.dealId === dealId && claim.status === "pending")
+        .filter(claim => claim.dealId === dealId)
         .sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime())[0];
       
       if (!dealClaim) {
         return res.status(404).json({ 
           success: false, 
-          message: "No pending claim found for this deal" 
+          message: "No claim found for this deal" 
         });
       }
 
