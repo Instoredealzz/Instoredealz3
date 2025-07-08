@@ -862,7 +862,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // DON'T update user totals or deal counts yet - wait for bill amount completion
+      // Increment deal redemption count when PIN is verified
+      await storage.incrementDealRedemptions(dealId);
 
       // Log the PIN verification (not full redemption yet)
       await storage.createSystemLog({
