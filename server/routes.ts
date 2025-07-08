@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail } from "./email";
+import jwt from "jsonwebtoken";
 
 // Configure axios defaults
 const externalAPI = axios.create({
@@ -330,16 +331,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json(healthData);
   });
 
-  // Mock session middleware - in production, use express-session with proper store
+  // JWT authentication middleware
   app.use((req: AuthenticatedRequest, res, next) => {
-    // For demo purposes, we'll simulate sessions
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
-      // In production, verify JWT token
+      
       try {
-        const [id, role, email] = token.split('|');
-        req.user = { id: parseInt(id), role, email };
+        // Check if it's a JWT token (starts with 'eyJ')
+        if (token.startsWith('eyJ')) {
+          // JWT token - verify and decode
+          const payload = jwt.verify(token, process.env.JWT_SECRET || 'demo-secret-key') as any;
+          req.user = { 
+            id: payload.userId, 
+            role: payload.role, 
+            email: payload.email 
+          };
+        } else {
+          // Simple pipe-separated token for backwards compatibility
+          const [id, role, email] = token.split('|');
+          req.user = { id: parseInt(id), role, email };
+        }
       } catch (e) {
         // Invalid token, continue without user
       }
@@ -385,7 +397,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      const token = `${user.id}|${user.role}|${user.email}`;
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: user.id, 
+          role: user.role, 
+          email: user.email 
+        },
+        process.env.JWT_SECRET || 'demo-secret-key',
+        { expiresIn: '24h' }
+      );
       
       res.json({
         user: {
@@ -441,7 +462,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const user = await storage.createUser(cleanedUserData);
       
-      const token = `${user.id}|${user.role}|${user.email}`;
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: user.id, 
+          role: user.role, 
+          email: user.email 
+        },
+        process.env.JWT_SECRET || 'demo-secret-key',
+        { expiresIn: '24h' }
+      );
       
       // Log signup activity
       await storage.createSystemLog({
