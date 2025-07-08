@@ -20,6 +20,11 @@ export async function apiRequest(
   }
   
   if (token) {
+    // Check if token is old format and warn
+    if (!token.startsWith('eyJ')) {
+      localStorage.removeItem('auth_token');
+      throw new Error('401: Authentication expired. Please log out and log back in.');
+    }
     headers["Authorization"] = `Bearer ${token}`;
   }
 

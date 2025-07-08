@@ -96,6 +96,14 @@ export const useAuth = create<AuthState>()(
           return;
         }
 
+        // Check if token is old format (pipe-separated) and clear it
+        if (!token.startsWith('eyJ')) {
+          console.log('Clearing old token format, please log in again');
+          localStorage.removeItem('auth_token');
+          set({ isAuthenticated: false, user: null, token: null });
+          return;
+        }
+
         try {
           const response = await fetch('/api/auth/me', {
             headers: {
