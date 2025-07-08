@@ -24,7 +24,7 @@ import {
 
 export default function CustomerDeals() {
   const [selectedCity, setSelectedCity] = useState("Mumbai");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [location] = useLocation();
@@ -61,7 +61,11 @@ export default function CustomerDeals() {
 
 
   const { data: deals = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/deals", selectedCity, selectedCategory],
+    queryKey: ["/api/deals", selectedCity, selectedCategory === "all" ? "" : selectedCategory],
+  });
+
+  const { data: categories = [] } = useQuery<any[]>({
+    queryKey: ["/api/categories"],
   });
 
   const { data: wishlist = [] } = useQuery<any[]>({
@@ -261,7 +265,7 @@ export default function CustomerDeals() {
         {/* Filters and Search */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-5 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -273,6 +277,21 @@ export default function CustomerDeals() {
                   />
                 </div>
               </div>
+              
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger>
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories?.map((category: any) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger>
@@ -290,7 +309,7 @@ export default function CustomerDeals() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSelectedCategory("");
+                  setSelectedCategory("all");
                   setSearchQuery("");
                   setSortBy("newest");
                 }}
