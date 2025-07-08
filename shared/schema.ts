@@ -250,6 +250,83 @@ export const vendorRatings = pgTable("vendor_ratings", {
   lastUpdated: timestamp("last_updated").defaultNow(),
 });
 
+// Custom Deal Alerts for Ultimate members
+export const customDealAlerts = pgTable("custom_deal_alerts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Alert criteria
+  alertName: text("alert_name").notNull(),
+  categories: json("categories").$type<string[]>().default([]), // Array of categories
+  minDiscountPercentage: integer("min_discount_percentage"),
+  maxPrice: decimal("max_price", { precision: 10, scale: 2 }),
+  keywords: text("keywords"), // Comma-separated keywords
+  cities: json("cities").$type<string[]>().default([]), // Array of cities
+  maxDistance: integer("max_distance"), // In kilometers for location-based alerts
+  
+  // Notification preferences
+  emailNotifications: boolean("email_notifications").default(true),
+  smsNotifications: boolean("sms_notifications").default(false),
+  pushNotifications: boolean("push_notifications").default(true),
+  
+  // Alert status
+  isActive: boolean("is_active").default(true),
+  lastTriggered: timestamp("last_triggered"),
+  totalMatches: integer("total_matches").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Personal Deal Concierge requests for Ultimate members
+export const dealConciergeRequests = pgTable("deal_concierge_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Request details
+  requestTitle: text("request_title").notNull(),
+  description: text("description").notNull(),
+  category: text("category"),
+  budgetRange: text("budget_range"), // e.g., "1000-5000", "under-500", "above-10000"
+  preferredLocation: text("preferred_location"),
+  urgency: text("urgency").default("medium"), // low, medium, high
+  
+  // Concierge response
+  status: text("status").default("pending"), // pending, in_progress, completed, cancelled
+  assignedTo: integer("assigned_to").references(() => users.id), // Admin/concierge user
+  conciergeNotes: text("concierge_notes"),
+  recommendedDeals: json("recommended_deals").$type<number[]>().default([]), // Array of deal IDs
+  
+  // Communication
+  lastContactDate: timestamp("last_contact_date"),
+  responseDeadline: timestamp("response_deadline"),
+  customerSatisfaction: integer("customer_satisfaction"), // 1-5 rating
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Deal Alert Notifications log
+export const alertNotifications = pgTable("alert_notifications", {
+  id: serial("id").primaryKey(),
+  alertId: integer("alert_id").references(() => customDealAlerts.id).notNull(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Notification details
+  notificationType: text("notification_type").notNull(), // email, sms, push
+  status: text("status").default("pending"), // pending, sent, failed
+  sentAt: timestamp("sent_at"),
+  errorMessage: text("error_message"),
+  
+  // Engagement tracking
+  opened: boolean("opened").default(false),
+  clicked: boolean("clicked").default(false),
+  dealClaimed: boolean("deal_claimed").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   vendor: one(vendors, { fields: [users.id], references: [vendors.userId] }),
@@ -317,6 +394,23 @@ export const dealRatingsRelations = relations(dealRatings, ({ one }) => ({
 
 export const vendorRatingsRelations = relations(vendorRatings, ({ one }) => ({
   vendor: one(vendors, { fields: [vendorRatings.vendorId], references: [vendors.id] }),
+}));
+
+// New relations for concierge and alerts
+export const customDealAlertsRelations = relations(customDealAlerts, ({ one, many }) => ({
+  user: one(users, { fields: [customDealAlerts.userId], references: [users.id] }),
+  notifications: many(alertNotifications),
+}));
+
+export const dealConciergeRequestsRelations = relations(dealConciergeRequests, ({ one }) => ({
+  user: one(users, { fields: [dealConciergeRequests.userId], references: [users.id] }),
+  assignee: one(users, { fields: [dealConciergeRequests.assignedTo], references: [users.id] }),
+}));
+
+export const alertNotificationsRelations = relations(alertNotifications, ({ one }) => ({
+  alert: one(customDealAlerts, { fields: [alertNotifications.alertId], references: [customDealAlerts.id] }),
+  deal: one(deals, { fields: [alertNotifications.dealId], references: [deals.id] }),
+  user: one(users, { fields: [alertNotifications.userId], references: [users.id] }),
 }));
 
 // Insert schemas
@@ -394,6 +488,25 @@ export const insertVendorRatingSchema = createInsertSchema(vendorRatings).omit({
   lastUpdated: true,
 });
 
+// Custom Deal Alerts and Concierge schemas
+export const insertCustomDealAlertSchema = createInsertSchema(customDealAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  totalMatches: true,
+});
+
+export const insertDealConciergeRequestSchema = createInsertSchema(dealConciergeRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAlertNotificationSchema = createInsertSchema(alertNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -421,6 +534,12 @@ export type DealRating = typeof dealRatings.$inferSelect;
 export type InsertDealRating = z.infer<typeof insertDealRatingSchema>;
 export type VendorRating = typeof vendorRatings.$inferSelect;
 export type InsertVendorRating = z.infer<typeof insertVendorRatingSchema>;
+export type CustomDealAlert = typeof customDealAlerts.$inferSelect;
+export type InsertCustomDealAlert = z.infer<typeof insertCustomDealAlertSchema>;
+export type DealConciergeRequest = typeof dealConciergeRequests.$inferSelect;
+export type InsertDealConciergeRequest = z.infer<typeof insertDealConciergeRequestSchema>;
+export type AlertNotification = typeof alertNotifications.$inferSelect;
+export type InsertAlertNotification = z.infer<typeof insertAlertNotificationSchema>;
 
 // Auth schemas
 export const loginSchema = z.object({

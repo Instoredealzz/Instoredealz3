@@ -25,6 +25,12 @@ import {
   InsertDealRating,
   VendorRating,
   InsertVendorRating,
+  CustomDealAlert,
+  InsertCustomDealAlert,
+  DealConciergeRequest,
+  InsertDealConciergeRequest,
+  AlertNotification,
+  InsertAlertNotification,
 } from "../shared/schema";
 
 export interface IStorage {
@@ -142,6 +148,33 @@ export interface IStorage {
   // Get deals with ratings
   getDealsWithRatings(): Promise<(Deal & { rating?: DealRating })[]>;
   getVendorsWithRatings(): Promise<(Vendor & { rating?: VendorRating })[]>;
+  
+  // Custom Deal Alerts operations
+  createCustomDealAlert(alert: InsertCustomDealAlert): Promise<CustomDealAlert>;
+  getCustomDealAlertsByUser(userId: number): Promise<CustomDealAlert[]>;
+  getCustomDealAlert(id: number): Promise<CustomDealAlert | undefined>;
+  updateCustomDealAlert(id: number, updates: Partial<CustomDealAlert>): Promise<CustomDealAlert | undefined>;
+  deleteCustomDealAlert(id: number): Promise<boolean>;
+  getActiveCustomDealAlerts(): Promise<CustomDealAlert[]>;
+  triggerCustomDealAlert(alertId: number): Promise<void>;
+  
+  // Deal Concierge operations
+  createDealConciergeRequest(request: InsertDealConciergeRequest): Promise<DealConciergeRequest>;
+  getDealConciergeRequestsByUser(userId: number): Promise<DealConciergeRequest[]>;
+  getDealConciergeRequest(id: number): Promise<DealConciergeRequest | undefined>;
+  updateDealConciergeRequest(id: number, updates: Partial<DealConciergeRequest>): Promise<DealConciergeRequest | undefined>;
+  getAllDealConciergeRequests(): Promise<DealConciergeRequest[]>;
+  getDealConciergeRequestsByStatus(status: string): Promise<DealConciergeRequest[]>;
+  assignDealConciergeRequest(id: number, assigneeId: number): Promise<DealConciergeRequest | undefined>;
+  
+  // Alert Notifications operations
+  createAlertNotification(notification: InsertAlertNotification): Promise<AlertNotification>;
+  getAlertNotificationsByUser(userId: number): Promise<AlertNotification[]>;
+  getAlertNotificationsByAlert(alertId: number): Promise<AlertNotification[]>;
+  updateAlertNotification(id: number, updates: Partial<AlertNotification>): Promise<AlertNotification | undefined>;
+  markNotificationOpened(id: number): Promise<void>;
+  markNotificationClicked(id: number): Promise<void>;
+  markNotificationDealClaimed(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -158,6 +191,9 @@ export class MemStorage implements IStorage {
   private customerReviews: Map<number, CustomerReview> = new Map();
   private dealRatings: Map<number, DealRating> = new Map();
   private vendorRatings: Map<number, VendorRating> = new Map();
+  private customDealAlerts: Map<number, CustomDealAlert> = new Map();
+  private dealConciergeRequests: Map<number, DealConciergeRequest> = new Map();
+  private alertNotifications: Map<number, AlertNotification> = new Map();
 
   private currentUserId = 1;
   private currentVendorId = 1;
@@ -1639,6 +1675,196 @@ export class MemStorage implements IStorage {
       starDistribution,
     };
   }
+
+  // Custom Deal Alerts methods
+  async createCustomDealAlert(alert: InsertCustomDealAlert): Promise<CustomDealAlert> {
+    const newAlert: CustomDealAlert = {
+      id: this.currentCustomDealAlertId++,
+      ...alert,
+      totalMatches: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.customDealAlerts.set(newAlert.id, newAlert);
+    return newAlert;
+  }
+
+  async getCustomDealAlertsByUser(userId: number): Promise<CustomDealAlert[]> {
+    return Array.from(this.customDealAlerts.values())
+      .filter(alert => alert.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getCustomDealAlert(id: number): Promise<CustomDealAlert | undefined> {
+    return this.customDealAlerts.get(id);
+  }
+
+  async updateCustomDealAlert(id: number, updates: Partial<CustomDealAlert>): Promise<CustomDealAlert | undefined> {
+    const alert = this.customDealAlerts.get(id);
+    if (!alert) return undefined;
+
+    const updatedAlert: CustomDealAlert = {
+      ...alert,
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    this.customDealAlerts.set(id, updatedAlert);
+    return updatedAlert;
+  }
+
+  async deleteCustomDealAlert(id: number): Promise<boolean> {
+    return this.customDealAlerts.delete(id);
+  }
+
+  async getActiveCustomDealAlerts(): Promise<CustomDealAlert[]> {
+    return Array.from(this.customDealAlerts.values())
+      .filter(alert => alert.isActive);
+  }
+
+  async triggerCustomDealAlert(alertId: number): Promise<void> {
+    const alert = this.customDealAlerts.get(alertId);
+    if (alert) {
+      alert.lastTriggered = new Date();
+      alert.totalMatches++;
+      this.customDealAlerts.set(alertId, alert);
+    }
+  }
+
+  // Deal Concierge methods
+  async createDealConciergeRequest(request: InsertDealConciergeRequest): Promise<DealConciergeRequest> {
+    const newRequest: DealConciergeRequest = {
+      id: this.currentDealConciergeRequestId++,
+      ...request,
+      status: "pending",
+      recommendedDeals: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.dealConciergeRequests.set(newRequest.id, newRequest);
+    return newRequest;
+  }
+
+  async getDealConciergeRequestsByUser(userId: number): Promise<DealConciergeRequest[]> {
+    return Array.from(this.dealConciergeRequests.values())
+      .filter(request => request.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getDealConciergeRequest(id: number): Promise<DealConciergeRequest | undefined> {
+    return this.dealConciergeRequests.get(id);
+  }
+
+  async updateDealConciergeRequest(id: number, updates: Partial<DealConciergeRequest>): Promise<DealConciergeRequest | undefined> {
+    const request = this.dealConciergeRequests.get(id);
+    if (!request) return undefined;
+
+    const updatedRequest: DealConciergeRequest = {
+      ...request,
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    this.dealConciergeRequests.set(id, updatedRequest);
+    return updatedRequest;
+  }
+
+  async getAllDealConciergeRequests(): Promise<DealConciergeRequest[]> {
+    return Array.from(this.dealConciergeRequests.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getDealConciergeRequestsByStatus(status: string): Promise<DealConciergeRequest[]> {
+    return Array.from(this.dealConciergeRequests.values())
+      .filter(request => request.status === status)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async assignDealConciergeRequest(id: number, assigneeId: number): Promise<DealConciergeRequest | undefined> {
+    const request = this.dealConciergeRequests.get(id);
+    if (!request) return undefined;
+
+    const updatedRequest: DealConciergeRequest = {
+      ...request,
+      assignedTo: assigneeId,
+      status: "in_progress",
+      updatedAt: new Date(),
+    };
+
+    this.dealConciergeRequests.set(id, updatedRequest);
+    return updatedRequest;
+  }
+
+  // Alert Notifications methods
+  async createAlertNotification(notification: InsertAlertNotification): Promise<AlertNotification> {
+    const newNotification: AlertNotification = {
+      id: this.currentAlertNotificationId++,
+      ...notification,
+      status: "pending",
+      opened: false,
+      clicked: false,
+      dealClaimed: false,
+      createdAt: new Date(),
+    };
+    
+    this.alertNotifications.set(newNotification.id, newNotification);
+    return newNotification;
+  }
+
+  async getAlertNotificationsByUser(userId: number): Promise<AlertNotification[]> {
+    return Array.from(this.alertNotifications.values())
+      .filter(notification => notification.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getAlertNotificationsByAlert(alertId: number): Promise<AlertNotification[]> {
+    return Array.from(this.alertNotifications.values())
+      .filter(notification => notification.alertId === alertId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async updateAlertNotification(id: number, updates: Partial<AlertNotification>): Promise<AlertNotification | undefined> {
+    const notification = this.alertNotifications.get(id);
+    if (!notification) return undefined;
+
+    const updatedNotification: AlertNotification = {
+      ...notification,
+      ...updates,
+    };
+
+    this.alertNotifications.set(id, updatedNotification);
+    return updatedNotification;
+  }
+
+  async markNotificationOpened(id: number): Promise<void> {
+    const notification = this.alertNotifications.get(id);
+    if (notification) {
+      notification.opened = true;
+      this.alertNotifications.set(id, notification);
+    }
+  }
+
+  async markNotificationClicked(id: number): Promise<void> {
+    const notification = this.alertNotifications.get(id);
+    if (notification) {
+      notification.clicked = true;
+      this.alertNotifications.set(id, notification);
+    }
+  }
+
+  async markNotificationDealClaimed(id: number): Promise<void> {
+    const notification = this.alertNotifications.get(id);
+    if (notification) {
+      notification.dealClaimed = true;
+      this.alertNotifications.set(id, notification);
+    }
+  }
+
+  private currentCustomDealAlertId = 1;
+  private currentDealConciergeRequestId = 1;
+  private currentAlertNotificationId = 1;
 }
 
 export const storage = new MemStorage();

@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { storage } from "./storage";
-import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema } from "@shared/schema";
+import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail } from "./email";
 
@@ -3628,6 +3628,357 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false,
         message: "Failed to process vendor subscription" 
+      });
+    }
+  });
+
+  // ================================
+  // CUSTOM DEAL ALERTS API ROUTES (Ultimate members only)
+  // ================================
+
+  // Create a new deal alert
+  app.post('/api/alerts', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      // Check if user has Ultimate membership
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Custom deal alerts are only available for Ultimate membership holders"
+        });
+      }
+
+      const alertData = insertCustomDealAlertSchema.parse(req.body);
+      const alert = await storage.createCustomDealAlert({
+        ...alertData,
+        userId: user.id
+      });
+
+      res.json({ success: true, data: alert });
+    } catch (error) {
+      Logger.error('Error creating deal alert', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create deal alert' 
+      });
+    }
+  });
+
+  // Get user's deal alerts
+  app.get('/api/alerts', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Custom deal alerts are only available for Ultimate membership holders"
+        });
+      }
+
+      const alerts = await storage.getCustomDealAlertsByUser(user.id);
+      res.json({ success: true, data: alerts });
+    } catch (error) {
+      Logger.error('Error fetching deal alerts', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch deal alerts' 
+      });
+    }
+  });
+
+  // Update a deal alert
+  app.put('/api/alerts/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      const alertId = parseInt(req.params.id);
+      
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Custom deal alerts are only available for Ultimate membership holders"
+        });
+      }
+
+      // Check if alert belongs to user
+      const existingAlert = await storage.getCustomDealAlert(alertId);
+      if (!existingAlert || existingAlert.userId !== user.id) {
+        return res.status(404).json({
+          success: false,
+          message: "Deal alert not found or access denied"
+        });
+      }
+
+      const updates = req.body;
+      const updatedAlert = await storage.updateCustomDealAlert(alertId, updates);
+      
+      res.json({ success: true, data: updatedAlert });
+    } catch (error) {
+      Logger.error('Error updating deal alert', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update deal alert' 
+      });
+    }
+  });
+
+  // Delete a deal alert
+  app.delete('/api/alerts/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      const alertId = parseInt(req.params.id);
+      
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Custom deal alerts are only available for Ultimate membership holders"
+        });
+      }
+
+      // Check if alert belongs to user
+      const existingAlert = await storage.getCustomDealAlert(alertId);
+      if (!existingAlert || existingAlert.userId !== user.id) {
+        return res.status(404).json({
+          success: false,
+          message: "Deal alert not found or access denied"
+        });
+      }
+
+      await storage.deleteCustomDealAlert(alertId);
+      res.json({ success: true, message: "Deal alert deleted successfully" });
+    } catch (error) {
+      Logger.error('Error deleting deal alert', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to delete deal alert' 
+      });
+    }
+  });
+
+  // ================================
+  // PERSONAL DEAL CONCIERGE API ROUTES (Ultimate members only)
+  // ================================
+
+  // Create a new concierge request
+  app.post('/api/concierge', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      // Check if user has Ultimate membership
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Personal deal concierge is only available for Ultimate membership holders"
+        });
+      }
+
+      const requestData = insertDealConciergeRequestSchema.parse(req.body);
+      const request = await storage.createDealConciergeRequest({
+        ...requestData,
+        userId: user.id
+      });
+
+      res.json({ success: true, data: request });
+    } catch (error) {
+      Logger.error('Error creating concierge request', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to create concierge request' 
+      });
+    }
+  });
+
+  // Get user's concierge requests
+  app.get('/api/concierge', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Personal deal concierge is only available for Ultimate membership holders"
+        });
+      }
+
+      const requests = await storage.getDealConciergeRequestsByUser(user.id);
+      res.json({ success: true, data: requests });
+    } catch (error) {
+      Logger.error('Error fetching concierge requests', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch concierge requests' 
+      });
+    }
+  });
+
+  // Update a concierge request (used for adding satisfaction rating, etc.)
+  app.put('/api/concierge/:id', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      const requestId = parseInt(req.params.id);
+      
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Personal deal concierge is only available for Ultimate membership holders"
+        });
+      }
+
+      // Check if request belongs to user
+      const existingRequest = await storage.getDealConciergeRequest(requestId);
+      if (!existingRequest || existingRequest.userId !== user.id) {
+        return res.status(404).json({
+          success: false,
+          message: "Concierge request not found or access denied"
+        });
+      }
+
+      const updates = req.body;
+      const updatedRequest = await storage.updateDealConciergeRequest(requestId, updates);
+      
+      res.json({ success: true, data: updatedRequest });
+    } catch (error) {
+      Logger.error('Error updating concierge request', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update concierge request' 
+      });
+    }
+  });
+
+  // Admin endpoints for managing concierge requests
+  app.get('/api/admin/concierge', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { status } = req.query;
+      let requests;
+      
+      if (status && typeof status === 'string') {
+        requests = await storage.getDealConciergeRequestsByStatus(status);
+      } else {
+        requests = await storage.getAllDealConciergeRequests();
+      }
+
+      res.json({ success: true, data: requests });
+    } catch (error) {
+      Logger.error('Error fetching admin concierge requests', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch concierge requests' 
+      });
+    }
+  });
+
+  // Assign concierge request to admin
+  app.put('/api/admin/concierge/:id/assign', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const { assigneeId } = req.body;
+      
+      if (!assigneeId) {
+        return res.status(400).json({
+          success: false,
+          message: "Assignee ID is required"
+        });
+      }
+
+      const updatedRequest = await storage.assignDealConciergeRequest(requestId, assigneeId);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({
+          success: false,
+          message: "Concierge request not found"
+        });
+      }
+
+      res.json({ success: true, data: updatedRequest });
+    } catch (error) {
+      Logger.error('Error assigning concierge request', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to assign concierge request' 
+      });
+    }
+  });
+
+  // Update concierge request by admin
+  app.put('/api/admin/concierge/:id', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const updatedRequest = await storage.updateDealConciergeRequest(requestId, updates);
+      
+      if (!updatedRequest) {
+        return res.status(404).json({
+          success: false,
+          message: "Concierge request not found"
+        });
+      }
+
+      res.json({ success: true, data: updatedRequest });
+    } catch (error) {
+      Logger.error('Error updating concierge request as admin', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to update concierge request' 
+      });
+    }
+  });
+
+  // ================================
+  // ALERT NOTIFICATIONS API ROUTES
+  // ================================
+
+  // Get user's alert notifications
+  app.get('/api/notifications', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const user = req.user!;
+      
+      if (user.membershipPlan !== 'ultimate') {
+        return res.status(403).json({
+          success: false,
+          message: "Alert notifications are only available for Ultimate membership holders"
+        });
+      }
+
+      const notifications = await storage.getAlertNotificationsByUser(user.id);
+      res.json({ success: true, data: notifications });
+    } catch (error) {
+      Logger.error('Error fetching alert notifications', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to fetch alert notifications' 
+      });
+    }
+  });
+
+  // Mark notification as opened
+  app.put('/api/notifications/:id/opened', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      await storage.markNotificationOpened(notificationId);
+      res.json({ success: true, message: "Notification marked as opened" });
+    } catch (error) {
+      Logger.error('Error marking notification as opened', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to mark notification as opened' 
+      });
+    }
+  });
+
+  // Mark notification as clicked
+  app.put('/api/notifications/:id/clicked', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      await storage.markNotificationClicked(notificationId);
+      res.json({ success: true, message: "Notification marked as clicked" });
+    } catch (error) {
+      Logger.error('Error marking notification as clicked', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to mark notification as clicked' 
       });
     }
   });
