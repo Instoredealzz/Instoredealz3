@@ -1562,59 +1562,9 @@ export class MemStorage implements IStorage {
     return this.customerReviews.get(id) || null;
   }
 
-  async getReviewsByUser(userId: number): Promise<CustomerReview[]> {
-    return Array.from(this.customerReviews.values())
-      .filter(review => review.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-
-  async getReviewsByDeal(dealId: number): Promise<CustomerReview[]> {
-    return Array.from(this.customerReviews.values())
-      .filter(review => review.dealId === dealId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-
-  async getReviewsByVendor(vendorId: number): Promise<CustomerReview[]> {
-    return Array.from(this.customerReviews.values())
-      .filter(review => review.vendorId === vendorId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-
   async getAllReviews(): Promise<CustomerReview[]> {
     return Array.from(this.customerReviews.values())
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  }
-
-  async updateReview(id: number, updates: Partial<InsertCustomerReview>): Promise<CustomerReview | null> {
-    const review = this.customerReviews.get(id);
-    if (!review) return null;
-
-    const updatedReview: CustomerReview = {
-      ...review,
-      ...updates,
-      updatedAt: new Date(),
-    };
-
-    this.customerReviews.set(id, updatedReview);
-    
-    // Update ratings after updating review
-    await this.updateDealRating(updatedReview.dealId);
-    await this.updateVendorRating(updatedReview.vendorId);
-    
-    return updatedReview;
-  }
-
-  async deleteReview(id: number): Promise<boolean> {
-    const review = this.customerReviews.get(id);
-    if (!review) return false;
-
-    this.customerReviews.delete(id);
-    
-    // Update ratings after deleting review
-    await this.updateDealRating(review.dealId);
-    await this.updateVendorRating(review.vendorId);
-    
-    return true;
   }
 
   async getUserReviewForDeal(userId: number, dealId: number): Promise<CustomerReview | null> {
