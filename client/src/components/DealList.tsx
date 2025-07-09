@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -49,13 +49,33 @@ const DealList = () => {
   const [calculatedSavings, setCalculatedSavings] = useState<number>(0);
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pinDialogDeal, setPinDialogDeal] = useState<Deal | null>(null);
-  const [, setLocation] = useLocation();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch deals using TanStack Query
+  // Parse category from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const category = urlParams.get('category');
+    if (category) {
+      setSelectedCategory(category);
+    }
+  }, [location]);
+
+  // Fetch deals using TanStack Query with category filtering
   const { data: deals = [], isLoading, error } = useQuery<Deal[]>({
-    queryKey: ['/api/deals'],
+    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCategory && selectedCategory !== 'all') {
+        params.append('category', selectedCategory);
+      }
+      
+      const response = await fetch(`/api/deals?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch deals');
+      return response.json();
+    },
   });
 
   // Fetch user claims to check which deals have been claimed

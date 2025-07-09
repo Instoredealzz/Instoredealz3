@@ -62,6 +62,15 @@ export default function CustomerDeals() {
 
   const { data: deals = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/deals", selectedCity, selectedCategory === "all" ? "" : selectedCategory],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCity) params.append('city', selectedCity);
+      if (selectedCategory && selectedCategory !== "all") params.append('category', selectedCategory);
+      
+      const response = await fetch(`/api/deals?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch deals');
+      return response.json();
+    },
   });
 
   const { data: categories = [] } = useQuery<any[]>({
