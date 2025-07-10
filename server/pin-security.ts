@@ -15,6 +15,17 @@ const MAX_ATTEMPTS_PER_HOUR = 5;
 const MAX_ATTEMPTS_PER_DAY = 10;
 const LOCKOUT_DURATION_HOURS = 1;
 
+// Rotating PIN configuration
+const ROTATION_INTERVAL_MINUTES = 10; // Rotate PIN every 10 minutes
+const ROTATION_WINDOW_MS = ROTATION_INTERVAL_MINUTES * 60 * 1000;
+
+export interface RotatingPinResult {
+  currentPin: string;
+  nextRotationAt: Date;
+  rotationInterval: number;
+  isActive: boolean;
+}
+
 export interface PinSecurityResult {
   success: boolean;
   message: string;
@@ -186,6 +197,73 @@ export function generateSecurePin(): string {
   } while (!validatePinFormat(pin).isValid);
   
   return pin;
+}
+
+/**
+ * Generates a rotating PIN based on deal ID and current time window
+ */
+export function generateRotatingPin(dealId: number): RotatingPinResult {
+  const now = new Date();
+  const currentWindow = Math.floor(now.getTime() / ROTATION_WINDOW_MS);
+  
+  // Create a deterministic seed based on dealId and time window
+  const seed = `${dealId}-${currentWindow}`;
+  const hash = crypto.createHash('sha256').update(seed).digest('hex');
+  
+  // Convert first 8 characters of hash to a number and generate PIN
+  const hashNum = parseInt(hash.substring(0, 8), 16);
+  let pin = String(hashNum % 10000).padStart(4, '0');
+  
+  // Ensure PIN meets complexity requirements
+  let attempts = 0;
+  while (!validatePinFormat(pin).isValid && attempts < 10) {
+    const offset = attempts + 1;
+    const offsetHash = crypto.createHash('sha256').update(seed + offset).digest('hex');
+    const offsetNum = parseInt(offsetHash.substring(0, 8), 16);
+    pin = String(offsetNum % 10000).padStart(4, '0');
+    attempts++;
+  }
+  
+  // Calculate next rotation time
+  const nextRotationAt = new Date((currentWindow + 1) * ROTATION_WINDOW_MS);
+  
+  return {
+    currentPin: pin,
+    nextRotationAt,
+    rotationInterval: ROTATION_INTERVAL_MINUTES,
+    isActive: true
+  };
+}
+
+/**
+ * Verifies if a PIN is valid for the current or previous rotation window
+ */
+export function verifyRotatingPin(dealId: number, inputPin: string): boolean {
+  const currentResult = generateRotatingPin(dealId);
+  
+  // Check current window
+  if (currentResult.currentPin === inputPin) {
+    return true;
+  }
+  
+  // Check previous window (grace period for users who got PIN just before rotation)
+  const previousWindow = Math.floor(Date.now() / ROTATION_WINDOW_MS) - 1;
+  const previousSeed = `${dealId}-${previousWindow}`;
+  const previousHash = crypto.createHash('sha256').update(previousSeed).digest('hex');
+  const previousHashNum = parseInt(previousHash.substring(0, 8), 16);
+  let previousPin = String(previousHashNum % 10000).padStart(4, '0');
+  
+  // Ensure previous PIN meets complexity requirements
+  let attempts = 0;
+  while (!validatePinFormat(previousPin).isValid && attempts < 10) {
+    const offset = attempts + 1;
+    const offsetHash = crypto.createHash('sha256').update(previousSeed + offset).digest('hex');
+    const offsetNum = parseInt(offsetHash.substring(0, 8), 16);
+    previousPin = String(offsetNum % 10000).padStart(4, '0');
+    attempts++;
+  }
+  
+  return previousPin === inputPin;
 }
 
 /**

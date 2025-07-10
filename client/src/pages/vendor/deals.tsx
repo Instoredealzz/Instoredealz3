@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import ImageUpload from "@/components/ui/image-upload";
 import PinTracker from "@/components/ui/pin-tracker";
+import RotatingPinDisplay from "@/components/ui/rotating-pin-display";
 
 const dealSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -840,50 +841,62 @@ export default function VendorDeals() {
               <div className="space-y-4">
                 {deals.map((deal: any) => (
                   <div key={deal.id} className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-foreground">
-                            {deal.title}
-                          </h3>
-                          {getDealStatusBadge(deal)}
+                    <div className="space-y-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="text-lg font-semibold text-foreground">
+                              {deal.title}
+                            </h3>
+                            {getDealStatusBadge(deal)}
+                          </div>
+                          <p className="text-muted-foreground mb-3">{deal.description}</p>
+                          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                            <div className="flex items-center space-x-1">
+                              <Target className="h-4 w-4 text-gray-400" />
+                              <span>Category: {deal.category}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <TrendingUp className="h-4 w-4 text-gray-400" />
+                              <span>Discount: {deal.discountPercentage}%</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Eye className="h-4 w-4 text-gray-400" />
+                              <span>Views: {deal.viewCount || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-4 w-4 text-gray-400" />
+                              <span>Claims: {deal.currentRedemptions || 0}</span>
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                              <Clock className="h-4 w-4" />
+                              <span>Valid until: {new Date(deal.validUntil).toLocaleDateString()}</span>
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-muted-foreground mb-3">{deal.description}</p>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                          <div className="flex items-center space-x-1">
-                            <Target className="h-4 w-4 text-gray-400" />
-                            <span>Category: {deal.category}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <TrendingUp className="h-4 w-4 text-gray-400" />
-                            <span>Discount: {deal.discountPercentage}%</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Eye className="h-4 w-4 text-gray-400" />
-                            <span>Views: {deal.viewCount || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-4 w-4 text-gray-400" />
-                            <span>Claims: {deal.currentRedemptions || 0}</span>
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <div className="flex items-center space-x-1 text-sm text-gray-500">
-                            <Clock className="h-4 w-4" />
-                            <span>Valid until: {new Date(deal.validUntil).toLocaleDateString()}</span>
-                          </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(deal)}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(deal)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                      </div>
+                      
+                      {/* Rotating PIN Display */}
+                      {deal.isActive && deal.isApproved && (
+                        <div className="border-t pt-6">
+                          <RotatingPinDisplay 
+                            dealId={deal.id} 
+                            dealTitle={deal.title} 
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

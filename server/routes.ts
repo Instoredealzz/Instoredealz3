@@ -771,7 +771,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userAgent = req.headers['user-agent'] || '';
 
       // Import PIN security utilities
-      const { validatePinFormat, verifyPin, checkRateLimit } = await import('./pin-security');
+      const { validatePinFormat, verifyPin, checkRateLimit, verifyRotatingPin } = await import('./pin-security');
 
       // Validate PIN format first
       const validation = validatePinFormat(pin);
@@ -822,10 +822,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Verify PIN using secure hashing (fallback to plain text for existing PINs)
+      // Verify PIN using multiple methods: rotating PIN, secure hashing, and legacy fallback
       let pinVerificationResult;
+      let isRotatingPin = false;
       
-      if (deal.pinSalt) {
+      // First, try rotating PIN verification
+      if (verifyRotatingPin(dealId, pin)) {
+        pinVerificationResult = {
+          isValid: true,
+          message: "Rotating PIN verified successfully"
+        };
+        isRotatingPin = true;
+      } else if (deal.pinSalt) {
         // New secure PIN verification
         pinVerificationResult = await verifyPin(
           pin, 
@@ -1282,6 +1290,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       Logger.error("PIN generation error:", error);
       res.status(500).json({ message: "Failed to generate PIN" });
+    }
+  });
+
+  // Get current rotating PIN for a specific deal
+  app.get('/api/vendors/deals/:id/current-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor profile not found" });
+      }
+
+      // Verify the deal belongs to this vendor
+      const deal = await storage.getDeal(dealId);
+      if (!deal || deal.vendorId !== vendor.id) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+
+      const { generateRotatingPin } = await import('./pin-security');
+      const rotatingPin = generateRotatingPin(dealId);
+      
+      res.json({
+        dealId,
+        dealTitle: deal.title,
+        ...rotatingPin,
+        message: "Current PIN for your deal. This PIN changes every 10 minutes.",
+        usage: "Share this PIN with customers for deal verification."
+      });
+    } catch (error) {
+      Logger.error("Current PIN retrieval error:", error);
+      res.status(500).json({ message: "Failed to retrieve current PIN" });
     }
   });
 
