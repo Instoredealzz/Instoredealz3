@@ -18,10 +18,12 @@ import {
 interface RotatingPinDisplayProps {
   dealId: number;
   dealTitle: string;
+  dealImage?: string;
+  dealDescription?: string;
 }
 
-export default function RotatingPinDisplay({ dealId, dealTitle }: RotatingPinDisplayProps) {
-  const [showPin, setShowPin] = useState(false);
+export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealDescription }: RotatingPinDisplayProps) {
+  const [showPin, setShowPin] = useState(true); // Show PIN by default for vendors
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
@@ -29,7 +31,11 @@ export default function RotatingPinDisplay({ dealId, dealTitle }: RotatingPinDis
   // Fetch current rotating PIN
   const { data: pinData, isLoading, error, refetch } = useQuery({
     queryKey: ['rotatingPin', dealId],
-    queryFn: () => apiRequest(`/api/vendors/deals/${dealId}/current-pin`),
+    queryFn: async () => {
+      const response = await apiRequest(`/api/vendors/deals/${dealId}/current-pin`);
+      console.log('Rotating PIN API Response:', response); // Debug log
+      return response;
+    },
     refetchInterval: 30000, // Refresh every 30 seconds
     enabled: !!dealId
   });
@@ -143,6 +149,33 @@ export default function RotatingPinDisplay({ dealId, dealTitle }: RotatingPinDis
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Deal Information Section */}
+        {(dealImage || dealDescription) && (
+          <div className="flex items-start gap-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            {dealImage && (
+              <div className="flex-shrink-0">
+                <img 
+                  src={dealImage} 
+                  alt={dealTitle}
+                  className="w-16 h-16 object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-sm text-blue-900 dark:text-blue-100 truncate">
+                {dealTitle}
+              </h4>
+              {dealDescription && (
+                <p className="text-xs text-blue-700 dark:text-blue-200 mt-1 line-clamp-2">
+                  {dealDescription}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4 text-blue-600" />
@@ -156,8 +189,12 @@ export default function RotatingPinDisplay({ dealId, dealTitle }: RotatingPinDis
         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Current PIN:</span>
-            <div className="font-mono text-lg font-bold">
-              {showPin ? pinData?.currentPin : "••••"}
+            <div className="font-mono text-xl font-bold tracking-wider">
+              {showPin ? (pinData?.currentPin || "Loading...") : "••••"}
+            </div>
+            {/* Debug info - remove in production */}
+            <div className="text-xs text-gray-500 ml-2">
+              {pinData ? `(${showPin ? 'visible' : 'hidden'})` : '(no data)'}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -165,6 +202,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle }: RotatingPinDis
               variant="outline"
               size="sm"
               onClick={() => setShowPin(!showPin)}
+              title={showPin ? "Hide PIN" : "Show PIN"}
             >
               {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </Button>
@@ -172,7 +210,8 @@ export default function RotatingPinDisplay({ dealId, dealTitle }: RotatingPinDis
               variant="outline"
               size="sm"
               onClick={handleCopyPin}
-              disabled={!showPin}
+              title="Copy PIN"
+              disabled={!pinData?.currentPin}
             >
               {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             </Button>

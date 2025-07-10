@@ -1296,6 +1296,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get current rotating PIN for a specific deal
   app.get('/api/vendors/deals/:id/current-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
+      // Prevent caching for rotating PIN endpoint
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
       const dealId = parseInt(req.params.id);
       const vendor = await storage.getVendorByUserId(req.user!.id);
       
@@ -1310,15 +1317,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { generateRotatingPin } = await import('./pin-security');
-      const rotatingPin = generateRotatingPin(dealId);
       
-      res.json({
+      // Test the function directly
+      console.log('Testing generateRotatingPin function...');
+      console.log('DealId:', dealId);
+      
+      const rotatingPin = generateRotatingPin(dealId);
+      console.log('Generated rotating PIN:', rotatingPin);
+      
+      Logger.debug("Rotating PIN Generated", {
+        dealId,
+        rotatingPin,
+        currentTime: new Date().toISOString()
+      });
+      
+      const response = {
         dealId,
         dealTitle: deal.title,
-        ...rotatingPin,
+        currentPin: rotatingPin.currentPin,
+        nextRotationAt: rotatingPin.nextRotationAt,
+        rotationInterval: rotatingPin.rotationInterval,
+        isActive: rotatingPin.isActive,
         message: "Current PIN for your deal. This PIN changes every 10 minutes.",
         usage: "Share this PIN with customers for deal verification."
-      });
+      };
+
+      console.log('Final response:', JSON.stringify(response, null, 2));
+      Logger.debug("Final rotating PIN response", response);
+      res.json(response);
     } catch (error) {
       Logger.error("Current PIN retrieval error:", error);
       res.status(500).json({ message: "Failed to retrieve current PIN" });

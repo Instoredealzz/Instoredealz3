@@ -893,7 +893,9 @@ export default function VendorDeals() {
                         <div className="border-t pt-6">
                           <RotatingPinDisplay 
                             dealId={deal.id} 
-                            dealTitle={deal.title} 
+                            dealTitle={deal.title}
+                            dealImage={deal.imageUrl}
+                            dealDescription={deal.description}
                           />
                         </div>
                       )}
