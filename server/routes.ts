@@ -1326,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nextRotationAt: rotatingPin.nextRotationAt,
         rotationInterval: rotatingPin.rotationInterval,
         isActive: rotatingPin.isActive,
-        message: "Current PIN for your deal. This PIN changes every 10 minutes.",
+        message: "Current PIN for your deal. This PIN changes every 30 minutes.",
         usage: "Share this PIN with customers for deal verification."
       };
 
