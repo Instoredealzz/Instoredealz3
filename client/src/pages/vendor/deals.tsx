@@ -577,7 +577,7 @@ export default function VendorDeals() {
                               />
                             </FormControl>
                             <FormDescription className="text-xs">
-                              Customers will use this PIN for the 3-step claiming process: 1) Claim online, 2) Visit store for PIN, 3) Verify & add bill amount
+                              Set your deal PIN. The system also provides rotating PINs (change every 30 minutes) for enhanced security. Customers use this for the 3-step claiming process: 1) Claim online, 2) Visit store for current PIN, 3) Verify & add bill amount
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

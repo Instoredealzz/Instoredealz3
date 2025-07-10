@@ -218,9 +218,9 @@ export function PinVerificationDialog({
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div className="text-sm text-blue-800 dark:text-blue-200">
-                    <p className="font-medium mb-1">How PIN verification works</p>
+                    <p className="font-medium mb-1">How Advanced PIN Verification Works</p>
                     <p className="text-xs">
-                      Visit the store and ask for the 4-digit PIN from the vendor. Enter it below to claim the deal and add your bill amount to track actual savings. PIN verification ensures authentic store visits.
+                      Visit the store and ask for the current 4-digit PIN from the vendor (changes every 30 minutes for security). Enter it below to claim the deal and add your bill amount to track actual savings. Our multi-layer PIN system ensures authentic store visits.
                     </p>
                   </div>
                 </div>

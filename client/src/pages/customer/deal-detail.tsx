@@ -507,7 +507,7 @@ export default function DealDetail({ params }: DealDetailProps) {
                         <h4 className="font-semibold text-blue-900 dark:text-blue-100">How do I claim a deal?</h4>
                       </div>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        Click "Verify with PIN to Claim Deal" above, then visit the store and ask for the 4-digit PIN. Enter the PIN in the verification dialog to complete your claim and add the bill amount to track your actual savings.
+                        Click "Verify with PIN to Claim Deal" above, then visit the store and ask for the current 4-digit PIN (changes every 30 minutes for security). Enter the PIN in the verification dialog to complete your claim and add the bill amount to track your actual savings.
                       </p>
                     </div>
                   )}

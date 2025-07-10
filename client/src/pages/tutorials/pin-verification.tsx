@@ -37,10 +37,10 @@ export default function PinVerificationTutorial() {
             </div>
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            PIN-Based Verification Guide
+            Advanced PIN Verification Guide
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Learn how our offline-friendly PIN verification system makes deal redemption simple, secure, and works anywhere
+            Learn how our multi-layer PIN system with rotating PINs makes deal redemption ultra-secure, simple, and works anywhere
           </p>
           
           <div className="flex justify-center gap-4 mt-6">
@@ -54,7 +54,7 @@ export default function PinVerificationTutorial() {
             </Badge>
             <Badge variant="secondary" className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              Instant
+              Rotating PINs
             </Badge>
           </div>
         </div>
@@ -95,9 +95,9 @@ export default function PinVerificationTutorial() {
                     <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                       <MessageSquare className="w-8 h-8 text-green-600" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">2. Visit Store & Get PIN</h3>
+                    <h3 className="font-semibold text-lg mb-2">2. Visit Store & Get Current PIN</h3>
                     <p className="text-muted-foreground text-sm">
-                      Go to the vendor's store and make your purchase. Ask them for their 4-digit verification PIN to complete the deal redemption.
+                      Go to the vendor's store and make your purchase. Ask them for their current 4-digit PIN (changes every 30 minutes) to complete the deal redemption.
                     </p>
                   </div>
 
@@ -123,8 +123,8 @@ export default function PinVerificationTutorial() {
                     <div className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                       <div>
-                        <p className="font-medium">Streamlined PIN Verification</p>
-                        <p className="text-sm text-muted-foreground">One button initiates the entire process - just visit the store for the PIN to complete claiming</p>
+                        <p className="font-medium">Multi-Layer PIN Security</p>
+                        <p className="text-sm text-muted-foreground">Advanced security with rotating PINs (30-min cycles), secure hashed PINs, and legacy PIN support</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -182,9 +182,9 @@ export default function PinVerificationTutorial() {
                     <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Lock className="w-8 h-8 text-green-600" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">1. Set Your PIN</h3>
+                    <h3 className="font-semibold text-lg mb-2">1. Set Your Deal PIN</h3>
                     <p className="text-muted-foreground text-sm">
-                      When creating a deal, set a unique 4-digit PIN. Make it memorable but secure.
+                      When creating a deal, set a unique 4-digit PIN. The system also automatically generates rotating PINs (changes every 30 minutes) for enhanced security.
                     </p>
                   </div>
 
@@ -192,9 +192,9 @@ export default function PinVerificationTutorial() {
                     <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                       <Users className="w-8 h-8 text-blue-600" />
                     </div>
-                    <h3 className="font-semibold text-lg mb-2">2. Share with Customers</h3>
+                    <h3 className="font-semibold text-lg mb-2">2. Share Current PIN with Customers</h3>
                     <p className="text-muted-foreground text-sm">
-                      When customers visit your store for deals, provide them with your verification PIN.
+                      When customers visit your store for deals, provide them with the current rotating PIN (updates every 30 minutes) or your original deal PIN.
                     </p>
                   </div>
 
@@ -220,15 +220,15 @@ export default function PinVerificationTutorial() {
                     <div className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                       <div>
-                        <p className="font-medium">Unique PINs</p>
-                        <p className="text-sm text-muted-foreground">Use different PINs for different deals to track performance</p>
+                        <p className="font-medium">Rotating PIN System</p>
+                        <p className="text-sm text-muted-foreground">Use the automatic rotating PIN feature for maximum security (changes every 30 minutes)</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
                       <div>
-                        <p className="font-medium">Train Your Staff</p>
-                        <p className="text-sm text-muted-foreground">Ensure all staff know the current deal PINs</p>
+                        <p className="font-medium">Access Current PIN</p>
+                        <p className="text-sm text-muted-foreground">View current rotating PIN through vendor dashboard or API endpoint (refreshes every 30 minutes)</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -253,34 +253,127 @@ export default function PinVerificationTutorial() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ArrowRight className="w-5 h-5 text-blue-600" />
-                  Updated Vendor Registration
+                  <Clock className="w-5 h-5 text-purple-600" />
+                  Rotating PIN System (Advanced Security)
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <h4 className="font-semibold text-lg mb-3">PIN-Based Verification is Now Standard</h4>
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-purple-600" />
+                    How Rotating PINs Work
+                  </h4>
                   <p className="text-gray-700 mb-4">
-                    All new vendors registering on our platform will automatically get access to PIN-based verification for their deals. 
-                    This feature is included in all membership plans and provides:
+                    Every deal automatically has access to rotating PINs that change every 30 minutes using cryptographic algorithms. 
+                    This provides maximum security while being completely transparent to vendors.
                   </p>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">Offline deal redemption capability</span>
+                  
+                  <div className="grid md:grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <Clock className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Automatic Rotation</p>
+                        <p className="text-xs text-muted-foreground">PINs change every 30 minutes automatically</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">Enhanced security for deal verification</span>
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <Lock className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Cryptographic Security</p>
+                        <p className="text-xs text-muted-foreground">SHA-256 hashing with deal ID + time window</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">Real-time redemption tracking</span>
+                    <div className="flex items-start gap-3">
+                      <div className="bg-green-100 p-2 rounded-full">
+                        <Eye className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Easy Access</p>
+                        <p className="text-xs text-muted-foreground">View current PIN through API or dashboard</p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm">Improved customer experience</span>
+                    <div className="flex items-start gap-3">
+                      <div className="bg-amber-100 p-2 rounded-full">
+                        <WifiOff className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Grace Period</p>
+                        <p className="text-xs text-muted-foreground">Previous PIN accepted during transition</p>
+                      </div>
                     </div>
+                  </div>
+                  
+                  <div className="bg-white border border-purple-200 rounded-lg p-4">
+                    <h5 className="font-medium mb-2">API Endpoint for Current PIN:</h5>
+                    <code className="text-sm bg-gray-100 px-2 py-1 rounded">GET /api/vendors/deals/:id/current-pin</code>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Returns current PIN, next rotation time, and deal information. Refreshes automatically every 30 seconds.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ArrowRight className="w-5 h-5 text-blue-600" />
+                  Multi-Layer PIN Security System
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                  <h4 className="font-semibold text-lg mb-3">Multi-Layer PIN Security Architecture</h4>
+                  <p className="text-gray-700 mb-4">
+                    Our advanced PIN system uses three security layers in priority order to ensure maximum security and backward compatibility:
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-purple-200">
+                      <div className="bg-purple-100 p-2 rounded-full">
+                        <span className="text-purple-600 font-bold text-sm">1</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Rotating PIN Verification (Highest Security)</p>
+                        <p className="text-xs text-muted-foreground">
+                          Cryptographic PINs that change every 30 minutes using SHA-256 hashing. No storage required.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-blue-200">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <span className="text-blue-600 font-bold text-sm">2</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Secure Hashed PIN Verification (High Security)</p>
+                        <p className="text-xs text-muted-foreground">
+                          Bcrypt hashing with unique salt (12 rounds). 90-day expiration with renewal.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 bg-white rounded-lg border border-gray-200">
+                      <div className="bg-gray-100 p-2 rounded-full">
+                        <span className="text-gray-600 font-bold text-sm">3</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Legacy PIN Verification (Backward Compatibility)</p>
+                        <p className="text-xs text-muted-foreground">
+                          Plain text comparison for existing deals. Temporary support during migration.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800">
+                      <strong>Rate Limiting:</strong> 5 attempts/hour, 10 attempts/day maximum with comprehensive audit logging and IP tracking.
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -295,9 +388,9 @@ export default function PinVerificationTutorial() {
           <CardContent>
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold mb-2">What if I forget my PIN?</h4>
+                <h4 className="font-semibold mb-2">How do I get the current rotating PIN?</h4>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Vendors can view their deal PINs in the vendor dashboard. Customers can ask the vendor for the PIN at the store.
+                  Vendors can view the current rotating PIN through the API endpoint `/api/vendors/deals/:id/current-pin` or vendor dashboard. PINs change every 30 minutes automatically.
                 </p>
                 
                 <h4 className="font-semibold mb-2">Does this work without internet?</h4>
@@ -307,14 +400,14 @@ export default function PinVerificationTutorial() {
               </div>
               
               <div>
-                <h4 className="font-semibold mb-2">Can I change my PIN after creating a deal?</h4>
+                <h4 className="font-semibold mb-2">What's the difference between rotating and static PINs?</h4>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Currently, PINs are set when creating deals and cannot be changed. You can create a new deal with a different PIN if needed.
+                  Rotating PINs change every 30 minutes automatically for maximum security. Static PINs are set when creating deals. Both work seamlessly - the system tries rotating PIN first, then your static PIN.
                 </p>
                 
-                <h4 className="font-semibold mb-2">Is my PIN secure?</h4>
+                <h4 className="font-semibold mb-2">How secure is the PIN system?</h4>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Yes, PINs are encrypted and only known to the vendor. The system verifies the PIN without exposing it to customers in the interface.
+                  Extremely secure with multi-layer protection: rotating PINs use SHA-256 cryptography, static PINs use bcrypt with 12 rounds + unique salt, 90-day expiration, rate limiting (5/hour, 10/day), and complete audit logging.
                 </p>
               </div>
             </div>
