@@ -10,18 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Camera, Upload, User, X, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { indianStates, getCitiesByState } from "@/lib/cities";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function Signup() {
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
-    username: "",
+    phone: "",
     password: "",
     confirmPassword: "",
-    phone: "",
-    state: "",
-    city: "",
     role: "customer" as "customer" | "vendor",
     profileImage: "",
   });
@@ -42,8 +38,6 @@ export default function Signup() {
     setFormData(prev => ({
       ...prev,
       [field]: value,
-      // Reset city when state changes
-      ...(field === "state" ? { city: "" } : {})
     }));
   };
 
@@ -95,7 +89,7 @@ export default function Signup() {
     e.preventDefault();
     
     // Validation
-    if (!formData.name || !formData.email || !formData.username || !formData.password) {
+    if (!formData.email || !formData.phone || !formData.password) {
       setError("Please fill in all required fields");
       return;
     }
@@ -119,6 +113,9 @@ export default function Signup() {
       // Add profile photo data if available
       const finalSignupData = {
         ...signupData,
+        // Use email as username for login
+        username: formData.email,
+        name: formData.email.split('@')[0], // Default name from email
         profileImage: photoPreview || formData.profileImage || undefined,
       };
       
@@ -135,7 +132,7 @@ export default function Signup() {
       if (formData.role === "vendor") {
         navigate("/vendor/register");
       } else {
-        navigate("/customer/dashboard");
+        navigate("/customer/deals");
       }
     } catch (err: any) {
       setError(err.message || "Signup failed. Please try again.");
@@ -144,7 +141,7 @@ export default function Signup() {
     }
   };
 
-  const availableCities = formData.state ? getCitiesByState(formData.state) : [];
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-royal/5 flex items-center justify-center p-4">
@@ -173,34 +170,30 @@ export default function Signup() {
                 </Alert>
               )}
 
-              {/* Role Selection */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Account Type</Label>
-                <Select value={formData.role} onValueChange={(value) => handleInputChange("role", value)}>
-                  <SelectTrigger className="w-full py-3 px-3 text-sm sm:text-base">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="customer">Customer - Find and claim deals</SelectItem>
-                    <SelectItem value="vendor">Vendor - Offer deals to customers</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Role Selection with Radio Buttons */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Account Type *</Label>
+                <RadioGroup 
+                  value={formData.role} 
+                  onValueChange={(value) => handleInputChange("role", value)}
+                  className="flex flex-col space-y-3"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="customer" id="customer" />
+                    <Label htmlFor="customer" className="text-sm font-medium cursor-pointer">
+                      Customer - Find and claim deals
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="vendor" id="vendor" />
+                    <Label htmlFor="vendor" className="text-sm font-medium cursor-pointer">
+                      Vendor - Offer deals to customers
+                    </Label>
+                  </div>
+                </RadioGroup>
               </div>
 
-              {/* Basic Info */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium">Full Name *</Label>
-                <Input
-                  id="name"
-                  placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  disabled={isLoading}
-                  required
-                  className="w-full py-3 px-3 text-sm sm:text-base border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-
+              {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">Email *</Label>
                 <Input
@@ -215,21 +208,9 @@ export default function Signup() {
                 />
               </div>
 
+              {/* Phone Field */}
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm font-medium">Username *</Label>
-                <Input
-                  id="username"
-                  placeholder="Choose a username"
-                  value={formData.username}
-                  onChange={(e) => handleInputChange("username", e.target.value)}
-                  disabled={isLoading}
-                  required
-                  className="w-full py-3 px-3 text-sm sm:text-base border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                <Label htmlFor="phone" className="text-sm font-medium">Phone Number *</Label>
                 <Input
                   id="phone"
                   type="tel"
@@ -237,6 +218,7 @@ export default function Signup() {
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   disabled={isLoading}
+                  required
                   className="w-full py-3 px-3 text-sm sm:text-base border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
@@ -380,44 +362,7 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* Location */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">State</Label>
-                  <Select value={formData.state} onValueChange={(value) => handleInputChange("state", value)}>
-                    <SelectTrigger className="w-full py-3 px-3 text-sm sm:text-base">
-                      <SelectValue placeholder="Select state" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {indianStates.map((state) => (
-                        <SelectItem key={state.name} value={state.name}>
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">City</Label>
-                  <Select 
-                    value={formData.city} 
-                    onValueChange={(value) => handleInputChange("city", value)}
-                    disabled={!formData.state}
-                  >
-                    <SelectTrigger className="w-full py-3 px-3 text-sm sm:text-base">
-                      <SelectValue placeholder="Select city" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCities.map((city) => (
-                        <SelectItem key={city} value={city}>
-                          {city}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
               {/* Password */}
               <div className="space-y-2">

@@ -30,6 +30,7 @@ import {
   MapPin,
   Loader2
 } from "lucide-react";
+import { TermsDialog } from "@/components/ui/terms-dialog";
 
 const vendorRegistrationSchema = z.object({
   businessName: z.string().min(2, "Business/Store name must be at least 2 characters"),
@@ -40,11 +41,13 @@ const vendorRegistrationSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   state: z.string().min(1, "Please select a state"),
   city: z.string().min(1, "Please select a city"),
+  pincode: z.string().min(6, "Pincode must be 6 digits").max(6, "Pincode must be 6 digits"),
+  companyWebsite: z.string().optional(),
   hasGst: z.enum(["yes", "no"]),
   gstNumber: z.string().optional(),
-  panNumber: z.string().min(10, "PAN number must be 10 characters").max(10, "PAN number must be 10 characters"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  panNumber: z.string().min(10, "PAN number must be 10 characters").max(10, "PAN number must be 10 characters")
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "PAN number must be in format ABCDE1234F"),
+  panCardFile: z.any().optional(),
   logoUrl: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and conditions"),
 }).refine((data) => {
@@ -76,11 +79,12 @@ export default function VendorRegister() {
       category: "",
       state: "",
       city: "",
+      pincode: "",
+      companyWebsite: "",
       hasGst: "no",
       gstNumber: "",
       panNumber: "",
-      username: "",
-      password: "",
+      panCardFile: null,
       logoUrl: "",
       agreeToTerms: false,
     },
@@ -297,6 +301,24 @@ export default function VendorRegister() {
 
                   <FormField
                     control={form.control}
+                    name="pincode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pincode *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Enter 6-digit pincode"
+                            maxLength={6}
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="hasGst"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
@@ -354,11 +376,73 @@ export default function VendorRegister() {
                           <Input 
                             placeholder="Enter your PAN number (e.g., AABCU9603R)"
                             maxLength={10}
+                            {...field}
+                            onChange={(e) => {
+                              // Convert to uppercase
+                              const upperValue = e.target.value.toUpperCase();
+                              field.onChange(upperValue);
+                            }}
+                            style={{ textTransform: 'uppercase' }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          10-character PAN card number (automatically capitalized)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="companyWebsite"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Website (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://www.yourcompany.com"
+                            type="url"
                             {...field} 
                           />
                         </FormControl>
                         <FormDescription>
-                          10-character PAN card number
+                          Your business website URL
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="panCardFile"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Upload PAN Card *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 1024 * 1024) { // 1MB limit
+                                  toast({
+                                    title: "File too large",
+                                    description: "PAN card file must be less than 1MB",
+                                    variant: "destructive",
+                                  });
+                                  e.target.value = '';
+                                  return;
+                                }
+                                field.onChange(file);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Upload clear image of PAN card (JPG, PNG, PDF - Max 1MB)
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -378,8 +462,34 @@ export default function VendorRegister() {
                           />
                         </FormControl>
                         <FormDescription>
-                          Provide a URL to your business logo image
+                          Provide a URL to your business logo image (Max 250x150 pixels)
                         </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="agreeToTerms"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>
+                            I agree to the{" "}
+                            <TermsDialog>
+                              <Button variant="link" type="button" className="p-0 h-auto underline">
+                                terms and conditions
+                              </Button>
+                            </TermsDialog>
+                          </FormLabel>
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
