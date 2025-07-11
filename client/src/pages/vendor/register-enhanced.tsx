@@ -58,12 +58,11 @@ const vendorRegistrationSchema = z.object({
   address: z.string().min(5, "Business/Store address must be at least 5 characters"),
   state: z.string().min(1, "Please select a state"),
   city: z.string().min(1, "Please select a city"),
+  pincode: z.string().min(6, "Pin code must be 6 digits").max(6, "Pin code must be 6 digits"),
   hasGst: z.enum(["yes", "no"]),
   gstNumber: z.string().optional(),
   panNumber: z.string().min(10, "PAN number must be 10 characters").max(10, "PAN number must be 10 characters"),
   panCardFile: z.any().optional(),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
   logoUrl: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and conditions"),
 }).refine((data) => {
@@ -99,12 +98,11 @@ export default function VendorRegisterEnhanced() {
       address: "",
       state: "",
       city: "",
+      pincode: "",
       hasGst: "no",
       gstNumber: "",
       panNumber: "",
       panCardFile: null,
-      username: "",
-      password: "",
       logoUrl: "",
       agreeToTerms: false,
     },
@@ -338,6 +336,41 @@ export default function VendorRegisterEnhanced() {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="pincode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pin Code *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter 6-digit pin code"
+                              maxLength={6}
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="companyWebsite"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company Website</FormLabel>
+                          <FormControl>
+                            <Input placeholder="https://www.yourcompany.com (Optional)" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            Optional: Enter your company website URL
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -399,23 +432,6 @@ export default function VendorRegisterEnhanced() {
                           <FormControl>
                             <Input placeholder="Enter email address" type="email" {...field} />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="companyWebsite"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Company Website</FormLabel>
-                          <FormControl>
-                            <Input placeholder="https://www.yourcompany.com (Optional)" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Optional: Enter your company website URL
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -490,11 +506,17 @@ export default function VendorRegisterEnhanced() {
                             <Input 
                               placeholder="Enter PAN number (e.g., AABCU9603R)"
                               maxLength={10}
-                              {...field} 
+                              {...field}
+                              onChange={(e) => {
+                                // Convert to uppercase
+                                const upperValue = e.target.value.toUpperCase();
+                                field.onChange(upperValue);
+                              }}
+                              style={{ textTransform: 'uppercase' }}
                             />
                           </FormControl>
                           <FormDescription>
-                            10-character PAN card number
+                            10-character PAN card number (automatically capitalized)
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -528,6 +550,15 @@ export default function VendorRegisterEnhanced() {
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) {
+                                          if (file.size > 1024 * 1024) { // 1MB limit
+                                            toast({
+                                              title: "File too large",
+                                              description: "PAN card file must be less than 1MB",
+                                              variant: "destructive",
+                                            });
+                                            e.target.value = '';
+                                            return;
+                                          }
                                           setPanCardFile(file);
                                           field.onChange(file);
                                         }
@@ -536,7 +567,7 @@ export default function VendorRegisterEnhanced() {
                                   </Label>
                                   <p className="pl-1">or drag and drop</p>
                                 </div>
-                                <p className="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
+                                <p className="text-xs text-gray-500">PNG, JPG, PDF up to 1MB</p>
                                 {panCardFile && (
                                   <div className="mt-2 text-sm text-green-600">
                                     Selected: {panCardFile.name}
@@ -552,49 +583,7 @@ export default function VendorRegisterEnhanced() {
                   </div>
                 </div>
 
-                {/* Account Setup Section */}
-                <div className="border rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                    <Lock className="h-5 w-5 mr-2" />
-                    Account Setup
-                  </h3>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Create UserID *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter username" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            This will be used to login to your vendor account
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Create Password *</FormLabel>
-                          <FormControl>
-                            <Input type="password" placeholder="Enter password" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Minimum 6 characters required
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
 
                 {/* Business Logo Upload Section */}
                 <div className="border rounded-lg p-6">

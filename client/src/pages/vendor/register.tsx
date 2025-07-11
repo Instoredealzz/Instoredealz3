@@ -319,6 +319,27 @@ export default function VendorRegister() {
 
                   <FormField
                     control={form.control}
+                    name="companyWebsite"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Company Website (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://www.yourcompany.com"
+                            type="url"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Your business website URL
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="hasGst"
                     render={({ field }) => (
                       <FormItem className="space-y-3">
@@ -387,27 +408,6 @@ export default function VendorRegister() {
                         </FormControl>
                         <FormDescription>
                           10-character PAN card number (automatically capitalized)
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="companyWebsite"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Company Website (Optional)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://www.yourcompany.com"
-                            type="url"
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Your business website URL
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
