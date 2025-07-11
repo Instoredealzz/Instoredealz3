@@ -87,15 +87,11 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     return (
       <div className="space-y-2">
         <div className="relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-            <Lock className="h-4 w-4 text-gray-400" />
-          </div>
-          
           <Input
             {...props}
             ref={ref}
             type={showPassword ? "text" : "password"}
-            className={cn("pl-10 pr-12", className)}
+            className={cn("pr-12", className)}
             onChange={handlePasswordChange}
           />
           
