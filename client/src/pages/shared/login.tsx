@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +22,7 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!credential || !password) {
       setError("Please fill in all fields");
       return;
     }
@@ -31,7 +31,7 @@ export default function Login() {
     setError("");
 
     try {
-      const userData = await login(email, password);
+      const userData = await login(credential, password);
       toast({
         title: "Welcome back!",
         description: "You have been successfully logged in.",
@@ -84,13 +84,13 @@ export default function Login() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                <Label htmlFor="credential" className="text-sm font-medium">Email or Phone</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="credential"
+                  type="text"
+                  placeholder="Enter your email or phone number"
+                  value={credential}
+                  onChange={(e) => setCredential(e.target.value)}
                   disabled={isLoading}
                   required
                   className="w-full py-3 px-3 text-sm sm:text-base border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
@@ -117,7 +117,7 @@ export default function Login() {
                   <p><strong>Customer:</strong> basic@example.com | customer123</p>
                   <p><strong>Vendor:</strong> vendor@example.com | vendor123</p>
                   <p><strong>Admin:</strong> admin@instoredealz.com | admin123</p>
-                  <p className="text-blue-600 dark:text-blue-300 text-center mt-2">Email | Password</p>
+                  <p className="text-blue-600 dark:text-blue-300 text-center mt-2">Email or Phone | Password</p>
                 </div>
               </div>
             </CardContent>

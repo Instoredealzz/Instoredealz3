@@ -21,7 +21,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (credential: string, password: string) => Promise<User>;
   signup: (userData: any) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<void>;
@@ -37,10 +37,10 @@ export const useAuth = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
 
-      login: async (email: string, password: string) => {
+      login: async (credential: string, password: string) => {
         try {
           const response = await apiRequest('/api/auth/login', 'POST', {
-            email,
+            credential,
             password,
           });
           

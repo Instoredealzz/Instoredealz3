@@ -362,9 +362,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication routes
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { email, password } = loginSchema.parse(req.body);
+      const { credential, password } = loginSchema.parse(req.body);
       
-      const user = await storage.getUserByEmail(email);
+      // Check if credential is an email or phone number
+      const isEmail = credential.includes('@');
+      const user = isEmail 
+        ? await storage.getUserByEmail(credential)
+        : await storage.getUserByPhone(credential);
+      
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -374,7 +379,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Debug logging for password comparison
       Logger.debug("Login password comparison", {
-        email: email,
+        credential: credential,
+        credentialType: isEmail ? 'email' : 'phone',
         storedPassword: user.password,
         providedPassword: password,
         storedPasswordType: typeof user.password,
@@ -390,7 +396,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (storedPassword !== providedPassword) {
         Logger.warn("Password mismatch", {
-          email: email,
+          credential: credential,
+          credentialType: isEmail ? 'email' : 'phone',
           storedPasswordPreview: storedPassword.substring(0, 3) + '***',
           providedPasswordPreview: providedPassword.substring(0, 3) + '***'
         });
