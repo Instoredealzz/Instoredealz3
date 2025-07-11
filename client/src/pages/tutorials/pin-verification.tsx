@@ -264,7 +264,7 @@ export default function PinVerificationTutorial() {
                     How Rotating PINs Work
                   </h4>
                   <p className="text-gray-700 mb-4">
-                    Every deal automatically has access to rotating PINs that change every 30 minutes using cryptographic algorithms. 
+                    Every deal automatically has access to rotating PINs that change every 1 minute using cryptographic algorithms. 
                     This provides maximum security while being completely transparent to vendors.
                   </p>
                   
@@ -275,7 +275,7 @@ export default function PinVerificationTutorial() {
                       </div>
                       <div>
                         <p className="font-medium text-sm">Automatic Rotation</p>
-                        <p className="text-xs text-muted-foreground">PINs change every 30 minutes automatically</p>
+                        <p className="text-xs text-muted-foreground">PINs change every 1 minute automatically</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
