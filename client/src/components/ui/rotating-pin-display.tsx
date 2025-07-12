@@ -50,7 +50,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
       const now = new Date();
       const nextRotation = new Date(pinData.nextRotationAt);
       const diff = nextRotation.getTime() - now.getTime();
-      const totalInterval = (pinData?.rotationInterval || 1) * 60 * 1000; // Total interval in ms
+      const totalInterval = (pinData?.rotationInterval || 30) * 60 * 1000; // Total interval in ms
 
       if (diff <= 0) {
         setTimeLeft("Rotating now...");
@@ -217,7 +217,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
             </div>
             
             <div className="text-xs text-blue-600 dark:text-blue-400">
-              PIN changes every {pinData?.rotationInterval || 1} minute for enhanced security
+              PIN changes every {pinData?.rotationInterval || 30} minutes for enhanced security
             </div>
           </div>
         </div>

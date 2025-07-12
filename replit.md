@@ -115,6 +115,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 12, 2025 - Updated PIN Rotation Timing to 30 Minutes
+- **PIN Rotation Timing Update**: Changed rotating PIN system from 1-minute to 30-minute intervals for better user experience
+- **Frontend Component Updates**: Updated RotatingPinDisplay component to show 30-minute rotation interval
+- **Tutorial Updates**: Updated PIN verification tutorial documentation to reflect 30-minute rotation cycles
+- **Backend Configuration**: Modified pin-security.ts ROTATION_INTERVAL_MINUTES from 1 to 30 minutes
+
 ### July 10, 2025 - Complete Tutorial & Instruction Updates for Advanced PIN System + Comprehensive PIN Security Implementation
 - **Complete PIN Security Overhaul**: Implemented enterprise-grade PIN security system with bcrypt hashing, salt generation, and rate limiting
 - **Rotating PIN System**: Added automatic PIN rotation every 30 minutes using cryptographic hash generation for maximum security

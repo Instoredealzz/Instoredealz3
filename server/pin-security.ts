@@ -16,7 +16,7 @@ const MAX_ATTEMPTS_PER_DAY = 10;
 const LOCKOUT_DURATION_HOURS = 1;
 
 // Rotating PIN configuration
-const ROTATION_INTERVAL_MINUTES = 1; // Rotate PIN every 1 minute
+const ROTATION_INTERVAL_MINUTES = 30; // Rotate PIN every 30 minutes
 const ROTATION_WINDOW_MS = ROTATION_INTERVAL_MINUTES * 60 * 1000;
 
 export interface RotatingPinResult {
