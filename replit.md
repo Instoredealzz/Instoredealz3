@@ -115,6 +115,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 12, 2025 - Customer Profile Navigation & Admin Dashboard Pending Status Fix
+- **Customer Profile Navigation**: Added "Profile" link to customer navigation menu and user dropdown for easy access to `/customer/profile`
+- **Admin Dashboard Pending Status**: Updated all pending status badges in admin dashboard to use red background with white text for better visibility
+- **Enhanced Navigation**: Profile link appears in both mobile navigation menu and desktop dropdown menu for customer users
+- **Consistent Styling**: All pending status indicators across admin pages now use consistent red background with white text styling
+
 ### July 12, 2025 - Complete Dark Theme Fix & Email Functionality Enhancement for Admin Reports
 - **Dark Theme Reports Fix**: Fixed all dark theme visibility issues in admin reports page with proper background colors (bg-blue-900/10, bg-green-900/10, etc.)
 - **Text Visibility Enhancement**: Updated text colors, badge colors, and icon colors for proper dark theme support (text-blue-400, text-green-400, etc.)

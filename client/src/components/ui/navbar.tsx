@@ -66,6 +66,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           { label: "Wishlist", href: "/customer/wishlist", icon: Heart },
           { label: "Claims", href: "/customer/claims", icon: Clock },
           { label: "Dashboard", href: "/customer/dashboard", icon: Home },
+          { label: "Profile", href: "/customer/profile", icon: User },
           { label: "Help", href: "/help", icon: HelpCircle },
         ];
       case 'admin':
@@ -184,6 +185,14 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                       Dashboard
                     </Link>
                   </DropdownMenuItem>
+                  {user.role === 'customer' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/customer/profile" className="flex items-center" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
