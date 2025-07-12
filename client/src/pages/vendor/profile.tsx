@@ -412,8 +412,8 @@ export default function VendorProfile() {
                                 </FormControl>
                                 <SelectContent>
                                   {indianStates.map((state) => (
-                                    <SelectItem key={state} value={state}>
-                                      {state}
+                                    <SelectItem key={state.name} value={state.name}>
+                                      {state.name}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>

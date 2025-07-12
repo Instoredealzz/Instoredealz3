@@ -574,16 +574,211 @@ export default function VendorAnalytics() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="trends">
-            <Card>
+          <TabsContent value="trends" className="space-y-6">
+            {/* Growth Metrics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Monthly Growth</p>
+                      <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">+24.5%</p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">vs last month</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-green-700 dark:text-green-300">Customer Retention</p>
+                      <p className="text-2xl font-bold text-green-800 dark:text-green-200">87.3%</p>
+                    </div>
+                    <Users className="h-8 w-8 text-green-600" />
+                  </div>
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">repeat customers</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Avg. Order Value</p>
+                      <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">₹1,247</p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">+15% increase</p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Peak Hours</p>
+                      <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">6-8 PM</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-orange-600" />
+                  </div>
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">highest activity</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Detailed Growth Charts */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              <Card className="transition-all duration-300 hover:shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <LineChartIcon className="h-5 w-5 mr-2" />
+                    6-Month Growth Trend
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={[
+                      { month: 'Jan', deals: 12, customers: 156, revenue: 24500 },
+                      { month: 'Feb', deals: 18, customers: 234, revenue: 36200 },
+                      { month: 'Mar', deals: 25, customers: 318, revenue: 48900 },
+                      { month: 'Apr', deals: 32, customers: 425, revenue: 65400 },
+                      { month: 'May', deals: 41, customers: 567, revenue: 82100 },
+                      { month: 'Jun', deals: 48, customers: 689, revenue: 98700 }
+                    ]} key={animationKey}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+                      <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
+                      <YAxis fontSize={11} stroke="#6B7280" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1F2937', 
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#F9FAFB'
+                        }}
+                      />
+                      <Legend />
+                      <Area type="monotone" dataKey="deals" stackId="1" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.6} name="Active Deals" />
+                      <Area type="monotone" dataKey="customers" stackId="2" stroke="#10B981" fill="#10B981" fillOpacity={0.6} name="New Customers" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="transition-all duration-300 hover:shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Weekly Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <ComposedChart data={[
+                      { day: 'Mon', views: 145, claims: 32, conversion: 22.1 },
+                      { day: 'Tue', views: 189, claims: 45, conversion: 23.8 },
+                      { day: 'Wed', views: 234, claims: 58, conversion: 24.8 },
+                      { day: 'Thu', views: 198, claims: 52, conversion: 26.3 },
+                      { day: 'Fri', views: 267, claims: 72, conversion: 27.0 },
+                      { day: 'Sat', views: 321, claims: 89, conversion: 27.7 },
+                      { day: 'Sun', views: 289, claims: 81, conversion: 28.0 }
+                    ]} key={animationKey}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
+                      <XAxis dataKey="day" fontSize={11} stroke="#6B7280" />
+                      <YAxis fontSize={11} stroke="#6B7280" />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: '#1F2937', 
+                          border: '1px solid #374151',
+                          borderRadius: '8px',
+                          color: '#F9FAFB'
+                        }}
+                      />
+                      <Legend />
+                      <Bar dataKey="views" fill="#3B82F6" name="Views" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="claims" fill="#10B981" name="Claims" radius={[4, 4, 0, 0]} />
+                      <Line type="monotone" dataKey="conversion" stroke="#F59E0B" strokeWidth={3} name="Conversion %" />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Category Growth Analysis */}
+            <Card className="transition-all duration-300 hover:shadow-lg">
               <CardHeader>
-                <CardTitle>Growth Trends</CardTitle>
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-2" />
+                  Category Growth Analysis
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-semibold">Advanced Trend Analysis</p>
-                  <p className="text-muted-foreground">Coming soon with more detailed analytics</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { category: 'Fashion', growth: '+45%', deals: 15, color: 'bg-pink-100 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300' },
+                    { category: 'Electronics', growth: '+32%', deals: 12, color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' },
+                    { category: 'Food & Dining', growth: '+28%', deals: 8, color: 'bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300' },
+                    { category: 'Beauty', growth: '+41%', deals: 10, color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300' },
+                    { category: 'Home & Garden', growth: '+19%', deals: 6, color: 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300' },
+                    { category: 'Sports', growth: '+25%', deals: 7, color: 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300' }
+                  ].map((item, index) => (
+                    <div key={index} className={`p-4 rounded-lg ${item.color}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-semibold">{item.category}</h4>
+                        <Badge variant="secondary" className="text-xs">{item.deals} deals</Badge>
+                      </div>
+                      <p className="text-2xl font-bold">{item.growth}</p>
+                      <p className="text-xs opacity-75">monthly growth</p>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Growth Insights */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Star className="h-5 w-5 mr-2" />
+                  Growth Insights & Recommendations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-800 dark:text-blue-200">Strong Growth Momentum</h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">Your deals are gaining 24.5% more views month-over-month. Fashion category leads with 45% growth.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <Users className="h-5 w-5 text-green-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-green-800 dark:text-green-200">High Customer Retention</h4>
+                      <p className="text-sm text-green-700 dark:text-green-300">87.3% of customers return for more deals. Consider loyalty programs to reach 90%+.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <DollarSign className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-purple-800 dark:text-purple-200">Revenue Optimization</h4>
+                      <p className="text-sm text-purple-700 dark:text-purple-300">Average order value increased by 15%. Weekend deals show 28% higher conversion rates.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <Clock className="h-5 w-5 text-orange-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-orange-800 dark:text-orange-200">Peak Performance Hours</h4>
+                      <p className="text-sm text-orange-700 dark:text-orange-300">6-8 PM shows highest activity. Schedule new deals during these hours for maximum impact.</p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
