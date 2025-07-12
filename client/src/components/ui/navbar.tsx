@@ -75,7 +75,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           { label: "Vendors", href: "/admin/vendors", icon: Building },
           { label: "Deals", href: "/admin/deals", icon: Tag },
           { label: "Reports", href: "/admin/reports", icon: FileText },
-          { label: "Analytics", href: "/admin/dashboard", icon: TrendingUp },
+          { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
           { label: "Help", href: "/help", icon: HelpCircle },
         ];
       case 'superadmin':
@@ -83,7 +83,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           { label: "Dashboard", href: "/superadmin/dashboard", icon: Home },
           { label: "Admins", href: "/admin/users", icon: Shield },
           { label: "System Logs", href: "/superadmin/logs", icon: Archive },
-          { label: "Analytics", href: "/admin/dashboard", icon: TrendingUp },
+          { label: "Analytics", href: "/superadmin/analytics", icon: TrendingUp },
           { label: "Help", href: "/help", icon: HelpCircle },
         ];
       default:

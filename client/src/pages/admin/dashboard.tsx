@@ -416,7 +416,7 @@ export default function AdminDashboard() {
                   </Badge>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={350}>
+                  <ChartContainer config={chartConfig} className="h-[350px] w-full">
                     {chartType === "bar" ? (
                       <BarChart data={monthlyTrendData} key={animationKey}>
                         <defs>
@@ -433,82 +433,46 @@ export default function AdminDashboard() {
                             <stop offset="100%" stopColor={CHART_COLORS.warning[1]} stopOpacity={0.3} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
-                        <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent />}
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                            border: '1px solid rgba(0, 0, 0, 0.08)',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                            backdropFilter: 'blur(10px)'
-                          }}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                        <XAxis dataKey="month" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="users" fill="url(#userGradient)" name="Users" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="deals" fill="url(#dealGradient)" name="Deals" radius={[4, 4, 0, 0]} />
                         <Bar dataKey="claims" fill="url(#claimGradient)" name="Claims" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     ) : chartType === "line" ? (
                       <LineChart data={monthlyTrendData} key={animationKey}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
-                        <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent />}
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                            border: '1px solid rgba(0, 0, 0, 0.08)',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                            backdropFilter: 'blur(10px)'
-                          }}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                        <XAxis dataKey="month" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
                         <Line type="monotone" dataKey="users" stroke={CHART_COLORS.primary[0]} strokeWidth={4} dot={{ fill: CHART_COLORS.primary[0], strokeWidth: 2, r: 6 }} />
                         <Line type="monotone" dataKey="deals" stroke={CHART_COLORS.success[0]} strokeWidth={4} dot={{ fill: CHART_COLORS.success[0], strokeWidth: 2, r: 6 }} />
                         <Line type="monotone" dataKey="claims" stroke={CHART_COLORS.warning[0]} strokeWidth={4} dot={{ fill: CHART_COLORS.warning[0], strokeWidth: 2, r: 6 }} />
                       </LineChart>
                     ) : chartType === "area" ? (
                       <AreaChart data={monthlyTrendData} key={animationKey}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
-                        <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent />}
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                            border: '1px solid rgba(0, 0, 0, 0.08)',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                            backdropFilter: 'blur(10px)'
-                          }}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                        <XAxis dataKey="month" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
                         <Area type="monotone" dataKey="users" stackId="1" stroke={CHART_COLORS.primary[0]} fill="url(#userGradient)" fillOpacity={0.8} />
                         <Area type="monotone" dataKey="deals" stackId="1" stroke={CHART_COLORS.success[0]} fill="url(#dealGradient)" fillOpacity={0.8} />
                         <Area type="monotone" dataKey="claims" stackId="1" stroke={CHART_COLORS.warning[0]} fill="url(#claimGradient)" fillOpacity={0.8} />
                       </AreaChart>
                     ) : (
                       <ComposedChart data={monthlyTrendData} key={animationKey}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
-                        <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                        <ChartTooltip 
-                          content={<ChartTooltipContent />}
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                            border: '1px solid rgba(0, 0, 0, 0.08)',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                            backdropFilter: 'blur(10px)'
-                          }}
-                        />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                        <XAxis dataKey="month" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="users" fill="url(#userGradient)" name="Users" radius={[4, 4, 0, 0]} />
                         <Line type="monotone" dataKey="deals" stroke={CHART_COLORS.success[0]} strokeWidth={4} dot={{ fill: CHART_COLORS.success[0], strokeWidth: 2, r: 6 }} />
                         <Line type="monotone" dataKey="claims" stroke={CHART_COLORS.warning[0]} strokeWidth={4} dot={{ fill: CHART_COLORS.warning[0], strokeWidth: 2, r: 6 }} />
                       </ComposedChart>
                     )}
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
 
@@ -521,7 +485,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={350}>
+                  <ChartContainer config={chartConfig} className="h-[350px] w-full">
                     <BarChart data={cityChartData.slice(0, 6)} key={animationKey}>
                       <defs>
                         <linearGradient id="cityGradient" x1="0" y1="0" x2="0" y2="1">
@@ -533,23 +497,14 @@ export default function AdminDashboard() {
                           <stop offset="100%" stopColor={CHART_COLORS.pink[1]} stopOpacity={0.3} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
-                      <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                      <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                          border: '1px solid rgba(0, 0, 0, 0.08)',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                          backdropFilter: 'blur(10px)'
-                        }}
-                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                      <XAxis dataKey="name" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                      <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                      <ChartTooltip content={<ChartTooltipContent />} />
                       <Bar dataKey="deals" fill="url(#cityGradient)" name="Deals" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="users" fill="url(#cityUserGradient)" name="Users" radius={[4, 4, 0, 0]} />
                     </BarChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
             </div>
@@ -598,7 +553,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
                     <AreaChart data={categoryChartData.slice(0, 6)} key={animationKey}>
                       <defs>
                         <linearGradient id="categoryGradient" x1="0" y1="0" x2="0" y2="1">
@@ -609,20 +564,11 @@ export default function AdminDashboard() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
                       <XAxis dataKey="name" tick={{ fill: '#6B7280', fontSize: 12 }} />
                       <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                          border: '1px solid rgba(0, 0, 0, 0.08)',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                          backdropFilter: 'blur(10px)'
-                        }}
-                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
                       <Area type="monotone" dataKey="deals" stackId="1" stroke={CHART_COLORS.gradient[0]} fill="url(#categoryGradient)" fillOpacity={0.8} />
                       <Area type="monotone" dataKey="claims" stackId="1" stroke={CHART_COLORS.gradient[1]} fill={CHART_COLORS.gradient[1]} fillOpacity={0.6} />
                     </AreaChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
             </div>
@@ -638,7 +584,7 @@ export default function AdminDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ChartContainer config={chartConfig} className="h-[300px] w-full">
                   <AreaChart data={monthlyTrendData} key={animationKey}>
                     <defs>
                       <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
@@ -649,20 +595,11 @@ export default function AdminDashboard() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.6} />
                     <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
                     <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        border: '1px solid rgba(0, 0, 0, 0.08)',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                        backdropFilter: 'blur(10px)'
-                      }}
-                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Area type="monotone" dataKey="revenue" stroke={CHART_COLORS.success[0]} fill="url(#revenueGradient)" fillOpacity={0.8} />
                     <Area type="monotone" dataKey="vendors" stroke={CHART_COLORS.purple[0]} fill={CHART_COLORS.purple[0]} fillOpacity={0.4} />
                   </AreaChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
           </TabsContent>
@@ -678,7 +615,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
                     <PieChart key={animationKey}>
                       <Pie
                         data={userDistributionData}
@@ -695,18 +632,9 @@ export default function AdminDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                          border: '1px solid rgba(0, 0, 0, 0.08)',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                          backdropFilter: 'blur(10px)'
-                        }}
-                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
 
@@ -718,7 +646,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
                     <PieChart key={animationKey}>
                       <Pie
                         data={dealStatusData}
@@ -735,18 +663,9 @@ export default function AdminDashboard() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <ChartTooltip 
-                        content={<ChartTooltipContent />}
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                          border: '1px solid rgba(0, 0, 0, 0.08)',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-                          backdropFilter: 'blur(10px)'
-                        }}
-                      />
+                      <ChartTooltip content={<ChartTooltipContent />} />
                     </PieChart>
-                  </ResponsiveContainer>
+                  </ChartContainer>
                 </CardContent>
               </Card>
             </div>
