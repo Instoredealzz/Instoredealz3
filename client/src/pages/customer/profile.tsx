@@ -289,7 +289,7 @@ export default function CustomerProfile() {
                         <Upload className="h-4 w-4 mr-2" />
                         Choose Photo File
                       </Button>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         JPG, PNG or GIF (max 5MB)
                       </p>
                     </div>
@@ -315,7 +315,7 @@ export default function CustomerProfile() {
                         <Camera className="h-4 w-4 mr-2" />
                         Take Photo
                       </Button>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Use your device camera to take a photo
                       </p>
                     </div>
@@ -348,7 +348,7 @@ export default function CustomerProfile() {
                                   <Check className="h-3 w-3" />
                                 </Button>
                               </div>
-                              <p className="text-xs text-gray-500">
+                              <p className="text-xs text-muted-foreground">
                                 Enter a direct link to your profile photo
                               </p>
                             </div>
@@ -413,30 +413,30 @@ export default function CustomerProfile() {
                   {/* Read-only fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-foreground dark:text-gray-300 mb-2">
                         <Mail className="h-4 w-4" />
                         Email Address
                       </label>
                       <Input 
                         value={user?.email || ""} 
                         disabled 
-                        className="bg-gray-50"
+                        className="bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Email cannot be changed
                       </p>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-medium text-foreground dark:text-gray-300 mb-2 block">
                         Username
                       </label>
                       <Input 
                         value={user?.username || ""} 
                         disabled 
-                        className="bg-gray-50"
+                        className="bg-gray-50 dark:bg-gray-800 dark:text-gray-300"
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Username cannot be changed
                       </p>
                     </div>
@@ -523,33 +523,33 @@ export default function CustomerProfile() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-medium text-foreground dark:text-gray-300 mb-2 block">
                         Current Plan
                       </label>
-                      <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
-                        <span className="font-semibold text-blue-900 capitalize">
+                      <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-border">
+                        <span className="font-semibold text-blue-900 dark:text-blue-300 capitalize">
                           {user?.membershipPlan || "Basic"}
                         </span>
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-medium text-foreground dark:text-gray-300 mb-2 block">
                         Total Savings
                       </label>
-                      <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border">
-                        <span className="font-semibold text-green-900">
+                      <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-border">
+                        <span className="font-semibold text-green-900 dark:text-green-300">
                           ₹{parseFloat(user?.totalSavings || "0").toLocaleString()}
                         </span>
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      <label className="text-sm font-medium text-foreground dark:text-gray-300 mb-2 block">
                         Deals Claimed
                       </label>
-                      <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border">
-                        <span className="font-semibold text-orange-900">
+                      <div className="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-border">
+                        <span className="font-semibold text-orange-900 dark:text-orange-300">
                           {user?.dealsClaimed || 0}
                         </span>
                       </div>
