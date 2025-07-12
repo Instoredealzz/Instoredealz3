@@ -78,6 +78,39 @@ export default function VendorAnalytics() {
 
   const dealsArray = Array.isArray(deals) ? deals : [];
 
+  // Function to filter deals based on time range
+  const filterDealsByTimeRange = (deals: any[], timeRange: string) => {
+    if (!timeRange || timeRange === "all") return deals;
+    
+    const now = new Date();
+    const startDate = new Date();
+    
+    switch (timeRange) {
+      case "7d":
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case "30d":
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case "90d":
+        startDate.setDate(now.getDate() - 90);
+        break;
+      case "1y":
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        return deals;
+    }
+    
+    return deals.filter((deal: any) => {
+      const dealDate = new Date(deal.createdAt);
+      return dealDate >= startDate;
+    });
+  };
+
+  // Filter deals based on selected time range
+  const filteredDeals = filterDealsByTimeRange(dealsArray, timeRange);
+
   // Auto-refresh functionality
   useEffect(() => {
     const interval = setInterval(() => {
@@ -150,26 +183,26 @@ export default function VendorAnalytics() {
     setExporting(false);
   };
 
-  // Calculate analytics data
-  const totalDeals = dealsArray.length;
-  const activeDeals = dealsArray.filter((deal: any) => deal.isActive && deal.isApproved).length;
-  const pendingDeals = dealsArray.filter((deal: any) => !deal.isApproved).length;
-  const totalViews = dealsArray.reduce((sum: number, deal: any) => sum + (deal.viewCount || 0), 0);
-  const totalClaims = dealsArray.reduce((sum: number, deal: any) => sum + (deal.currentRedemptions || 0), 0);
+  // Calculate analytics data using filtered deals
+  const totalDeals = filteredDeals.length;
+  const activeDeals = filteredDeals.filter((deal: any) => deal.isActive && deal.isApproved).length;
+  const pendingDeals = filteredDeals.filter((deal: any) => !deal.isApproved).length;
+  const totalViews = filteredDeals.reduce((sum: number, deal: any) => sum + (deal.viewCount || 0), 0);
+  const totalClaims = filteredDeals.reduce((sum: number, deal: any) => sum + (deal.currentRedemptions || 0), 0);
   
   // Calculate conversion rate
   const conversionRate = totalViews > 0 ? ((totalClaims / totalViews) * 100).toFixed(1) : "0.0";
   
-  // Calculate estimated revenue based on deals
-  const estimatedRevenue = dealsArray.reduce((sum: number, deal: any) => {
+  // Calculate estimated revenue based on filtered deals
+  const estimatedRevenue = filteredDeals.reduce((sum: number, deal: any) => {
     const discount = deal.discountPercentage || 0;
     const avgOrderValue = 1000; // Assume average order value
     const dealRevenue = (avgOrderValue * discount / 100) * (deal.currentRedemptions || 0);
     return sum + dealRevenue;
   }, 0);
 
-  // Performance data for charts
-  const dealPerformanceData = dealsArray
+  // Performance data for charts using filtered deals
+  const dealPerformanceData = filteredDeals
     .filter((deal: any) => selectedCategory === "all" || deal.category === selectedCategory)
     .slice(0, 10)
     .map((deal: any) => ({
@@ -208,8 +241,8 @@ export default function VendorAnalytics() {
     { name: 'Expired', value: Math.max(0, totalDeals - activeDeals - pendingDeals), color: CHART_COLORS.error[0] }
   ];
 
-  // Category performance
-  const categoryData = dealsArray.reduce((acc: any, deal: any) => {
+  // Category performance using filtered deals
+  const categoryData = filteredDeals.reduce((acc: any, deal: any) => {
     const category = deal.category || 'Other';
     if (!acc[category]) {
       acc[category] = { category, deals: 0, claims: 0, views: 0, value: 0 };
@@ -223,8 +256,6 @@ export default function VendorAnalytics() {
 
   const categoryChartData = Object.values(categoryData);
 
-
-
   // Color schemes
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
   const GRADIENT_COLORS = {
@@ -234,7 +265,7 @@ export default function VendorAnalytics() {
     danger: 'from-red-500 to-pink-600'
   };
 
-  // Get unique categories for filter
+  // Get unique categories for filter (use original dealsArray for available categories)
   const categories = ["all", ...new Set(dealsArray.map((deal: any) => deal.category).filter(Boolean))];
 
   if (isLoading) {

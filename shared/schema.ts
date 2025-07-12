@@ -591,6 +591,7 @@ export const updateUserProfileSchema = z.object({
   phone: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
+  profileImage: z.string().optional(),
 });
 
 export const updateVendorProfileSchema = z.object({
