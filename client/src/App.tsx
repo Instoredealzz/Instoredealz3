@@ -134,6 +134,7 @@ function Router() {
   const [matchVendorRegister] = useRoute("/vendor/register");
   const [matchVendorDashboard] = useRoute("/vendor/dashboard");
   const [matchVendorDeals] = useRoute("/vendor/deals");
+  const [matchVendorCreateDeal] = useRoute("/vendor/create-deal");
   const [matchVendorAnalytics] = useRoute("/vendor/analytics");
   const [matchVendorPos] = useRoute("/vendor/pos");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
@@ -281,6 +282,13 @@ function Router() {
     );
   }
   if (matchVendorDeals) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorDeals />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorCreateDeal) {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorDeals />

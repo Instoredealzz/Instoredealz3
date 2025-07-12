@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ const dealSchema = z.object({
 type DealForm = z.infer<typeof dealSchema>;
 
 export default function VendorDeals() {
+  const [location, setLocation] = useLocation();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<any>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -63,10 +65,16 @@ export default function VendorDeals() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Scroll to top when component mounts
+  // Scroll to top when component mounts and check if create dialog should be open
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    // Open create dialog if accessed from /vendor/create-deal
+    if (location === "/vendor/create-deal") {
+      setIsCreateOpen(true);
+      // Optionally change URL to /vendor/deals to keep it clean
+      setLocation("/vendor/deals");
+    }
+  }, [location, setLocation]);
 
   // Services subcategories structure
   const servicesSubcategories = {
