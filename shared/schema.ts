@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   city: text("city"),
   state: text("state"),
+  profileImage: text("profile_image"), // URL or base64 data for profile photo
   membershipPlan: text("membership_plan").default("basic"), // basic, premium, ultimate
   membershipExpiry: timestamp("membership_expiry"),
   isPromotionalUser: boolean("is_promotional_user").default(false),
