@@ -592,7 +592,7 @@ const VendorProfile = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-muted-foreground text-sm">Total Deals</p>
-                      <p className="text-2xl font-bold">{stats.totalDeals}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.totalDeals}</p>
                     </div>
                     <Package className="h-8 w-8 text-blue-500" />
                   </div>
@@ -604,7 +604,7 @@ const VendorProfile = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-muted-foreground text-sm">Active Deals</p>
-                      <p className="text-2xl font-bold">{stats.activeDeals}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.activeDeals}</p>
                     </div>
                     <CheckCircle className="h-8 w-8 text-green-500" />
                   </div>
@@ -616,7 +616,7 @@ const VendorProfile = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-muted-foreground text-sm">Total Views</p>
-                      <p className="text-2xl font-bold">{stats.totalViews}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.totalViews}</p>
                     </div>
                     <Eye className="h-8 w-8 text-purple-500" />
                   </div>
@@ -628,7 +628,7 @@ const VendorProfile = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-muted-foreground text-sm">Total Claims</p>
-                      <p className="text-2xl font-bold">{stats.totalClaims}</p>
+                      <p className="text-2xl font-bold text-foreground">{stats.totalClaims}</p>
                     </div>
                     <Users className="h-8 w-8 text-amber-500" />
                   </div>
@@ -661,7 +661,7 @@ const VendorProfile = () => {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium">Account Status</h4>
+                    <h4 className="font-medium text-foreground">Account Status</h4>
                     <p className="text-sm text-muted-foreground">
                       Your verification and approval status
                     </p>
@@ -671,27 +671,27 @@ const VendorProfile = () => {
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium">Business Rating</h4>
+                    <h4 className="font-medium text-foreground">Business Rating</h4>
                     <p className="text-sm text-muted-foreground">
                       Average customer rating for your business
                     </p>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Star className="h-4 w-4 text-yellow-500" />
-                    <span className="font-medium">{stats.rating.toFixed(1)}</span>
+                    <span className="font-medium text-foreground">{stats.rating.toFixed(1)}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium">Member Since</h4>
+                    <h4 className="font-medium text-foreground">Member Since</h4>
                     <p className="text-sm text-muted-foreground">
                       Registration date with Instoredealz
                     </p>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
+                    <span className="text-sm text-foreground">
                       {vendor?.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : 'N/A'}
                     </span>
                   </div>
