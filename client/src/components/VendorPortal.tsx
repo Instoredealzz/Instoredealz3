@@ -145,13 +145,26 @@ const VendorPortal = () => {
   // Vendor registration mutation
   const registerVendorMutation = useMutation({
     mutationFn: async (vendorData: VendorRegistrationForm): Promise<VendorResponse> => {
-      const response = await fetch('/api/register-vendor', {
+      const payload = {
+        businessName: vendorData.businessName,
+        gstNumber: vendorData.gstNumber || null,
+        panNumber: vendorData.panNumber,
+        logoUrl: vendorData.website || null,
+        companyWebsite: vendorData.website,
+        description: vendorData.description,
+        address: vendorData.address,
+        city: vendorData.city,
+        state: vendorData.state,
+        pincode: vendorData.pincode,
+      };
+
+      const response = await fetch('/api/vendors/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`,
         },
-        body: JSON.stringify(vendorData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {

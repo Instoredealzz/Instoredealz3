@@ -115,6 +115,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 13, 2025 - Comprehensive Duplicate Methods & Endpoints Cleanup
+- **Fixed Vendor Registration 400 Error**: Resolved critical vendor registration submission error by eliminating duplicate registration endpoints
+- **Removed Duplicate API Endpoint**: Deleted legacy `/api/register-vendor` endpoint (line 2957), keeping modern `/api/vendors/register` with proper Zod validation
+- **Fixed VendorPortal Component**: Updated VendorPortal.tsx to use correct `/api/vendors/register` endpoint instead of deleted legacy endpoint
+- **Payload Mapping Corrections**: Fixed field mapping issues between frontend forms and backend schema (businessName, panNumber, city, state, pincode)
+- **Cleaned Up Deactivated Files**: Removed duplicate .jsx.deactivated files (VendorPortal.jsx.deactivated, Subscription.jsx.deactivated)
+- **Enhanced Error Handling**: Modern endpoint provides detailed Zod validation errors vs legacy endpoint's generic messages
+- **Email Integration**: Kept modern endpoint with automatic vendor registration email notifications
+- **Consistent Authentication**: All vendor registration now uses unified authentication flow with proper JWT token handling
+
 ### July 12, 2025 - Customer Profile Navigation & Admin Dashboard Pending Status Fix
 - **Customer Profile Navigation**: Added "Profile" link to customer navigation menu and user dropdown for easy access to `/customer/profile`
 - **Admin Dashboard Pending Status**: Updated all pending status badges in admin dashboard to use red background with white text for better visibility
