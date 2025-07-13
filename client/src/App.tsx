@@ -39,6 +39,9 @@ import VendorAnalytics from "@/pages/vendor/analytics";
 import PosDashboard from "@/pages/vendor/pos-dashboard";
 import PosTransactions from "@/pages/vendor/pos-transactions";
 import VendorProfile from "@/pages/vendor/profile";
+import VendorProcess from "@/pages/vendor/VendorProcess";
+import VendorOnboarding from "@/pages/vendor/VendorOnboarding";
+import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -132,9 +135,12 @@ function Router() {
   const [matchVendorPortal] = useRoute("/vendor/portal");
   const [matchVendorBenefits] = useRoute("/vendor/benefits");
   const [matchVendorRegister] = useRoute("/vendor/register");
+  const [matchVendorOnboarding] = useRoute("/vendor/onboarding");
+  const [matchVendorProcess] = useRoute("/vendor/process");
   const [matchVendorDashboard] = useRoute("/vendor/dashboard");
   const [matchVendorDeals] = useRoute("/vendor/deals");
   const [matchVendorCreateDeal] = useRoute("/vendor/create-deal");
+  const [matchVendorDealCreation] = useRoute("/vendor/deals/create");
   const [matchVendorAnalytics] = useRoute("/vendor/analytics");
   const [matchVendorPos] = useRoute("/vendor/pos");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
@@ -295,6 +301,13 @@ function Router() {
       </RoleProtectedRoute>
     );
   }
+  if (matchVendorDealCreation) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorDealCreation />
+      </RoleProtectedRoute>
+    );
+  }
   if (matchVendorAnalytics) {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
@@ -320,6 +333,20 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorProfile />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorOnboarding) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorOnboarding />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorProcess) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorProcess />
       </RoleProtectedRoute>
     );
   }
