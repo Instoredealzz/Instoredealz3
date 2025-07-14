@@ -134,6 +134,11 @@ const DealList = () => {
     setLocation(`/deals/${dealId}`);
   };
 
+  const closeDialog = () => {
+    setSelectedDeal(null);
+    setQrCode(null);
+  };
+
   if (isLoading || (isAuthenticated && isLoadingClaims)) {
     return (
       <div className="flex justify-center items-center p-12">
