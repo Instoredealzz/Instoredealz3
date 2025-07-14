@@ -348,6 +348,63 @@ export const alertNotifications = pgTable("alert_notifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Membership Notifications - For automated membership expiry reminders
+export const membershipNotifications = pgTable("membership_notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Notification details
+  notificationType: text("notification_type").notNull(), // email, sms, push
+  messageType: text("message_type").notNull(), // expiry_reminder, renewal_offer, upgrade_suggestion
+  daysBefore: integer("days_before").notNull(), // Days before expiry when sent
+  
+  // Message content
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  
+  // Status tracking
+  status: text("status").default("pending"), // pending, sent, failed, opened, clicked
+  sentAt: timestamp("sent_at"),
+  errorMessage: text("error_message"),
+  
+  // Engagement tracking
+  opened: boolean("opened").default(false),
+  clicked: boolean("clicked").default(false),
+  actionTaken: boolean("action_taken").default(false), // User renewed/upgraded
+  
+  // Membership context
+  membershipPlan: text("membership_plan").notNull(),
+  membershipExpiry: timestamp("membership_expiry").notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notification Preferences - User preferences for notifications
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  
+  // General preferences
+  emailNotifications: boolean("email_notifications").default(true),
+  smsNotifications: boolean("sms_notifications").default(false),
+  pushNotifications: boolean("push_notifications").default(true),
+  
+  // Specific notification types
+  dealAlerts: boolean("deal_alerts").default(true),
+  membershipReminders: boolean("membership_reminders").default(true),
+  renewalOffers: boolean("renewal_offers").default(true),
+  upgradeOffers: boolean("upgrade_offers").default(true),
+  
+  // Frequency preferences
+  dailyDigest: boolean("daily_digest").default(false),
+  weeklyDigest: boolean("weekly_digest").default(true),
+  instantNotifications: boolean("instant_notifications").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   vendor: one(vendors, { fields: [users.id], references: [vendors.userId] }),
@@ -356,6 +413,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   systemLogs: many(systemLogs),
   wishlists: many(wishlists),
   reviews: many(customerReviews),
+  membershipNotifications: many(membershipNotifications),
+  notificationPreferences: one(notificationPreferences, { fields: [users.id], references: [notificationPreferences.userId] }),
 }));
 
 export const vendorsRelations = relations(vendors, ({ one, many }) => ({
@@ -432,6 +491,14 @@ export const alertNotificationsRelations = relations(alertNotifications, ({ one 
   alert: one(customDealAlerts, { fields: [alertNotifications.alertId], references: [customDealAlerts.id] }),
   deal: one(deals, { fields: [alertNotifications.dealId], references: [deals.id] }),
   user: one(users, { fields: [alertNotifications.userId], references: [users.id] }),
+}));
+
+export const membershipNotificationsRelations = relations(membershipNotifications, ({ one }) => ({
+  user: one(users, { fields: [membershipNotifications.userId], references: [users.id] }),
+}));
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  user: one(users, { fields: [notificationPreferences.userId], references: [users.id] }),
 }));
 
 // Insert schemas
@@ -533,6 +600,18 @@ export const insertPinAttemptSchema = createInsertSchema(pinAttempts).omit({
   attemptedAt: true,
 });
 
+export const insertMembershipNotificationSchema = createInsertSchema(membershipNotifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -568,6 +647,10 @@ export type AlertNotification = typeof alertNotifications.$inferSelect;
 export type InsertAlertNotification = z.infer<typeof insertAlertNotificationSchema>;
 export type PinAttempt = typeof pinAttempts.$inferSelect;
 export type InsertPinAttempt = z.infer<typeof insertPinAttemptSchema>;
+export type MembershipNotification = typeof membershipNotifications.$inferSelect;
+export type InsertMembershipNotification = z.infer<typeof insertMembershipNotificationSchema>;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
 
 // Auth schemas
 export const loginSchema = z.object({
