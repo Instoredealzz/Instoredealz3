@@ -342,14 +342,14 @@ const DealList = () => {
                   )}
                   
                   {/* Discount Badge */}
-                  <div className="absolute top-3 left-3">
-                    <Badge className="bg-red-500 text-white font-bold px-2 py-1 rounded-full">
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-red-500 text-white font-bold px-2 py-1 rounded-full animate-pulse">
                       {deal.discountPercentage}% OFF
                     </Badge>
                   </div>
                   
                   {/* View Count */}
-                  <div className="absolute bottom-3 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                  <div className="absolute bottom-3 left-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
                     <Eye className="w-3 h-3" />
                     {deal.viewCount || 0}
                   </div>
