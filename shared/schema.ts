@@ -415,6 +415,15 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   reviews: many(customerReviews),
   membershipNotifications: many(membershipNotifications),
   notificationPreferences: one(notificationPreferences, { fields: [users.id], references: [notificationPreferences.userId] }),
+  customDealAlerts: many(customDealAlerts),
+  dealConciergeRequests: many(dealConciergeRequests),
+  alertNotifications: many(alertNotifications),
+  pinAttempts: many(pinAttempts),
+  assignedConciergeRequests: many(dealConciergeRequests, { relationName: "assignedTo" }),
+  assignedTickets: many(helpTickets, { relationName: "assignedTickets" }),
+  approvedDeals: many(deals, { relationName: "approvedDeals" }),
+  rejectedDeals: many(deals, { relationName: "rejectedDeals" }),
+  posTransactions: many(posTransactions),
 }));
 
 export const vendorsRelations = relations(vendors, ({ one, many }) => ({
@@ -427,10 +436,15 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
 export const dealsRelations = relations(deals, ({ one, many }) => ({
   vendor: one(vendors, { fields: [deals.vendorId], references: [vendors.id] }),
   approver: one(users, { fields: [deals.approvedBy], references: [users.id] }),
+  rejecter: one(users, { fields: [deals.rejectedBy], references: [users.id] }),
   claims: many(dealClaims),
   wishlists: many(wishlists),
   reviews: many(customerReviews),
   dealRating: one(dealRatings, { fields: [deals.id], references: [dealRatings.dealId] }),
+  pinAttempts: many(pinAttempts),
+  alertNotifications: many(alertNotifications),
+  posTransactions: many(posTransactions),
+  posInventory: many(posInventory),
 }));
 
 export const dealClaimsRelations = relations(dealClaims, ({ one, many }) => ({
@@ -484,7 +498,7 @@ export const customDealAlertsRelations = relations(customDealAlerts, ({ one, man
 
 export const dealConciergeRequestsRelations = relations(dealConciergeRequests, ({ one }) => ({
   user: one(users, { fields: [dealConciergeRequests.userId], references: [users.id] }),
-  assignee: one(users, { fields: [dealConciergeRequests.assignedTo], references: [users.id] }),
+  assignee: one(users, { fields: [dealConciergeRequests.assignedTo], references: [users.id], relationName: "assignedTo" }),
 }));
 
 export const alertNotificationsRelations = relations(alertNotifications, ({ one }) => ({
@@ -499,6 +513,23 @@ export const membershipNotificationsRelations = relations(membershipNotification
 
 export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
   user: one(users, { fields: [notificationPreferences.userId], references: [users.id] }),
+}));
+
+// PIN attempts relations
+export const pinAttemptsRelations = relations(pinAttempts, ({ one }) => ({
+  deal: one(deals, { fields: [pinAttempts.dealId], references: [deals.id] }),
+  user: one(users, { fields: [pinAttempts.userId], references: [users.id] }),
+}));
+
+// Help tickets relations
+export const helpTicketsRelations = relations(helpTickets, ({ one }) => ({
+  user: one(users, { fields: [helpTickets.userId], references: [users.id] }),
+  assignee: one(users, { fields: [helpTickets.assignedTo], references: [users.id], relationName: "assignedTickets" }),
+}));
+
+// System logs relations
+export const systemLogsRelations = relations(systemLogs, ({ one }) => ({
+  user: one(users, { fields: [systemLogs.userId], references: [users.id] }),
 }));
 
 // Insert schemas
