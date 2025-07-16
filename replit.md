@@ -115,6 +115,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 16, 2025 - Admin Analytics Fix & Role-Based Home Navigation
+- **Admin Analytics API Fix**: Fixed critical 404 error in admin dashboard analytics by implementing missing `getAnalytics` method in DatabaseStorage class
+- **Database Analytics Implementation**: Added comprehensive analytics queries with proper SQL aggregations for user counts, vendor counts, deal counts, and claim statistics
+- **City & Category Statistics**: Implemented detailed city and category-based analytics with proper JOIN operations and data aggregation
+- **Role-Based Home Navigation**: Modified home page navigation to redirect admin users to admin deals management page instead of customer deals page
+- **Enhanced User Experience**: Admin users now see deals management interface when clicking "View Deals" from home page, while regular users see customer deals page
+- **Proper Role Routing**: Updated category navigation and deal browsing to respect user roles (admin/superadmin → admin/deals, customers → customer/deals)
+- **Error Handling**: Added comprehensive error handling and logging for analytics API endpoint with fallback default values
+
 ### July 16, 2025 - Comprehensive Security Hardening & Deployment Readiness
 - **Security Scan Implementation**: Conducted comprehensive security analysis identifying and addressing critical vulnerabilities
 - **JWT Secret Security Fix**: Replaced weak demo JWT secret with cryptographically secure random key (base64 encoded)

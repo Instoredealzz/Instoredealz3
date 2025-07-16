@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, and, desc, asc, like, count, sql } from "drizzle-orm";
+import { eq, and, desc, asc, like, count, sql, isNotNull } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { IStorage } from "./storage";
 import type {
@@ -618,5 +618,120 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schema.deals.id, dealId))
       .returning();
     return result[0];
+  }
+
+  // Analytics operations
+  async getAnalytics(): Promise<{
+    totalUsers: number;
+    totalVendors: number;
+    totalDeals: number;
+    totalClaims: number;
+    revenueEstimate: number;
+    cityStats: Array<{ city: string; dealCount: number; userCount: number }>;
+    categoryStats: Array<{ category: string; dealCount: number; claimCount: number }>;
+  }> {
+    try {
+      // Get total counts
+      const totalUsers = await db.select({ count: count() }).from(schema.users);
+      const totalVendors = await db.select({ count: count() }).from(schema.vendors);
+      const totalDeals = await db.select({ count: count() }).from(schema.deals);
+      const totalClaims = await db.select({ count: count() }).from(schema.dealClaims);
+
+      // Get city stats
+      const cityUserStats = await db.select({
+        city: schema.users.city,
+        userCount: count()
+      })
+      .from(schema.users)
+      .where(isNotNull(schema.users.city))
+      .groupBy(schema.users.city);
+
+      const cityDealStats = await db.select({
+        city: schema.vendors.city,
+        dealCount: count()
+      })
+      .from(schema.deals)
+      .innerJoin(schema.vendors, eq(schema.deals.vendorId, schema.vendors.id))
+      .groupBy(schema.vendors.city);
+
+      // Merge city stats
+      const cityStatsMap = new Map<string, { city: string; dealCount: number; userCount: number }>();
+      
+      cityUserStats.forEach(stat => {
+        if (stat.city) {
+          cityStatsMap.set(stat.city, {
+            city: stat.city,
+            dealCount: 0,
+            userCount: Number(stat.userCount)
+          });
+        }
+      });
+
+      cityDealStats.forEach(stat => {
+        if (stat.city) {
+          const existing = cityStatsMap.get(stat.city) || { city: stat.city, dealCount: 0, userCount: 0 };
+          existing.dealCount = Number(stat.dealCount);
+          cityStatsMap.set(stat.city, existing);
+        }
+      });
+
+      // Get category stats
+      const categoryDealStats = await db.select({
+        category: schema.deals.category,
+        dealCount: count()
+      })
+      .from(schema.deals)
+      .groupBy(schema.deals.category);
+
+      const categoryClaimStats = await db.select({
+        category: schema.deals.category,
+        claimCount: count()
+      })
+      .from(schema.dealClaims)
+      .innerJoin(schema.deals, eq(schema.dealClaims.dealId, schema.deals.id))
+      .groupBy(schema.deals.category);
+
+      // Merge category stats
+      const categoryStatsMap = new Map<string, { category: string; dealCount: number; claimCount: number }>();
+      
+      categoryDealStats.forEach(stat => {
+        categoryStatsMap.set(stat.category, {
+          category: stat.category,
+          dealCount: Number(stat.dealCount),
+          claimCount: 0
+        });
+      });
+
+      categoryClaimStats.forEach(stat => {
+        const existing = categoryStatsMap.get(stat.category) || { category: stat.category, dealCount: 0, claimCount: 0 };
+        existing.claimCount = Number(stat.claimCount);
+        categoryStatsMap.set(stat.category, existing);
+      });
+
+      const cityStats = Array.from(cityStatsMap.values());
+      const categoryStats = Array.from(categoryStatsMap.values());
+
+      return {
+        totalUsers: Number(totalUsers[0].count),
+        totalVendors: Number(totalVendors[0].count),
+        totalDeals: Number(totalDeals[0].count),
+        totalClaims: Number(totalClaims[0].count),
+        revenueEstimate: Number(totalClaims[0].count) * 150, // Rough estimate
+        cityStats,
+        categoryStats,
+      };
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      // Return default values if analytics fetch fails
+      return {
+        totalUsers: 0,
+        totalVendors: 0,
+        totalDeals: 0,
+        totalClaims: 0,
+        revenueEstimate: 0,
+        cityStats: [],
+        categoryStats: [],
+      };
+    }
   }
 }

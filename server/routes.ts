@@ -1514,6 +1514,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const analytics = await storage.getAnalytics();
       res.json(analytics);
     } catch (error) {
+      console.error('Analytics API error:', error);
       res.status(500).json({ message: "Failed to fetch analytics" });
     }
   });

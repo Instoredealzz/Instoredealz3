@@ -134,9 +134,15 @@ export default function Home() {
   };
 
   const handleCategoryClick = (categoryId: string) => {
-    // Allow both authenticated and unauthenticated users to browse deals by category
-    if (isAuthenticated) {
-      navigate(`/customer/deals?category=${categoryId}`);
+    // Route users based on their role and authentication status
+    if (isAuthenticated && user) {
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        // Admin users see deals management page with category filter
+        navigate(`/admin/deals?category=${categoryId}`);
+      } else {
+        // Regular users see customer deals page
+        navigate(`/customer/deals?category=${categoryId}`);
+      }
     } else {
       // Redirect to public deals page with category filter
       navigate(`/deals?category=${categoryId}`);
@@ -148,9 +154,15 @@ export default function Home() {
       // Navigate to specific deal page
       navigate(`/deals/${dealId}`);
     } else {
-      // Navigate to all deals page - allow both authenticated and unauthenticated users to view deals
-      if (isAuthenticated) {
-        navigate("/customer/deals");
+      // Navigate to all deals page - route based on user role
+      if (isAuthenticated && user) {
+        if (user.role === 'admin' || user.role === 'superadmin') {
+          // Admin users see deals management page
+          navigate("/admin/deals");
+        } else {
+          // Regular users see customer deals page
+          navigate("/customer/deals");
+        }
       } else {
         navigate("/deals");
       }
@@ -158,9 +170,15 @@ export default function Home() {
   };
 
   const handleViewAllDeals = () => {
-    // Allow both authenticated and unauthenticated users to view deals
-    if (isAuthenticated) {
-      navigate("/customer/deals");
+    // Route based on user role and authentication status
+    if (isAuthenticated && user) {
+      if (user.role === 'admin' || user.role === 'superadmin') {
+        // Admin users see deals management page
+        navigate("/admin/deals");
+      } else {
+        // Regular users see customer deals page
+        navigate("/customer/deals");
+      }
     } else {
       navigate("/deals");
     }
