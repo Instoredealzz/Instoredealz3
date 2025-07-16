@@ -40,7 +40,7 @@ const dealSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   subcategory: z.string().optional(),
   customCategory: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal("")),
+  imageUrl: z.string().optional().or(z.literal("")),
   discountPercentage: z.number().min(1, "Discount must be at least 1%").max(90, "Discount cannot exceed 90%"),
   verificationPin: z.string().min(4, "PIN must be 4 digits").max(4, "PIN must be 4 digits"),
   validUntil: z.string().min(1, "Please select an end date"),

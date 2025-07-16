@@ -54,7 +54,7 @@ const dealCreationSchema = z.object({
   maxRedemptions: z.number().min(1, 'Maximum redemptions must be at least 1').optional(),
   requiredMembership: z.enum(['basic', 'premium', 'ultimate']),
   terms: z.string().min(10, 'Terms and conditions must be at least 10 characters').optional(),
-  imageUrl: z.string().url('Please enter a valid image URL').optional().or(z.literal('')),
+  imageUrl: z.string().optional().or(z.literal('')),
   verificationPin: z.string().regex(/^[0-9]{4}$/, 'PIN must be exactly 4 digits'),
 });
 
