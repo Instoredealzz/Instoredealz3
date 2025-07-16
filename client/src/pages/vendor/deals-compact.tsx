@@ -40,7 +40,7 @@ const dealFormSchema = z.object({
   category: z.string().min(1, "Category is required"),
   subcategory: z.string().optional(),
   customCategory: z.string().optional(),
-  discountPercentage: z.number().min(1).max(90),
+  discountPercentage: z.number().min(1).max(90).optional().refine(val => val !== undefined, "Discount percentage is required"),
   verificationPin: z.string().length(4, "PIN must be 4 digits"),
   dealAvailability: z.enum(["all-stores", "selected-locations"]),
   selectedCities: z.array(z.string()).optional(),
@@ -282,7 +282,17 @@ export default function CompactDealsPage() {
                                   max="90"
                                   placeholder="Enter discount"
                                   {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                      field.onChange(undefined);
+                                    } else {
+                                      const numValue = parseInt(value);
+                                      if (!isNaN(numValue)) {
+                                        field.onChange(numValue);
+                                      }
+                                    }
+                                  }}
                                 />
                                 <Percent className="h-4 w-4 text-gray-500" />
                               </div>

@@ -67,7 +67,7 @@ const dealSchema = z.object({
   title: z.string().min(5, "Deal title must be at least 5 characters"),
   description: z.string().min(10, "Deal description must be at least 10 characters"),
   category: z.string().min(1, "Please select a category"),
-  discountPercentage: z.number().min(1, "Discount must be at least 1%").max(90, "Discount cannot exceed 90%"),
+  discountPercentage: z.number().min(1, "Discount must be at least 1%").max(90, "Discount cannot exceed 90%").optional().refine(val => val !== undefined, "Discount percentage is required"),
   verificationPin: z.string().length(4, "PIN must be exactly 4 digits").regex(/^\d+$/, "PIN must contain only numbers"),
   dealAvailability: z.enum(["all-stores", "selected-locations"]),
   selectedCities: z.array(z.string()).optional(),
@@ -289,7 +289,17 @@ export default function VendorDealsEnhanced() {
                                     max="90"
                                     placeholder="Enter discount percentage"
                                     {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      if (value === '') {
+                                        field.onChange(undefined);
+                                      } else {
+                                        const numValue = parseInt(value);
+                                        if (!isNaN(numValue)) {
+                                          field.onChange(numValue);
+                                        }
+                                      }
+                                    }}
                                   />
                                   <Percent className="h-4 w-4 text-gray-500" />
                                 </div>

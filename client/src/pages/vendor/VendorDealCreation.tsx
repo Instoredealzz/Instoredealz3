@@ -48,7 +48,7 @@ const dealCreationSchema = z.object({
   category: z.string().min(1, 'Please select a category'),
   customCategory: z.string().optional(),
   subcategory: z.string().optional(),
-  discountPercentage: z.number().min(1, 'Discount must be at least 1%').max(90, 'Discount cannot exceed 90%'),
+  discountPercentage: z.number().min(1, 'Discount must be at least 1%').max(90, 'Discount cannot exceed 90%').optional().refine(val => val !== undefined, 'Discount percentage is required'),
   originalPrice: z.number().min(1, 'Original price must be greater than 0').optional(),
   validUntil: z.string().min(1, 'Please select a valid until date'),
   maxRedemptions: z.number().min(1, 'Maximum redemptions must be at least 1').optional(),
@@ -386,7 +386,17 @@ const VendorDealCreation = () => {
                                   max="90"
                                   placeholder="25"
                                   {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === '') {
+                                      field.onChange(undefined);
+                                    } else {
+                                      const numValue = parseInt(value);
+                                      if (!isNaN(numValue)) {
+                                        field.onChange(numValue);
+                                      }
+                                    }
+                                  }}
                                   disabled={previewMode}
                                 />
                               </FormControl>
