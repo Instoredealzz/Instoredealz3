@@ -20,6 +20,12 @@ export default function Login() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
+  const handleDemoLogin = (email: string, password: string) => {
+    setCredential(email);
+    setPassword(password);
+    setError("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!credential || !password) {
@@ -114,10 +120,31 @@ export default function Login() {
               <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">Demo Accounts:</p>
                 <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                  <p><strong>Customer:</strong> basic@example.com | customer123</p>
-                  <p><strong>Vendor:</strong> vendor@example.com | vendor123</p>
-                  <p><strong>Admin:</strong> admin@instoredealz.com | admin123</p>
-                  <p className="text-blue-600 dark:text-blue-300 text-center mt-2">Email or Phone | Password</p>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin("demo@demo.com", "demo123")}
+                    className="w-full text-left p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                    disabled={isLoading}
+                  >
+                    <strong>Customer:</strong> demo@demo.com | demo123
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin("vendor@test.com", "vendor123")}
+                    className="w-full text-left p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                    disabled={isLoading}
+                  >
+                    <strong>Vendor:</strong> vendor@test.com | vendor123
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin("admin@instoredealz.com", "admin123")}
+                    className="w-full text-left p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
+                    disabled={isLoading}
+                  >
+                    <strong>Admin:</strong> admin@instoredealz.com | admin123
+                  </button>
+                  <p className="text-blue-600 dark:text-blue-300 text-center mt-2">Click any account to auto-fill credentials</p>
                 </div>
               </div>
             </CardContent>
