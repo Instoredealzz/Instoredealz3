@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,7 @@ interface UserData {
 export default function CustomerProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -87,9 +89,13 @@ export default function CustomerProfile() {
     onSuccess: () => {
       toast({
         title: "Profile updated successfully!",
-        description: "Your profile information has been saved.",
+        description: "Redirecting to home page...",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      // Redirect to home page after successful update
+      setTimeout(() => {
+        setLocation('/');
+      }, 1500); // Small delay to show the success message
     },
     onError: (error: any) => {
       toast({
