@@ -357,7 +357,7 @@ function Router() {
   if (matchAdmin) {
     return (
       <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
-        <MagicAdminDashboard />
+        <AdminDashboard />
       </RoleProtectedRoute>
     );
   }
