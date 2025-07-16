@@ -149,6 +149,7 @@ export default function CustomerDashboard() {
               totalSavings={currentUser.totalSavings || "0"}
               isPromotionalUser={currentUser.isPromotionalUser}
               userId={currentUser.id}
+              profileImage={currentUser.profileImage}
             />
           </div>
           

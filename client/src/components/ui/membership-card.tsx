@@ -1,4 +1,4 @@
-import { QrCode } from "lucide-react";
+import { QrCode, User } from "lucide-react";
 import { generateMembershipQR } from "@/lib/qr-code";
 import { useEffect, useState } from "react";
 
@@ -10,6 +10,7 @@ interface MembershipCardProps {
   totalSavings: string;
   isPromotionalUser?: boolean;
   userId: number;
+  profileImage?: string;
 }
 
 export default function MembershipCard({
@@ -20,6 +21,7 @@ export default function MembershipCard({
   totalSavings,
   isPromotionalUser,
   userId,
+  profileImage,
 }: MembershipCardProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
@@ -63,17 +65,35 @@ export default function MembershipCard({
 
       {/* Card Header */}
       <div className="flex justify-between items-start mb-4 relative z-10">
-        <div>
-          <h3 className="text-xl font-bold capitalize">
-            {membershipPlan} Member
-          </h3>
-          {isPromotionalUser && (
-            <div className="bg-success text-white text-xs px-2 py-1 rounded-full mt-1 inline-block">
-              🎉 Promotional Plan
-            </div>
-          )}
-          <p className="text-blue-100 mt-2">{userName}</p>
-          <p className="text-blue-100 text-sm">ID: {membershipId}</p>
+        <div className="flex items-center space-x-3">
+          {/* Profile Image */}
+          <div className="flex-shrink-0">
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt={userName}
+                className="w-12 h-12 rounded-full object-cover border-2 border-white/30"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+                <User className="w-6 h-6 text-white/60" />
+              </div>
+            )}
+          </div>
+          
+          {/* User Info */}
+          <div>
+            <h3 className="text-xl font-bold capitalize">
+              {membershipPlan} Member
+            </h3>
+            {isPromotionalUser && (
+              <div className="bg-success text-white text-xs px-2 py-1 rounded-full mt-1 inline-block">
+                🎉 Promotional Plan
+              </div>
+            )}
+            <p className="text-blue-100 mt-2">{userName}</p>
+            <p className="text-blue-100 text-sm">ID: {membershipId}</p>
+          </div>
         </div>
         <div className="bg-card p-2 rounded">
           {qrCodeUrl ? (
