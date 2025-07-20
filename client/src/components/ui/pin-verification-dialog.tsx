@@ -61,15 +61,15 @@ export function PinVerificationDialog({
         description: `Your actual savings of ₹${calculatedSavings.toFixed(2)} have been recorded.`,
         variant: "default",
       });
-      
+
       // Reset and close dialogs
       handleClose();
-      
+
       // Refresh user data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       queryClient.invalidateQueries({ queryKey: ["/api/users/claims"] });
       queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
-      
+
       if (onSuccess) onSuccess();
     },
     onError: (error) => {
@@ -86,12 +86,12 @@ export function PinVerificationDialog({
       try {
         const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
         const data = await response.json();
-        
+
         // Check if the response indicates an error
         if (!data.success) {
           throw new Error(data.error || "PIN verification failed");
         }
-        
+
         return data;
       } catch (error: any) {
         // Handle authentication errors specifically
@@ -107,11 +107,11 @@ export function PinVerificationDialog({
         description: `You saved ₹${data.savingsAmount}! Would you like to add your actual bill amount?`,
         variant: "default",
       });
-      
+
       // Show bill amount dialog immediately after successful PIN verification
       setPin("");
       setShowBillDialog(true);
-      
+
       // Comprehensive data refresh to update user profile and deal information
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["/api/deals"] }),
@@ -120,7 +120,7 @@ export function PinVerificationDialog({
         queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] }),
         queryClient.invalidateQueries({ queryKey: [`/api/deals/${dealId}`] })
       ]);
-      
+
       // Force refetch user data to update dashboard statistics
       queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
     },
