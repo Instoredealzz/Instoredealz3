@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -135,13 +135,14 @@ export default function DealDetail({ params }: DealDetailProps) {
     }
   }, [wishlistCheck]);
 
-  // Increment view count when component mounts
+  // Track if we've already incremented view count for this deal
+  const viewCountedRef = useRef<number | null>(null);
+
+  // Increment view count when component mounts (only once per deal)
   useEffect(() => {
-    if (currentDeal && id) {
-      apiRequest(`/api/deals/${id}/view`, "POST", {}).then(() => {
-        // Refresh deal data after view increment
-        queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}`] });
-      }).catch(() => {
+    if (currentDeal && id && viewCountedRef.current !== id) {
+      viewCountedRef.current = id;
+      apiRequest(`/api/deals/${id}/view`, "POST", {}).catch(() => {
         // Silently fail view tracking
       });
     }

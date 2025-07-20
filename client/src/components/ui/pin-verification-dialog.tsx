@@ -134,14 +134,14 @@ export function PinVerificationDialog({
   });
 
   const handleVerify = () => {
-    if (pin.length !== 4) {
-      toast({
-        title: "Invalid PIN",
-        description: "Please enter a 4-digit PIN",
-        variant: "destructive",
-      });
-      return;
-    }
+    // if (pin.length !== 4) {
+    //   toast({
+    //     title: "Invalid PIN",
+    //     description: "Please enter a 4-digit PIN",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
     verifyPinMutation.mutate(pin);
   };
 

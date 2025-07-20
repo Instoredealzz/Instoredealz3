@@ -115,6 +115,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 20, 2025 - Critical Infinite Loop Fix in Deal View Tracking
+- **Infinite Loop Resolution**: Fixed critical performance issue where deal detail pages were making repeated POST requests to `/api/deals/:id/view` endpoint every second
+- **Root Cause Identification**: The issue was in the deal detail component's useEffect hook which invalidated queries after incrementing view count, causing infinite re-renders
+- **Efficient Fix Implementation**: Used useRef to track view count status per deal ID, ensuring view tracking occurs only once per deal visit
+- **Performance Optimization**: Eliminated unnecessary query invalidation after view count increment, removing server load and improving user experience
+- **Import Fix**: Added missing useRef import to deal detail component for proper functionality
+- **Server Load Reduction**: Stopped excessive API calls that were occurring every second, significantly reducing database operations and server resources
+
 ### July 16, 2025 - Admin Analytics Fix & Role-Based Home Navigation
 - **Admin Analytics API Fix**: Fixed critical 404 error in admin dashboard analytics by implementing missing `getAnalytics` method in DatabaseStorage class
 - **Database Analytics Implementation**: Added comprehensive analytics queries with proper SQL aggregations for user counts, vendor counts, deal counts, and claim statistics
