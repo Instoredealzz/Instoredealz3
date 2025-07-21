@@ -83,18 +83,35 @@ export function PinVerificationDialog({
 
   const verifyPinMutation = useMutation({
     mutationFn: async (pin: string) => {
-      const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
-      return await response.json();
+      try {
+        const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
+        const data = await response.json();
+        
+        // Ensure we have a success response
+        if (data.success === false) {
+          throw new Error(data.error || "PIN verification failed");
+        }
+        
+        return data;
+      } catch (error: any) {
+        // Only throw actual errors, not successful responses
+        if (error.message && !error.message.includes('200')) {
+          throw error;
+        }
+        throw new Error("Invalid PIN. Please check with the vendor.");
+      }
     },
     onSuccess: async (data: any) => {
+      // Clear any previous error states
+      setPin("");
+      
       toast({
         title: "Deal Redeemed Successfully!",
-        description: `You saved ₹${data.savingsAmount}! Would you like to add your actual bill amount?`,
+        description: `You saved ₹${data.savingsAmount || 0}! Would you like to add your actual bill amount?`,
         variant: "default",
       });
 
       // Show bill amount dialog immediately after successful PIN verification
-      setPin("");
       setShowBillDialog(true);
 
       // Comprehensive data refresh to update user profile and deal information
@@ -110,11 +127,14 @@ export function PinVerificationDialog({
       queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
     },
     onError: (error: any) => {
-      toast({
-        title: "Verification Failed",
-        description: error.message || "Invalid PIN. Please check with the vendor.",
-        variant: "destructive",
-      });
+      // Only show error toast for actual errors
+      if (error && error.message && !showBillDialog) {
+        toast({
+          title: "Verification Failed",
+          description: error.message || "Invalid PIN. Please check with the vendor.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
