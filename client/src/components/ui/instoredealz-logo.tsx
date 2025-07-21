@@ -31,10 +31,20 @@ export default function InstoredeelzLogo({
   const LogoText = () => {
     const createColoredText = () => (
       <>
-        <span className={`text-blue-500 dark:text-blue-400 font-extrabold tracking-tight font-sans ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
+        <span className={`text-blue-500 dark:text-blue-400 font-extrabold tracking-tight font-sans ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}
+              style={{ 
+                color: '#3b82f6', 
+                textShadow: '0 2px 4px rgba(59, 130, 246, 0.3), 0 1px 2px rgba(59, 130, 246, 0.2)', 
+                filter: 'drop-shadow(0 1px 3px rgba(59, 130, 246, 0.5))' 
+              }}>
           instore
         </span>
-        <span className={`text-yellow-500 dark:text-yellow-400 font-extrabold tracking-tight font-sans ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
+        <span className={`text-amber-500 dark:text-amber-400 font-extrabold tracking-tight font-sans ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}
+              style={{ 
+                color: '#f59e0b', 
+                textShadow: '0 2px 4px rgba(245, 158, 11, 0.4), 0 1px 2px rgba(245, 158, 11, 0.3)', 
+                filter: 'drop-shadow(0 1px 3px rgba(245, 158, 11, 0.6))' 
+              }}>
           dealz
         </span>
       </>
