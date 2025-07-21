@@ -84,31 +84,16 @@ export function PinVerificationDialog({
   const verifyPinMutation = useMutation({
     mutationFn: async (pin: string) => {
       try {
-        console.log('[FRONTEND DEBUG] Sending PIN verification request for pin:', pin);
         const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
-        console.log('[FRONTEND DEBUG] Response received:', response.status, response.statusText);
-        
         const data = await response.json();
-        console.log('[FRONTEND DEBUG] Response data:', data);
         
         // Ensure we have a success response
         if (data.success === false) {
-          console.log('[FRONTEND DEBUG] Backend returned success=false, throwing error');
           throw new Error(data.error || "PIN verification failed");
         }
         
-        console.log('[FRONTEND DEBUG] PIN verification successful, returning data');
         return data;
       } catch (error: any) {
-        console.log('[FRONTEND DEBUG] Error caught:', error);
-        console.log('[FRONTEND DEBUG] Error message:', error.message);
-        
-        // Don't show error if we're already successful (showBillDialog means success)
-        if (showBillDialog) {
-          console.log('[FRONTEND DEBUG] Bill dialog already showing, suppressing error');
-          return { success: true, savingsAmount: 0 };
-        }
-        
         throw error;
       }
     },
@@ -150,14 +135,14 @@ export function PinVerificationDialog({
   });
 
   const handleVerify = () => {
-    // if (pin.length !== 4) {
-    //   toast({
-    //     title: "Invalid PIN",
-    //     description: "Please enter a 4-digit PIN",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
+    if (pin.length !== 4) {
+      toast({
+        title: "Invalid PIN",
+        description: "Please enter a 4-digit PIN",
+        variant: "destructive",
+      });
+      return;
+    }
     verifyPinMutation.mutate(pin);
   };
 
@@ -209,7 +194,12 @@ export function PinVerificationDialog({
                   <PinInput
                     value={pin}
                     onChange={setPin}
-                    onComplete={handleVerify}
+                    onComplete={(completedPin: string) => {
+                      if (completedPin.length === 4) {
+                        setPin(completedPin);
+                        setTimeout(() => verifyPinMutation.mutate(completedPin), 100);
+                      }
+                    }}
                     disabled={verifyPinMutation.isPending}
                     className="justify-center"
                   />

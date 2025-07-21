@@ -785,19 +785,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import PIN security utilities
       const { validatePinFormat, verifyPin, checkRateLimit, verifyRotatingPin } = await import('./pin-security');
 
-      // Debug PIN input
-      console.log('[DEBUG] Received PIN data:', {
-        pin,
-        pinType: typeof pin,
-        pinLength: pin ? String(pin).length : 0,
-        pinValue: JSON.stringify(pin),
-        requestBody: JSON.stringify(req.body),
-        dealId
-      });
-
       // Validate PIN format first
       const validation = validatePinFormat(pin);
-      console.log('[DEBUG] Validation result:', validation);
       
       if (!validation.isValid) {
         // Record failed attempt
