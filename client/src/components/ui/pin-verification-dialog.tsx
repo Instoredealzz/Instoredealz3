@@ -84,21 +84,32 @@ export function PinVerificationDialog({
   const verifyPinMutation = useMutation({
     mutationFn: async (pin: string) => {
       try {
+        console.log('[FRONTEND DEBUG] Sending PIN verification request for pin:', pin);
         const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
+        console.log('[FRONTEND DEBUG] Response received:', response.status, response.statusText);
+        
         const data = await response.json();
+        console.log('[FRONTEND DEBUG] Response data:', data);
         
         // Ensure we have a success response
         if (data.success === false) {
+          console.log('[FRONTEND DEBUG] Backend returned success=false, throwing error');
           throw new Error(data.error || "PIN verification failed");
         }
         
+        console.log('[FRONTEND DEBUG] PIN verification successful, returning data');
         return data;
       } catch (error: any) {
-        // Only throw actual errors, not successful responses
-        if (error.message && !error.message.includes('200')) {
-          throw error;
+        console.log('[FRONTEND DEBUG] Error caught:', error);
+        console.log('[FRONTEND DEBUG] Error message:', error.message);
+        
+        // Don't show error if we're already successful (showBillDialog means success)
+        if (showBillDialog) {
+          console.log('[FRONTEND DEBUG] Bill dialog already showing, suppressing error');
+          return { success: true, savingsAmount: 0 };
         }
-        throw new Error("Invalid PIN. Please check with the vendor.");
+        
+        throw error;
       }
     },
     onSuccess: async (data: any) => {
