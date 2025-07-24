@@ -24,9 +24,6 @@ interface MultiStoreLocationManagerProps {
 }
 
 export default function MultiStoreLocationManager({ locations, onChange }: MultiStoreLocationManagerProps) {
-  // Track states for proper Select component rendering
-  const [internalStates, setInternalStates] = useState<{ [key: string]: string }>({});
-
   const addLocation = () => {
     const newLocation: StoreLocation = {
       id: Date.now().toString(),
@@ -41,12 +38,6 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
   };
 
   const removeLocation = (id: string) => {
-    // Remove from internal states when location is removed
-    setInternalStates(prev => {
-      const newStates = { ...prev };
-      delete newStates[id];
-      return newStates;
-    });
     onChange(locations.filter(loc => loc.id !== id));
   };
 
@@ -56,22 +47,18 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
     ));
   };
 
-  // Keep internal states synchronized with locations
-  useEffect(() => {
-    const newInternalStates: { [key: string]: string } = {};
-    locations.forEach(location => {
-      newInternalStates[location.id] = location.state || '';
-    });
-    setInternalStates(newInternalStates);
-  }, [locations]);
-
   const handleStateChange = (locationId: string, state: string) => {
-    // Update internal state immediately for UI responsiveness
-    setInternalStates(prev => ({ ...prev, [locationId]: state }));
-    // Update the actual location data
-    updateLocation(locationId, 'state', state);
-    // Clear city when state changes
-    updateLocation(locationId, 'city', '');
+    // Update state and clear city
+    const updatedLocations = locations.map(loc => 
+      loc.id === locationId 
+        ? { ...loc, state: state, city: "" }
+        : loc
+    );
+    onChange(updatedLocations);
+  };
+
+  const handleCityChange = (locationId: string, city: string) => {
+    updateLocation(locationId, 'city', city);
   };
 
   return (
@@ -109,17 +96,15 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
                 <MapPin className="h-5 w-5 text-blue-500" />
                 Store Location {index + 1}
               </CardTitle>
-              {locations.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeLocation(location.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeLocation(location.id)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -152,8 +137,7 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
               <div>
                 <Label htmlFor={`state-${location.id}`}>State *</Label>
                 <Select
-                  key={`state-${location.id}-${internalStates[location.id] || 'empty'}`}
-                  value={internalStates[location.id] || location.state || ''}
+                  value={location.state || ""}
                   onValueChange={(value) => handleStateChange(location.id, value)}
                 >
                   <SelectTrigger className="mt-1">
@@ -172,17 +156,15 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
               <div>
                 <Label htmlFor={`city-${location.id}`}>City *</Label>
                 <Select
-                  key={`city-${location.id}-${location.state || 'no-state'}`}
-                  value={location.city || ''}
-                  onValueChange={(value) => updateLocation(location.id, 'city', value)}
-                  disabled={!(internalStates[location.id] || location.state)}
+                  value={location.city || ""}
+                  onValueChange={(value) => handleCityChange(location.id, value)}
+                  disabled={!location.state}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select City" />
+                    <SelectValue placeholder={location.state ? "Select City" : "Select State First"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {(internalStates[location.id] || location.state) && 
-                     getCitiesByState(internalStates[location.id] || location.state).map((city) => (
+                    {location.state && getCitiesByState(location.state).map((city) => (
                       <SelectItem key={city} value={city}>
                         {city}
                       </SelectItem>
