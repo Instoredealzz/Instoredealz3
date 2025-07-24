@@ -726,8 +726,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId,
         dealId,
         savingsAmount: "0", // No savings until PIN verification
-        status: "pending", // Mark as pending until store verification
-        claimedAt: new Date()
+        status: "pending" // Mark as pending until store verification
       });
 
       // Log the claim activity (but not as completed savings)
@@ -903,8 +902,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dealId,
           userId,
           status: "pending",
-          savingsAmount: "0",
-          claimedAt: new Date()
+          savingsAmount: "0"
         });
         Logger.debug("Auto-created new claim for PIN verification", {
           claimId: currentClaim.id,

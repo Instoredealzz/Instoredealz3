@@ -71,6 +71,7 @@ export default function VendorDeals() {
     address: string;
     city: string;
     state: string;
+    sublocation: string;
     pincode: string;
     phone: string;
   }>>([]);

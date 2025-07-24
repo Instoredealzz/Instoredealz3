@@ -92,6 +92,7 @@ export const dealLocations = pgTable("deal_locations", {
   address: text("address").notNull(),
   city: text("city").notNull(),
   state: text("state").notNull(),
+  sublocation: text("sublocation"), // For metro cities like Mumbai - Dadar, Sion, etc.
   pincode: text("pincode"),
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),

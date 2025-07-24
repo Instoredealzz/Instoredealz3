@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Plus, MapPin, Phone, Building } from "lucide-react";
 import { indianStates, getCitiesByState } from "@/lib/cities";
+import { isMetroCity, getSublocations } from "@/lib/metro-cities";
 import { InsertDealLocation } from "@shared/schema";
 
 interface StoreLocation {
@@ -14,6 +15,7 @@ interface StoreLocation {
   address: string;
   city: string;
   state: string;
+  sublocation: string;
   pincode: string;
   phone: string;
 }
@@ -31,6 +33,7 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
       address: "",
       city: "",
       state: "",
+      sublocation: "",
       pincode: "",
       phone: "",
     };
@@ -48,17 +51,27 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
   };
 
   const handleStateChange = (locationId: string, state: string) => {
-    // Update state and clear city
+    // Update state and clear city and sublocation
     const updatedLocations = locations.map(loc => 
       loc.id === locationId 
-        ? { ...loc, state: state, city: "" }
+        ? { ...loc, state: state, city: "", sublocation: "" }
         : loc
     );
     onChange(updatedLocations);
   };
 
   const handleCityChange = (locationId: string, city: string) => {
-    updateLocation(locationId, 'city', city);
+    // Update city and clear sublocation if city changes
+    const updatedLocations = locations.map(loc => 
+      loc.id === locationId 
+        ? { ...loc, city: city, sublocation: "" }
+        : loc
+    );
+    onChange(updatedLocations);
+  };
+
+  const handleSublocationChange = (locationId: string, sublocation: string) => {
+    updateLocation(locationId, 'sublocation', sublocation);
   };
 
   return (
@@ -173,6 +186,28 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
                 </Select>
               </div>
             </div>
+
+            {/* Sublocation for Metro Cities */}
+            {location.city && isMetroCity(location.city) && (
+              <div>
+                <Label htmlFor={`sublocation-${location.id}`}>Area/Sublocation</Label>
+                <Select
+                  value={location.sublocation || ""}
+                  onValueChange={(value) => handleSublocationChange(location.id, value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select Area/Sublocation" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getSublocations(location.city).map((sublocation) => (
+                      <SelectItem key={sublocation} value={sublocation}>
+                        {sublocation}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Pincode and Phone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

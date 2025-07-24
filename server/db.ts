@@ -3,6 +3,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
+import { readFileSync } from 'fs';
 
 // Load environment variables
 config();
@@ -15,8 +16,7 @@ let databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl || databaseUrl.trim() === '') {
   // Try reading directly from .env file if environment variables are empty
   try {
-    const fs = require('fs');
-    const envContent = fs.readFileSync('.env', 'utf8');
+    const envContent = readFileSync('.env', 'utf8');
     const envLines = envContent.split('\n');
     for (const line of envLines) {
       if (line.startsWith('DATABASE_URL=')) {
