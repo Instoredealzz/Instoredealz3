@@ -33,6 +33,8 @@ import {
 import ImageUpload from "@/components/ui/image-upload";
 import PinTracker from "@/components/ui/pin-tracker";
 import RotatingPinDisplay from "@/components/ui/rotating-pin-display";
+import MultiStoreLocationManager from "@/components/MultiStoreLocationManager";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const dealSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -50,6 +52,7 @@ const dealSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   useCurrentLocation: z.boolean().optional(),
+  dealAvailability: z.enum(["all-stores", "selected-locations"]).default("all-stores")
 });
 
 type DealForm = z.infer<typeof dealSchema>;
@@ -62,6 +65,15 @@ export default function VendorDeals() {
   const [locationError, setLocationError] = useState<string>("");
   const [showCustomCategory, setShowCustomCategory] = useState(false);
   const [showSubcategory, setShowSubcategory] = useState(false);
+  const [storeLocations, setStoreLocations] = useState<Array<{
+    id: string;
+    storeName: string;
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    phone: string;
+  }>>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -211,6 +223,7 @@ export default function VendorDeals() {
       discountPercentage: 10,
       verificationPin: "",
       validUntil: "",
+      dealAvailability: "all-stores",
       maxRedemptions: undefined,
       requiredMembership: "basic",
       address: "",
@@ -285,6 +298,7 @@ export default function VendorDeals() {
         validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : undefined,
         latitude: data.latitude ? data.latitude.toString() : undefined,
         longitude: data.longitude ? data.longitude.toString() : undefined,
+        locations: data.dealAvailability === "selected-locations" ? storeLocations : []
       };
       return apiRequest('/api/vendors/deals', 'POST', finalData);
     },
@@ -382,6 +396,7 @@ export default function VendorDeals() {
     form.reset();
     setShowCustomCategory(false);
     setShowSubcategory(false);
+    setStoreLocations([]);
   };
 
   const getDealStatusBadge = (deal: any) => {
@@ -763,6 +778,54 @@ export default function VendorDeals() {
                         <p className="text-xs text-red-600">{locationError}</p>
                       )}
                     </div>
+
+                    {/* Deal Availability Options */}
+                    <FormField
+                      control={form.control}
+                      name="dealAvailability"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-base">Deal Availability</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="all-stores" id="all-stores" />
+                                <label htmlFor="all-stores" className="text-sm font-medium">
+                                  All Stores
+                                </label>
+                              </div>
+                              <p className="text-xs text-muted-foreground ml-6">
+                                Available at all your business locations
+                              </p>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="selected-locations" id="selected-locations" />
+                                <label htmlFor="selected-locations" className="text-sm font-medium">
+                                  Selected Locations Only
+                                </label>
+                              </div>
+                              <p className="text-xs text-muted-foreground ml-6">
+                                Choose specific store locations for this deal
+                              </p>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Multi-Store Location Manager */}
+                    {form.watch("dealAvailability") === "selected-locations" && (
+                      <div className="border rounded-lg p-4 bg-muted/20">
+                        <MultiStoreLocationManager
+                          locations={storeLocations}
+                          onChange={setStoreLocations}
+                        />
+                      </div>
+                    )}
 
                     {/* Row 7: Image Upload */}
                     <FormField

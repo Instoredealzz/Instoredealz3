@@ -9,6 +9,8 @@ import type {
   InsertVendor,
   Deal,
   InsertDeal,
+  DealLocation,
+  InsertDealLocation,
   DealClaim,
   InsertDealClaim,
   HelpTicket,
@@ -199,6 +201,18 @@ export class DatabaseStorage implements IStorage {
     await db.update(schema.deals)
       .set({ viewCount: sql`${schema.deals.viewCount} + 1` })
       .where(eq(schema.deals.id, id));
+  }
+
+  // Deal location operations
+  async createDealLocation(location: InsertDealLocation): Promise<DealLocation> {
+    const result = await db.insert(schema.dealLocations).values(location).returning();
+    return result[0];
+  }
+
+  async getDealLocations(dealId: number): Promise<DealLocation[]> {
+    return await db.select().from(schema.dealLocations)
+      .where(eq(schema.dealLocations.dealId, dealId))
+      .orderBy(asc(schema.dealLocations.createdAt));
   }
 
   // Deal claim operations

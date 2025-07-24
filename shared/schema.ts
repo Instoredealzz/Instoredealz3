@@ -80,6 +80,23 @@ export const deals = pgTable("deals", {
   pinSalt: text("pin_salt"), // Salt for PIN hashing
   pinCreatedAt: timestamp("pin_created_at").defaultNow(), // PIN creation time
   pinExpiresAt: timestamp("pin_expires_at"), // PIN expiration (optional)
+  dealAvailability: text("deal_availability").default("all-stores"), // all-stores, selected-locations
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Deal locations table for multiple store locations per deal
+export const dealLocations = pgTable("deal_locations", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
+  storeName: text("store_name").notNull(),
+  address: text("address").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  pincode: text("pincode"),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  phone: text("phone"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -445,6 +462,11 @@ export const dealsRelations = relations(deals, ({ one, many }) => ({
   alertNotifications: many(alertNotifications),
   posTransactions: many(posTransactions),
   posInventory: many(posInventory),
+  locations: many(dealLocations),
+}));
+
+export const dealLocationsRelations = relations(dealLocations, ({ one }) => ({
+  deal: one(deals, { fields: [dealLocations.dealId], references: [deals.id] }),
 }));
 
 export const dealClaimsRelations = relations(dealClaims, ({ one, many }) => ({
@@ -550,6 +572,11 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   viewCount: true,
 });
 
+export const insertDealLocationSchema = createInsertSchema(dealLocations).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertDealClaimSchema = createInsertSchema(dealClaims).omit({
   id: true,
   claimedAt: true,
@@ -650,6 +677,8 @@ export type Vendor = typeof vendors.$inferSelect;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type Deal = typeof deals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
+export type DealLocation = typeof dealLocations.$inferSelect;
+export type InsertDealLocation = z.infer<typeof insertDealLocationSchema>;
 export type DealClaim = typeof dealClaims.$inferSelect;
 export type InsertDealClaim = z.infer<typeof insertDealClaimSchema>;
 export type HelpTicket = typeof helpTickets.$inferSelect;

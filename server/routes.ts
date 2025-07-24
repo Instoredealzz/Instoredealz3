@@ -1401,6 +1401,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const deal = await storage.createDeal(dealData);
       
+      // Handle multi-store locations if provided
+      if (req.body.locations && Array.isArray(req.body.locations) && req.body.locations.length > 0) {
+        for (const location of req.body.locations) {
+          const locationData = {
+            dealId: deal.id,
+            storeName: location.storeName,
+            address: location.address,
+            city: location.city,
+            state: location.state,
+            pincode: location.pincode || null,
+            phone: location.phone || null,
+            latitude: null, // Will be populated later if needed
+            longitude: null
+          };
+          
+          await storage.createDealLocation(locationData);
+        }
+      }
+      
       // Return the deal with the plain text PIN for vendor reference (one-time only)
       res.status(201).json({
         ...deal,

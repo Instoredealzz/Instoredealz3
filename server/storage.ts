@@ -5,6 +5,8 @@ import {
   InsertVendor,
   Deal,
   InsertDeal,
+  DealLocation,
+  InsertDealLocation,
   DealClaim,
   InsertDealClaim,
   HelpTicket,
@@ -69,6 +71,10 @@ export interface IStorage {
   approveDeal(id: number, approvedBy: number): Promise<Deal | undefined>;
   rejectDeal(id: number, rejectedBy: number, reason: string): Promise<Deal | undefined>;
   incrementDealViews(id: number): Promise<void>;
+
+  // Deal location operations
+  createDealLocation(location: InsertDealLocation): Promise<DealLocation>;
+  getDealLocations(dealId: number): Promise<DealLocation[]>;
 
   // Deal claim operations
   claimDeal(claim: InsertDealClaim): Promise<DealClaim>;
