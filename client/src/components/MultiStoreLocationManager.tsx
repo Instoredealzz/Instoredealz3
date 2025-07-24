@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,16 @@ interface MultiStoreLocationManagerProps {
 }
 
 export default function MultiStoreLocationManager({ locations, onChange }: MultiStoreLocationManagerProps) {
-  const [selectedStates, setSelectedStates] = useState<{ [key: string]: string }>({});
+  // Initialize selectedStates with existing state values
+  const [selectedStates, setSelectedStates] = useState<{ [key: string]: string }>(() => {
+    const initialStates: { [key: string]: string } = {};
+    locations.forEach(location => {
+      if (location.state) {
+        initialStates[location.id] = location.state;
+      }
+    });
+    return initialStates;
+  });
 
   const addLocation = () => {
     const newLocation: StoreLocation = {
@@ -40,6 +49,12 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
   };
 
   const removeLocation = (id: string) => {
+    // Remove from selectedStates when location is removed
+    setSelectedStates(prev => {
+      const newStates = { ...prev };
+      delete newStates[id];
+      return newStates;
+    });
     onChange(locations.filter(loc => loc.id !== id));
   };
 
@@ -48,6 +63,17 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
       loc.id === id ? { ...loc, [field]: value } : loc
     ));
   };
+
+  // Update selectedStates when locations prop changes
+  useEffect(() => {
+    const newSelectedStates: { [key: string]: string } = {};
+    locations.forEach(location => {
+      if (location.state) {
+        newSelectedStates[location.id] = location.state;
+      }
+    });
+    setSelectedStates(newSelectedStates);
+  }, [locations]);
 
   const handleStateChange = (locationId: string, state: string) => {
     setSelectedStates(prev => ({ ...prev, [locationId]: state }));
