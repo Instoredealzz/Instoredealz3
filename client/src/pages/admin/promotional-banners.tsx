@@ -551,11 +551,17 @@ export default function PromotionalBanners() {
 
             {/* Social Links Tab */}
             <TabsContent value="social" className="space-y-4">
+              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Note:</strong> All social media links are optional. You can provide just one platform or as many as you want. 
+                  At least one contact method (any social platform or WhatsApp) is recommended for better user engagement.
+                </p>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="facebook" className="flex items-center">
                     <Facebook className="h-4 w-4 mr-2 text-blue-600" />
-                    Facebook URL
+                    Facebook URL (Optional)
                   </Label>
                   <Input
                     id="facebook"
@@ -570,7 +576,7 @@ export default function PromotionalBanners() {
                 <div className="space-y-2">
                   <Label htmlFor="instagram" className="flex items-center">
                     <Instagram className="h-4 w-4 mr-2 text-pink-600" />
-                    Instagram URL
+                    Instagram URL (Optional)
                   </Label>
                   <Input
                     id="instagram"
@@ -585,7 +591,7 @@ export default function PromotionalBanners() {
                 <div className="space-y-2">
                   <Label htmlFor="twitter" className="flex items-center">
                     <Twitter className="h-4 w-4 mr-2 text-blue-400" />
-                    Twitter URL
+                    Twitter URL (Optional)
                   </Label>
                   <Input
                     id="twitter"
@@ -600,7 +606,7 @@ export default function PromotionalBanners() {
                 <div className="space-y-2">
                   <Label htmlFor="website" className="flex items-center">
                     <Globe className="h-4 w-4 mr-2 text-green-600" />
-                    Website URL
+                    Website URL (Optional)
                   </Label>
                   <Input
                     id="website"
@@ -615,7 +621,7 @@ export default function PromotionalBanners() {
                 <div className="space-y-2">
                   <Label htmlFor="whatsapp" className="flex items-center">
                     <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-                    WhatsApp Number
+                    WhatsApp Number (Optional)
                   </Label>
                   <Input
                     id="whatsapp"
