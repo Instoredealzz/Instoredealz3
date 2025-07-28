@@ -555,16 +555,45 @@ export default function PromotionalBanners() {
                         type="checkbox"
                         checked={formData.displayPages.includes(page.value)}
                         onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              displayPages: [...formData.displayPages, page.value]
-                            });
+                          if (page.value === 'all') {
+                            // Handle "All Pages" checkbox
+                            if (e.target.checked) {
+                              // Select all pages when "All" is checked
+                              const allPageValues = PAGE_OPTIONS.map(p => p.value);
+                              setFormData({
+                                ...formData,
+                                displayPages: allPageValues
+                              });
+                            } else {
+                              // Unselect all pages when "All" is unchecked
+                              setFormData({
+                                ...formData,
+                                displayPages: []
+                              });
+                            }
                           } else {
-                            setFormData({
-                              ...formData,
-                              displayPages: formData.displayPages.filter(p => p !== page.value)
-                            });
+                            // Handle individual page checkboxes
+                            if (e.target.checked) {
+                              const newPages = [...formData.displayPages, page.value];
+                              // If all individual pages are now selected, also select "all"
+                              const individualPages = PAGE_OPTIONS.filter(p => p.value !== 'all').map(p => p.value);
+                              const allIndividualSelected = individualPages.every(pageVal => newPages.includes(pageVal));
+                              if (allIndividualSelected && !newPages.includes('all')) {
+                                newPages.push('all');
+                              }
+                              setFormData({
+                                ...formData,
+                                displayPages: newPages
+                              });
+                            } else {
+                              const newPages = formData.displayPages.filter(p => p !== page.value);
+                              // If unchecking an individual page, also uncheck "all"
+                              const filteredPages = newPages.filter(p => p !== 'all');
+                              setFormData({
+                                ...formData,
+                                displayPages: filteredPages
+                              });
+                            }
                           }
                         }}
                         className="rounded"
