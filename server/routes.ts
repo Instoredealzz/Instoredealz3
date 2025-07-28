@@ -4580,19 +4580,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const banner = await storage.createPromotionalBanner(bannerData);
       
+      // TODO: Re-enable system logging once system_logs table is created
       // Log the creation
-      await storage.createSystemLog({
-        userId: req.user!.id,
-        action: "PROMOTIONAL_BANNER_CREATED",
-        details: { 
-          bannerId: banner.id, 
-          title: banner.title,
-          variant: banner.variant,
-          isActive: banner.isActive
-        },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
-      });
+      try {
+        await storage.createSystemLog({
+          userId: req.user!.id,
+          action: "PROMOTIONAL_BANNER_CREATED",
+          details: { 
+            bannerId: banner.id, 
+            title: banner.title,
+            variant: banner.variant,
+            isActive: banner.isActive
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+      } catch (logError) {
+        console.warn('System logging failed, continuing without logging:', logError.message);
+      }
       
       res.status(201).json(banner);
     } catch (error) {
@@ -4611,18 +4616,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Banner not found" });
       }
       
+      // TODO: Re-enable system logging once system_logs table is created
       // Log the update
-      await storage.createSystemLog({
-        userId: req.user!.id,
-        action: "PROMOTIONAL_BANNER_UPDATED",
-        details: { 
-          bannerId, 
-          title: banner.title,
-          changes: updates
-        },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
-      });
+      try {
+        await storage.createSystemLog({
+          userId: req.user!.id,
+          action: "PROMOTIONAL_BANNER_UPDATED",
+          details: { 
+            bannerId, 
+            title: banner.title,
+            changes: updates
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+      } catch (logError) {
+        console.warn('System logging failed, continuing without logging:', logError.message);
+      }
       
       res.json(banner);
     } catch (error) {
@@ -4651,18 +4661,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Banner not found" });
       }
       
+      // TODO: Re-enable system logging once system_logs table is created
       // Log the deletion
-      await storage.createSystemLog({
-        userId: req.user!.id,
-        action: "PROMOTIONAL_BANNER_DELETED",
-        details: { 
-          bannerId, 
-          title: banner.title,
-          variant: banner.variant
-        },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
-      });
+      try {
+        await storage.createSystemLog({
+          userId: req.user!.id,
+          action: "PROMOTIONAL_BANNER_DELETED",
+          details: { 
+            bannerId, 
+            title: banner.title,
+            variant: banner.variant
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+      } catch (logError) {
+        console.warn('System logging failed, continuing without logging:', logError.message);
+      }
       
       res.json({ message: "Banner deleted successfully" });
     } catch (error) {
