@@ -258,61 +258,41 @@ export async function initializeDatabase() {
       }
     ]).onConflictDoNothing();
 
-    // Migrate promotional banners to new videos structure
+    // Migrate promotional banners from videos array back to single video_url
     await db.execute(sql`
-      -- Add videos column if it doesn't exist
+      -- Add video_url column if it doesn't exist
       ALTER TABLE promotional_banners 
-      ADD COLUMN IF NOT EXISTS videos JSONB DEFAULT '[]'::jsonb
+      ADD COLUMN IF NOT EXISTS video_url TEXT
     `);
 
-    // Migrate existing data to new structure
+    // Migrate videos array back to single video_url (take first video)
     await db.execute(sql`
       UPDATE promotional_banners 
-      SET videos = CASE 
-        WHEN video_url IS NOT NULL AND video_url != '' THEN 
-          json_build_array(
-            json_build_object(
-              'url', video_url,
-              'title', COALESCE(video_title, 'Video'),
-              'thumbnail', null,
-              'duration', null
-            )
-          )::jsonb
-        ELSE '[]'::jsonb
+      SET video_url = CASE 
+        WHEN videos IS NOT NULL AND jsonb_array_length(videos) > 0 THEN 
+          videos->0->>'url'
+        ELSE NULL
       END
-      WHERE videos = '[]'::jsonb OR videos IS NULL
+      WHERE video_url IS NULL
+    `);
+
+    // Drop videos column if it exists
+    await db.execute(sql`
+      ALTER TABLE promotional_banners 
+      DROP COLUMN IF EXISTS videos
     `);
 
     // Initialize promotional banners with sample data
     await db.execute(sql`
-      INSERT INTO promotional_banners (title, description, videos, social_media_links, variant, is_active, display_pages, created_by)
+      INSERT INTO promotional_banners (title, description, video_url, social_media_links, variant, is_active, display_pages, created_by)
       VALUES (
         'Welcome to Instoredealz!',
-        'Discover amazing deals from local businesses. Watch our introduction videos and connect with us on social media for updates.',
-        '[
-          {
-            "url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1",
-            "title": "Platform Introduction",
-            "thumbnail": null,
-            "duration": "3:32"
-          },
-          {
-            "url": "https://www.youtube.com/embed/oHg5SJYRHA0?autoplay=1&rel=0&modestbranding=1",
-            "title": "How to Find Deals",
-            "thumbnail": null,
-            "duration": "2:15"
-          },
-          {
-            "url": "https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&rel=0&modestbranding=1",
-            "title": "Vendor Benefits",
-            "thumbnail": null,
-            "duration": "4:20"
-          }
-        ]'::jsonb,
+        'Discover amazing deals from local businesses. Watch our introduction video and connect with us on social media for updates.',
+        'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1',
         '{"facebook": "https://facebook.com/instoredealz", "instagram": "https://instagram.com/instoredealz", "twitter": "https://twitter.com/instoredealz", "website": "https://instoredealz.com", "whatsapp": "+91 9876543210"}'::jsonb,
         'hero',
         true,
-        '["home", "dashboard"]'::jsonb,
+        '["all"]'::jsonb,
         1
       )
       ON CONFLICT DO NOTHING

@@ -36,9 +36,9 @@ export function PagePromotionalBanners({ page, className = '' }: PagePromotional
         variant={activeBanner.variant}
         title={activeBanner.title}
         description={activeBanner.description}
-        videos={activeBanner.videos || []}
+        videoUrl={activeBanner.videoUrl}
         socialMediaLinks={activeBanner.socialMediaLinks}
-        showVideo={activeBanner.videos && activeBanner.videos.length > 0}
+        showVideo={!!activeBanner.videoUrl}
       />
     </div>
   );

@@ -1,53 +1,38 @@
-import { useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Plus, 
   Edit, 
-  Edit2,
   Trash2, 
   Eye, 
-  EyeOff, 
-  Upload, 
-  Link, 
-  Youtube, 
-  Facebook,
-  Instagram,
-  Twitter,
-  Globe,
-  HelpCircle,
-  CheckCircle,
+  Power, 
+  PowerOff,
+  ImageIcon,
+  Play,
+  ExternalLink,
   AlertCircle,
-  PlayCircle,
-  Image as ImageIcon,
-  Save,
-  RefreshCw,
-  MessageCircle,
-  X
+  CheckCircle,
+  Clock,
+  BarChart3
 } from 'lucide-react';
-import PromotionalLaunchBanner from '@/components/ui/promotional-launch-banner';
+import { useToast } from '@/hooks/use-toast';
+import { PromotionalLaunchBanner } from '@/components/ui/promotional-launch-banner';
+import { apiRequest } from '@/lib/queryClient';
 
 interface PromotionalBanner {
   id: number;
   title: string;
   description: string;
-  videos: Array<{
-    url: string;
-    title: string;
-    thumbnail?: string;
-    duration?: string;
-  }>;
+  videoUrl?: string;
   socialMediaLinks: {
     facebook?: string;
     instagram?: string;
@@ -60,48 +45,10 @@ interface PromotionalBanner {
   displayPages: string[];
   createdAt: string;
   updatedAt: string;
+  viewCount?: number;
+  clickCount?: number;
+  socialClickCount?: number;
 }
-
-const SUPPORTED_PLATFORMS = [
-  {
-    name: 'YouTube',
-    icon: Youtube,
-    format: 'Any YouTube URL format works:',
-    examples: [
-      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      'https://youtu.be/dQw4w9WgXcQ',
-      'https://www.youtube.com/embed/dQw4w9WgXcQ'
-    ],
-    description: 'Just copy the URL from YouTube - we will auto-convert it!'
-  },
-  {
-    name: 'Vimeo',
-    icon: PlayCircle,
-    format: 'Any Vimeo URL format works:',
-    examples: [
-      'https://vimeo.com/123456789',
-      'https://player.vimeo.com/video/123456789'
-    ],
-    description: 'Copy the video URL from Vimeo'
-  },
-  {
-    name: 'Google Drive',
-    icon: Globe,
-    format: 'Google Drive video file URL:',
-    examples: [
-      'https://drive.google.com/file/d/1a2b3c4d5e6f7g8h9i0j/view'
-    ],
-    description: 'Upload video to Google Drive and get shareable link'
-  }
-];
-
-const PAGE_OPTIONS = [
-  { value: 'home', label: 'Home Page' },
-  { value: 'dashboard', label: 'Customer Dashboard' },
-  { value: 'pricing', label: 'Pricing Page' },
-  { value: 'vendor-benefits', label: 'Vendor Benefits' },
-  { value: 'all', label: 'All Pages' }
-];
 
 export default function PromotionalBanners() {
   const [selectedBanner, setSelectedBanner] = useState<PromotionalBanner | null>(null);
@@ -115,12 +62,7 @@ export default function PromotionalBanners() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    videos: [] as Array<{
-      url: string;
-      title: string;
-      thumbnail?: string;
-      duration?: string;
-    }>,
+    videoUrl: '',
     socialMediaLinks: {
       facebook: '',
       instagram: '',
@@ -130,100 +72,118 @@ export default function PromotionalBanners() {
     },
     variant: 'hero' as 'hero' | 'compact' | 'video',
     isActive: true,
-    displayPages: [] as string[]
+    displayPages: ['all'] as string[]
   });
 
-  // Video form state for adding/editing individual videos
-  const [videoFormData, setVideoFormData] = useState({
-    url: '',
-    title: '',
-    thumbnail: '',
-    duration: ''
-  });
-  const [editingVideoIndex, setEditingVideoIndex] = useState<number | null>(null);
+  const queryClient = useQueryClient();
 
-  const { data: banners = [], isLoading } = useQuery<PromotionalBanner[]>({
+  // Fetch banners
+  const { data: banners = [], isLoading, error } = useQuery<PromotionalBanner[]>({
     queryKey: ['/api/admin/promotional-banners'],
     retry: false,
   });
 
+  // Create banner mutation
   const createBannerMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest('/api/admin/promotional-banners', 'POST', data);
-    },
+    mutationFn: (data: any) => apiRequest('/api/admin/promotional-banners', {
+      method: 'POST',
+      data
+    }),
     onSuccess: () => {
-      toast({
-        title: "Banner Created",
-        description: "Promotional banner has been created successfully.",
-      });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
+      toast({
+        title: "Success",
+        description: "Global promotional banner created successfully",
+      });
       setIsCreateOpen(false);
       resetForm();
     },
     onError: (error: any) => {
       toast({
-        title: "Creation Failed",
-        description: error.message || "Failed to create banner.",
+        title: "Error",
+        description: error.message || "Failed to create banner",
         variant: "destructive",
       });
-    },
+    }
   });
 
+  // Update banner mutation
   const updateBannerMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/admin/promotional-banners/${id}`, 'PUT', data);
-    },
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest(`/api/admin/promotional-banners/${id}`, {
+        method: 'PUT',
+        data
+      }),
     onSuccess: () => {
-      toast({
-        title: "Banner Updated",
-        description: "Promotional banner has been updated successfully.",
-      });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
+      toast({
+        title: "Success",
+        description: "Global promotional banner updated successfully",
+      });
       setIsEditOpen(false);
       resetForm();
     },
     onError: (error: any) => {
-      console.error('Banner update error:', error);
       toast({
-        title: "Update Failed",
-        description: error.message || error.error || "Failed to update banner. Please check your input data.",
+        title: "Error",
+        description: error.message || "Failed to update banner",
         variant: "destructive",
       });
-    },
+    }
   });
 
+  // Delete banner mutation
   const deleteBannerMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return apiRequest(`/api/admin/promotional-banners/${id}`, 'DELETE');
-    },
+    mutationFn: (id: number) => apiRequest(`/api/admin/promotional-banners/${id}`, {
+      method: 'DELETE'
+    }),
     onSuccess: () => {
-      toast({
-        title: "Banner Deleted",
-        description: "Promotional banner has been deleted successfully.",
-      });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
+      toast({
+        title: "Success",
+        description: "Global promotional banner deleted successfully",
+      });
     },
     onError: (error: any) => {
       toast({
-        title: "Deletion Failed",
-        description: error.message || "Failed to delete banner.",
+        title: "Error",
+        description: error.message || "Failed to delete banner",
         variant: "destructive",
       });
-    },
+    }
   });
 
-  const toggleBannerStatus = async (banner: PromotionalBanner) => {
-    updateBannerMutation.mutate({
-      id: banner.id,
+  // Toggle active status
+  const toggleActiveMutation = useMutation({
+    mutationFn: (banner: PromotionalBanner) => apiRequest(`/api/admin/promotional-banners/${banner.id}`, {
+      method: 'PUT',
       data: { ...banner, isActive: !banner.isActive }
-    });
-  };
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
+      queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
+      toast({
+        title: "Success",
+        description: "Banner status updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update banner status",
+        variant: "destructive",
+      });
+    }
+  });
 
   const resetForm = () => {
     setFormData({
       title: '',
       description: '',
-      videos: [],
+      videoUrl: '',
       socialMediaLinks: {
         facebook: '',
         instagram: '',
@@ -233,15 +193,8 @@ export default function PromotionalBanners() {
       },
       variant: 'hero',
       isActive: true,
-      displayPages: ['all'] // Always set to all pages for global banner
+      displayPages: ['all']
     });
-    setVideoFormData({
-      url: '',
-      title: '',
-      thumbnail: '',
-      duration: ''
-    });
-    setEditingVideoIndex(null);
     setSelectedBanner(null);
   };
 
@@ -250,7 +203,7 @@ export default function PromotionalBanners() {
     setFormData({
       title: banner.title,
       description: banner.description,
-      videos: banner.videos || [],
+      videoUrl: banner.videoUrl || '',
       socialMediaLinks: {
         facebook: banner.socialMediaLinks.facebook || '',
         instagram: banner.socialMediaLinks.instagram || '',
@@ -260,172 +213,36 @@ export default function PromotionalBanners() {
       },
       variant: banner.variant,
       isActive: banner.isActive,
-      displayPages: ['all'] // Always set to all pages for global banner
+      displayPages: ['all']
     });
     setIsEditOpen(true);
   };
 
-  const handleSubmit = () => {
-    // Convert all video URLs to embed format before submitting
-    const submissionData = {
-      ...formData,
-      videos: formData.videos.map(video => ({
-        ...video,
-        url: convertToEmbedUrl(video.url)
-      }))
-    };
-    
-    if (selectedBanner) {
-      updateBannerMutation.mutate({ id: selectedBanner.id, data: submissionData });
-    } else {
-      createBannerMutation.mutate(submissionData);
-    }
-  };
-
-  // Helper functions for managing videos
-  const addVideo = () => {
-    if (!videoFormData.url || !videoFormData.title) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide both video URL and title.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newVideo = {
-      url: videoFormData.url,
-      title: videoFormData.title,
-      thumbnail: videoFormData.thumbnail || undefined,
-      duration: videoFormData.duration || undefined
-    };
-
-    if (editingVideoIndex !== null) {
-      // Update existing video
-      const updatedVideos = [...formData.videos];
-      updatedVideos[editingVideoIndex] = newVideo;
-      setFormData({ ...formData, videos: updatedVideos });
-      setEditingVideoIndex(null);
-    } else {
-      // Add new video
-      setFormData({ ...formData, videos: [...formData.videos, newVideo] });
-    }
-
-    // Reset video form
-    setVideoFormData({
-      url: '',
-      title: '',
-      thumbnail: '',
-      duration: ''
-    });
-  };
-
-  const editVideo = (index: number) => {
-    const video = formData.videos[index];
-    setVideoFormData({
-      url: video.url,
-      title: video.title,
-      thumbnail: video.thumbnail || '',
-      duration: video.duration || ''
-    });
-    setEditingVideoIndex(index);
-  };
-
-  const removeVideo = (index: number) => {
-    const updatedVideos = formData.videos.filter((_, i) => i !== index);
-    setFormData({ ...formData, videos: updatedVideos });
-  };
-
-  const cancelVideoEdit = () => {
-    setVideoFormData({
-      url: '',
-      title: '',
-      thumbnail: '',
-      duration: ''
-    });
-    setEditingVideoIndex(null);
-  };
-
-  const convertToEmbedUrl = (url: string): string => {
-    if (!url) return url;
-
-    // YouTube watch URL to embed URL
-    const youtubeWatchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
-    if (youtubeWatchMatch) {
-      return `https://www.youtube.com/embed/${youtubeWatchMatch[1]}?autoplay=1&rel=0&modestbranding=1`;
-    }
-
-    // YouTube embed URL (already correct format)
-    if (/youtube\.com\/embed\//.test(url)) {
-      return url;
-    }
-
-    // Vimeo watch URL to embed URL
-    const vimeoWatchMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoWatchMatch) {
-      return `https://player.vimeo.com/video/${vimeoWatchMatch[1]}?autoplay=1`;
-    }
-
-    // Vimeo embed URL (already correct format)
-    if (/player\.vimeo\.com\/video\//.test(url)) {
-      return url;
-    }
-
-    // Google Drive file URL to preview URL
-    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (driveMatch) {
-      return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-    }
-
-    // Google Drive preview URL (already correct format)
-    if (/drive\.google\.com\/file\/d\/.*\/preview/.test(url)) {
-      return url;
-    }
-
-    return url;
-  };
-
-  const validateVideoUrl = (url: string) => {
-    if (!url) return true;
-    
-    // Check for YouTube URLs (both watch and embed formats)
-    const youtubePatterns = [
-      /youtube\.com\/watch\?v=/,
-      /youtu\.be\//,
-      /youtube\.com\/embed\//
-    ];
-    
-    // Check for Vimeo URLs (both watch and embed formats)
-    const vimeoPatterns = [
-      /vimeo\.com\/\d+/,
-      /player\.vimeo\.com\/video\//
-    ];
-    
-    // Check for Google Drive URLs
-    const drivePatterns = [
-      /drive\.google\.com\/file\/d\//
-    ];
-    
-    const allPatterns = [...youtubePatterns, ...vimeoPatterns, ...drivePatterns];
-    return allPatterns.some(pattern => pattern.test(url));
-  };
-
-  const hasSocialMediaContent = () => {
-    const { socialMediaLinks } = formData;
-    return (socialMediaLinks.facebook && socialMediaLinks.facebook.trim()) || 
-           (socialMediaLinks.instagram && socialMediaLinks.instagram.trim()) || 
-           (socialMediaLinks.twitter && socialMediaLinks.twitter.trim()) || 
-           (socialMediaLinks.website && socialMediaLinks.website.trim()) || 
-           (socialMediaLinks.whatsapp && socialMediaLinks.whatsapp.trim());
-  };
-
   const hasValidContent = () => {
-    const hasVideos = formData.videos && formData.videos.length > 0;
-    const hasSocial = hasSocialMediaContent();
-    const hasDesc = formData.description && formData.description.trim();
-    const result = hasVideos || hasSocial || hasDesc;
-    
-    return result;
+    const hasVideo = formData.videoUrl.trim() !== '';
+    const hasSocialLinks = Object.values(formData.socialMediaLinks).some(link => link.trim() !== '');
+    return hasVideo || hasSocialLinks;
+  };
+
+  const handleSubmit = () => {
+    if (selectedBanner) {
+      updateBannerMutation.mutate({
+        id: selectedBanner.id,
+        data: formData
+      });
+    } else {
+      createBannerMutation.mutate(formData);
+    }
+  };
+
+  const handleDelete = (banner: PromotionalBanner) => {
+    if (confirm('Are you sure you want to delete this global promotional banner?')) {
+      deleteBannerMutation.mutate(banner.id);
+    }
+  };
+
+  const handleToggleActive = (banner: PromotionalBanner) => {
+    toggleActiveMutation.mutate(banner);
   };
 
   return (
@@ -435,56 +252,61 @@ export default function PromotionalBanners() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">Global Promotional Banner</h1>
           <p className="text-muted-foreground mt-1">
-            Manage the single promotional banner that displays across all pages with multiple videos
+            Manage the single promotional banner that displays across all pages with video support
           </p>
         </div>
         <Button 
-          onClick={() => setIsCreateOpen(true)}
+          onClick={() => {
+            resetForm();
+            setIsCreateOpen(true);
+          }}
           className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+          disabled={banners.length > 0}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Create Banner
+          {banners.length > 0 ? 'Global Banner Exists' : 'Create Global Banner'}
         </Button>
       </div>
 
-      {/* Video Platform Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <HelpCircle className="h-5 w-5 mr-2" />
-            Step-by-Step Video Upload Guide
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-6">
-            {SUPPORTED_PLATFORMS.map((platform) => {
-              const Icon = platform.icon;
-              return (
-                <div key={platform.name} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Icon className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold">{platform.name}</h3>
+      {/* Analytics Overview */}
+      {banners.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BarChart3 className="h-5 w-5 mr-2" />
+              Performance Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {banners.map(banner => (
+                <div key={banner.id} className="p-4 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium truncate">{banner.title}</h4>
+                    <Badge className={banner.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      {banner.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground">{platform.description}</p>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium">{platform.format}</Label>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs font-medium">Examples:</Label>
-                    <div className="space-y-1">
-                      {platform.examples.map((example, index) => (
-                        <code key={index} className="text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded block overflow-x-auto">
-                          {example}
-                        </code>
-                      ))}
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <div className="flex justify-between">
+                      <span>Views:</span>
+                      <span>{banner.viewCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Clicks:</span>
+                      <span>{banner.clickCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Social Clicks:</span>
+                      <span>{banner.socialClickCount || 0}</span>
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Banners List */}
       <Card>
@@ -494,8 +316,7 @@ export default function PromotionalBanners() {
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Loading banners...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : banners.length === 0 ? (
             <div className="text-center py-8">
@@ -513,29 +334,34 @@ export default function PromotionalBanners() {
             <div className="space-y-4">
               {banners.map((banner) => (
                 <div key={banner.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-3">
-                        <h3 className="font-semibold">{banner.title}</h3>
-                        <Badge variant={banner.isActive ? "default" : "secondary"}>
-                          {banner.isActive ? "Active" : "Inactive"}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-lg font-semibold">{banner.title}</h3>
+                        <Badge className={banner.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                          {banner.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                         <Badge variant="outline">{banner.variant}</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">{banner.description}</p>
+                      <p className="text-muted-foreground text-sm">{banner.description}</p>
                       <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <span>Pages: {banner.displayPages.join(', ')}</span>
+                        <span className="flex items-center">
+                          <Eye className="h-3 w-3 mr-1" />
+                          {banner.viewCount || 0} views
+                        </span>
+                        <span>|</span>
+                        <span className="flex items-center">
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {(banner.clickCount || 0) + (banner.socialClickCount || 0)} clicks
+                        </span>
                         {banner.videoUrl && (
-                          <span className="flex items-center">
-                            <PlayCircle className="h-3 w-3 mr-1" />
-                            Video included
-                          </span>
-                        )}
-                        {Object.values(banner.socialMediaLinks).some(link => link) && (
-                          <span className="flex items-center">
-                            <Link className="h-3 w-3 mr-1" />
-                            Social links
-                          </span>
+                          <>
+                            <span>|</span>
+                            <span className="flex items-center">
+                              <Play className="h-3 w-3 mr-1" />
+                              Video
+                            </span>
+                          </>
                         )}
                       </div>
                     </div>
@@ -561,14 +387,16 @@ export default function PromotionalBanners() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => toggleBannerStatus(banner)}
+                        onClick={() => handleToggleActive(banner)}
+                        className={banner.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                       >
-                        {banner.isActive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {banner.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                       </Button>
                       <Button
-                        variant="destructive"
+                        variant="outline"
                         size="sm"
-                        onClick={() => deleteBannerMutation.mutate(banner.id)}
+                        onClick={() => handleDelete(banner)}
+                        className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -592,42 +420,26 @@ export default function PromotionalBanners() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedBanner ? 'Edit' : 'Create'} Promotional Banner
+              {selectedBanner ? 'Edit Global Banner' : 'Create Global Banner'}
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="basic" className="space-y-4">
+          <Tabs defaultValue="basic" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="basic">Basic Info</TabsTrigger>
-              <TabsTrigger value="video">Video & Media</TabsTrigger>
-              <TabsTrigger value="social">Social Links</TabsTrigger>
+              <TabsTrigger value="content">Content</TabsTrigger>
+              <TabsTrigger value="preview">Preview</TabsTrigger>
             </TabsList>
 
-            {/* Basic Info Tab */}
             <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Banner Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="e.g., Instoredealz Launch"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="variant">Banner Variant *</Label>
-                  <Select value={formData.variant} onValueChange={(value: any) => setFormData({ ...formData, variant: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hero">Hero (Large)</SelectItem>
-                      <SelectItem value="compact">Compact (Small)</SelectItem>
-                      <SelectItem value="video">Video (Focus)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Enter banner title"
+                />
               </div>
 
               <div className="space-y-2">
@@ -650,6 +462,22 @@ export default function PromotionalBanners() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="variant">Banner Style</Label>
+                <Select value={formData.variant} onValueChange={(value: 'hero' | 'compact' | 'video') => 
+                  setFormData({ ...formData, variant: value })
+                }>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hero">Hero (Large, prominent)</SelectItem>
+                    <SelectItem value="compact">Compact (Small, minimal)</SelectItem>
+                    <SelectItem value="video">Video (Video-focused)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -662,271 +490,117 @@ export default function PromotionalBanners() {
               </div>
             </TabsContent>
 
-            {/* Video & Media Tab */}
-            <TabsContent value="video" className="space-y-6">
-              {/* Video Management Section */}
+            <TabsContent value="content" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="videoUrl">Video URL</Label>
+                <Input
+                  id="videoUrl"
+                  value={formData.videoUrl}
+                  onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                  placeholder="YouTube, Vimeo, or direct video URL"
+                />
+              </div>
+
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Videos ({formData.videos.length})</h3>
-                  <Badge variant="outline">
-                    {formData.videos.length} video{formData.videos.length !== 1 ? 's' : ''} added
-                  </Badge>
+                <Label>Social Media Links</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="facebook">Facebook</Label>
+                    <Input
+                      id="facebook"
+                      value={formData.socialMediaLinks.facebook}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMediaLinks: { ...formData.socialMediaLinks, facebook: e.target.value }
+                      })}
+                      placeholder="https://facebook.com/yourpage"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="instagram">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      value={formData.socialMediaLinks.instagram}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMediaLinks: { ...formData.socialMediaLinks, instagram: e.target.value }
+                      })}
+                      placeholder="https://instagram.com/yourprofile"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="twitter">Twitter</Label>
+                    <Input
+                      id="twitter"
+                      value={formData.socialMediaLinks.twitter}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMediaLinks: { ...formData.socialMediaLinks, twitter: e.target.value }
+                      })}
+                      placeholder="https://twitter.com/yourhandle"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Website</Label>
+                    <Input
+                      id="website"
+                      value={formData.socialMediaLinks.website}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMediaLinks: { ...formData.socialMediaLinks, website: e.target.value }
+                      })}
+                      placeholder="https://yourwebsite.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp">WhatsApp</Label>
+                    <Input
+                      id="whatsapp"
+                      value={formData.socialMediaLinks.whatsapp}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        socialMediaLinks: { ...formData.socialMediaLinks, whatsapp: e.target.value }
+                      })}
+                      placeholder="+1234567890"
+                    />
+                  </div>
                 </div>
-
-                {/* Add/Edit Video Form */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">
-                      {editingVideoIndex !== null ? 'Edit Video' : 'Add New Video'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="videoUrl">Video URL *</Label>
-                        <Input
-                          id="videoUrl"
-                          value={videoFormData.url}
-                          onChange={(e) => setVideoFormData({ ...videoFormData, url: e.target.value })}
-                          placeholder="Paste YouTube, Vimeo, or Google Drive video URL..."
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          📺 Regular YouTube URLs will be auto-converted to embed format
-                        </p>
-                        {videoFormData.url && !validateVideoUrl(videoFormData.url) && (
-                          <p className="text-sm text-red-500 flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-1" />
-                            Unsupported video URL. Please use YouTube, Vimeo, or Google Drive links.
-                          </p>
-                        )}
-                        {videoFormData.url && validateVideoUrl(videoFormData.url) && (
-                          <p className="text-sm text-green-500 flex items-center">
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Valid video URL
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="videoTitle">Video Title *</Label>
-                        <Input
-                          id="videoTitle"
-                          value={videoFormData.title}
-                          onChange={(e) => setVideoFormData({ ...videoFormData, title: e.target.value })}
-                          placeholder="e.g., Instoredealz Launch Demo"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Optional Video Details */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="videoThumbnail">Thumbnail URL (Optional)</Label>
-                        <Input
-                          id="videoThumbnail"
-                          value={videoFormData.thumbnail}
-                          onChange={(e) => setVideoFormData({ ...videoFormData, thumbnail: e.target.value })}
-                          placeholder="Custom thumbnail image URL..."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="videoDuration">Duration (Optional)</Label>
-                        <Input
-                          id="videoDuration"
-                          value={videoFormData.duration}
-                          onChange={(e) => setVideoFormData({ ...videoFormData, duration: e.target.value })}
-                          placeholder="e.g., 2:30 or 150 seconds"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex space-x-2">
-                      <Button 
-                        onClick={addVideo}
-                        disabled={!videoFormData.url || !videoFormData.title || !validateVideoUrl(videoFormData.url)}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        {editingVideoIndex !== null ? 'Update Video' : 'Add Video'}
-                      </Button>
-                      {editingVideoIndex !== null && (
-                        <Button onClick={cancelVideoEdit} variant="outline">
-                          <X className="h-4 w-4 mr-2" />
-                          Cancel Edit
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Videos List */}
-                {formData.videos.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Added Videos</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {formData.videos.map((video, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex-1">
-                              <h4 className="font-medium">{video.title}</h4>
-                              <p className="text-sm text-muted-foreground truncate max-w-md">{video.url}</p>
-                              {video.duration && (
-                                <p className="text-xs text-muted-foreground">Duration: {video.duration}</p>
-                              )}
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button onClick={() => editVideo(index)} size="sm" variant="outline">
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button onClick={() => removeVideo(index)} size="sm" variant="destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Video Preview */}
-                {videoFormData.url && validateVideoUrl(videoFormData.url) && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base">Video Preview</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="aspect-video bg-black rounded overflow-hidden">
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          src={convertToEmbedUrl(videoFormData.url)}
-                          title={videoFormData.title || "Video Preview"}
-                          frameBorder="0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          className="w-full h-full"
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             </TabsContent>
 
-            {/* Social Links Tab */}
-            <TabsContent value="social" className="space-y-4">
-              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Note:</strong> All social media links are optional. You can provide just one platform or as many as you want. 
-                  At least one contact method (any social platform or WhatsApp) is recommended for better user engagement.
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="facebook" className="flex items-center">
-                    <Facebook className="h-4 w-4 mr-2 text-blue-600" />
-                    Facebook URL (Optional)
-                  </Label>
-                  <Input
-                    id="facebook"
-                    value={formData.socialMediaLinks.facebook}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      socialMediaLinks: { ...formData.socialMediaLinks, facebook: e.target.value }
-                    })}
-                    placeholder="https://facebook.com/your-page"
-                  />
+            <TabsContent value="preview" className="space-y-4">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label>Preview Style:</Label>
+                  <Select value={previewVariant} onValueChange={(value: 'hero' | 'compact' | 'video') => 
+                    setPreviewVariant(value)
+                  }>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hero">Hero</SelectItem>
+                      <SelectItem value="compact">Compact</SelectItem>
+                      <SelectItem value="video">Video</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="instagram" className="flex items-center">
-                    <Instagram className="h-4 w-4 mr-2 text-pink-600" />
-                    Instagram URL (Optional)
-                  </Label>
-                  <Input
-                    id="instagram"
-                    value={formData.socialMediaLinks.instagram}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      socialMediaLinks: { ...formData.socialMediaLinks, instagram: e.target.value }
-                    })}
-                    placeholder="https://instagram.com/your-account"
+                
+                <div className="border rounded-lg p-4 bg-muted/50">
+                  <PromotionalLaunchBanner
+                    variant={previewVariant}
+                    title={formData.title || "Preview Title"}
+                    description={formData.description || "Preview description"}
+                    videoUrl={formData.videoUrl}
+                    socialMediaLinks={formData.socialMediaLinks}
+                    showVideo={!!formData.videoUrl}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="twitter" className="flex items-center">
-                    <Twitter className="h-4 w-4 mr-2 text-blue-400" />
-                    Twitter URL (Optional)
-                  </Label>
-                  <Input
-                    id="twitter"
-                    value={formData.socialMediaLinks.twitter}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      socialMediaLinks: { ...formData.socialMediaLinks, twitter: e.target.value }
-                    })}
-                    placeholder="https://twitter.com/your-account"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website" className="flex items-center">
-                    <Globe className="h-4 w-4 mr-2 text-green-600" />
-                    Website URL (Optional)
-                  </Label>
-                  <Input
-                    id="website"
-                    value={formData.socialMediaLinks.website}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      socialMediaLinks: { ...formData.socialMediaLinks, website: e.target.value }
-                    })}
-                    placeholder="https://your-website.com"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="whatsapp" className="flex items-center">
-                    <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
-                    WhatsApp Number (Optional)
-                  </Label>
-                  <Input
-                    id="whatsapp"
-                    value={formData.socialMediaLinks.whatsapp}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      socialMediaLinks: { ...formData.socialMediaLinks, whatsapp: e.target.value }
-                    })}
-                    placeholder="+91 9876543210"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    💬 WhatsApp number with country code (e.g., +91 9876543210). This creates a direct chat link for customers.
-                  </p>
                 </div>
               </div>
             </TabsContent>
           </Tabs>
 
-          <Separator />
-
-          {/* Live Preview */}
-          {formData.title && formData.displayPages.length > 0 && hasValidContent() && (
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Live Preview ({formData.variant} variant):</Label>
-              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
-                <PromotionalLaunchBanner
-                  variant={formData.variant}
-                  title={formData.title}
-                  description={formData.description}
-                  videos={formData.videos}
-                  socialMediaLinks={formData.socialMediaLinks}
-                  showVideo={formData.videos.length > 0}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button variant="outline" onClick={() => {
               setIsCreateOpen(false);
               setIsEditOpen(false);
@@ -944,8 +618,10 @@ export default function PromotionalBanners() {
               }
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
             >
-              <Save className="h-4 w-4 mr-2" />
-              {selectedBanner ? 'Update' : 'Create'} Banner
+              {createBannerMutation.isPending || updateBannerMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              ) : null}
+              {selectedBanner ? 'Update Banner' : 'Create Banner'}
             </Button>
           </div>
         </DialogContent>
@@ -955,35 +631,38 @@ export default function PromotionalBanners() {
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Banner Preview</DialogTitle>
+            <DialogTitle>Banner Preview - {selectedBanner?.title}</DialogTitle>
           </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Label>Preview Variant:</Label>
-              <Select value={previewVariant} onValueChange={(value: any) => setPreviewVariant(value)}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hero">Hero</SelectItem>
-                  <SelectItem value="compact">Compact</SelectItem>
-                  <SelectItem value="video">Video</SelectItem>
-                </SelectContent>
-              </Select>
+          {selectedBanner && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label>Preview Style:</Label>
+                <Select value={previewVariant} onValueChange={(value: 'hero' | 'compact' | 'video') => 
+                  setPreviewVariant(value)
+                }>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hero">Hero</SelectItem>
+                    <SelectItem value="compact">Compact</SelectItem>
+                    <SelectItem value="video">Video</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="border rounded-lg p-4 bg-muted/50">
+                <PromotionalLaunchBanner
+                  variant={previewVariant}
+                  title={selectedBanner.title}
+                  description={selectedBanner.description}
+                  videoUrl={selectedBanner.videoUrl}
+                  socialMediaLinks={selectedBanner.socialMediaLinks}
+                  showVideo={!!selectedBanner.videoUrl}
+                />
+              </div>
             </div>
-            
-            {selectedBanner && (
-              <PromotionalLaunchBanner
-                variant={previewVariant}
-                videos={selectedBanner.videos}
-                title={selectedBanner.title}
-                description={selectedBanner.description}
-                socialMediaLinks={selectedBanner.socialMediaLinks}
-                showVideo={selectedBanner.videos && selectedBanner.videos.length > 0}
-              />
-            )}
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
