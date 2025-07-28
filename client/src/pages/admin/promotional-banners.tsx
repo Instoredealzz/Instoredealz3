@@ -22,11 +22,13 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  BarChart3
+  BarChart3,
+  ArrowLeft
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PromotionalLaunchBanner } from '@/components/ui/promotional-launch-banner';
 import { apiRequest } from '@/lib/queryClient';
+import { Link } from 'wouter';
 
 interface PromotionalBanner {
   id: number;
@@ -250,13 +252,20 @@ export default function PromotionalBanners() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Back Button */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Promotional Banners</h1>
-          <p className="text-muted-foreground mt-1">
-            Create and manage promotional banners that display across your website with video and social media support
-          </p>
+        <div className="flex items-center space-x-4">
+          <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-5 w-5 mr-2" />
+            <span>Back to Home</span>
+          </Link>
+          <div className="w-px h-6 bg-border"></div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Promotional Banners</h1>
+            <p className="text-muted-foreground mt-1">
+              Create and manage promotional banners that display across your website with video and social media support
+            </p>
+          </div>
         </div>
         <div className="flex space-x-2">
           <Button 
