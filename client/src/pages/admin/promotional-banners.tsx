@@ -210,7 +210,9 @@ export default function PromotionalBanners() {
   const hasValidContent = () => {
     const hasVideo = formData.videoUrl.trim() !== '';
     const hasSocialLinks = Object.values(formData.socialMediaLinks).some(link => link.trim() !== '');
-    return hasVideo || hasSocialLinks;
+    const hasDescription = formData.description.trim() !== '';
+    // Banner is valid if it has any content: description, video, or social links
+    return hasDescription || hasVideo || hasSocialLinks;
   };
 
   const handleSubmit = () => {
@@ -450,6 +452,9 @@ export default function PromotionalBanners() {
                   placeholder="Brief description of the promotional banner"
                   rows={3}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Add a description, video URL, or social media links to activate the Create Button
+                </p>
               </div>
 
               <div className="space-y-2">
