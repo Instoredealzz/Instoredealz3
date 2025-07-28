@@ -31,7 +31,7 @@ export function PromotionalLaunchBanner({
 }: PromotionalLaunchBannerProps) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-  // Function to convert YouTube URL to embed format
+  // Function to convert YouTube URL to embed format with autoplay
   const getEmbedUrl = (url: string): string => {
     if (!url) return url;
     
@@ -40,7 +40,7 @@ export function PromotionalLaunchBanner({
     const match = url.match(youtubeRegex);
     
     if (match) {
-      return `https://www.youtube.com/embed/${match[1]}`;
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}`;
     }
     
     // Vimeo URL patterns
@@ -48,7 +48,7 @@ export function PromotionalLaunchBanner({
     const vimeoMatch = url.match(vimeoRegex);
     
     if (vimeoMatch) {
-      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&muted=1&loop=1`;
     }
     
     // Return original URL if it's already an embed URL or other format

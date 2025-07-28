@@ -115,12 +115,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 28, 2025 - Direct Inline Video Display Enhancement
+### July 28, 2025 - Direct Inline Video Display Enhancement with Autoplay
 - **Inline Video Display**: Videos now display directly on promotional banners once uploaded, eliminating the need for modal popups
+- **Automatic Video Playback**: Videos start playing automatically when banner loads, no play button clicking required
+- **Muted Autoplay**: Videos autoplay muted (browser requirement) with loop functionality for continuous playback
+- **YouTube & Vimeo Support**: Automatic URL conversion with autoplay parameters for both YouTube and Vimeo videos
 - **Immediate Video Visibility**: Updated all banner variants (compact, hero, video) to show videos inline immediately after URL upload
-- **Enhanced User Experience**: Removed "Watch Video" buttons that required clicking to open modals - videos are now always visible
+- **Enhanced User Experience**: Removed "Watch Video" buttons that required clicking to open modals - videos are now always visible and playing
 - **Responsive Video Sizing**: Videos automatically scale based on banner variant with proper aspect ratios and responsive CSS classes
-- **Streamlined Admin Interface**: Updated admin form descriptions to clarify that videos display directly on banners
+- **Streamlined Admin Interface**: Updated admin form descriptions to clarify that videos display directly on banners with autoplay
 - **Clean Banner Layout**: Videos integrate seamlessly into banner design with proper spacing and styling
 - **Cross-Device Compatibility**: Inline videos work perfectly across all screen sizes and devices
 
