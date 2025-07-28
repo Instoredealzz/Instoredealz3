@@ -46,8 +46,8 @@ export function PromotionalLaunchBanner({
 
   if (variant === 'compact') {
     return (
-      <>
-        <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg banner-responsive text-white shadow-lg ${className}`}>
+      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg banner-responsive text-white shadow-lg ${className}`}>
+        <div className="space-y-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center space-x-3 text-center sm:text-left">
               <Rocket className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
@@ -56,7 +56,7 @@ export function PromotionalLaunchBanner({
                 <p className="text-xs sm:text-sm opacity-90">Revolutionary deal discovery platform</p>
               </div>
             </div>
-            {showVideo && (
+            {showVideo && !videoUrl && (
               <Button 
                 variant="secondary" 
                 size="sm"
@@ -68,79 +68,83 @@ export function PromotionalLaunchBanner({
               </Button>
             )}
           </div>
+          
+          {/* Embedded Video for Compact */}
+          {showVideo && videoUrl && (
+            <div className="bg-black/20 rounded-lg overflow-hidden">
+              <div className="aspect-video w-full">
+                <iframe
+                  src={videoUrl}
+                  title={videoTitle}
+                  className="w-full h-full"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Video Modal */}
-        {showVideo && (
-          <VideoModal 
-            isOpen={isVideoModalOpen}
-            onClose={() => setIsVideoModalOpen(false)}
-            onVisitWebsite={handleVisitWebsite}
-            videoUrl={videoUrl}
-            videoTitle={videoTitle}
-          />
-        )}
-      </>
+      </div>
     );
   }
 
   if (variant === 'video') {
     return (
-      <>
-        <div className={`bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl banner-responsive text-white shadow-2xl ${className}`}>
-          <div className="text-center space-y-4 sm:space-y-6">
-            <div className="space-y-2">
-              <Badge className="bg-white/20 text-white border-white/30 mb-4">
-                Coming Soon
-              </Badge>
-              <h2 className="responsive-heading font-bold flex flex-col sm:flex-row items-center justify-center">
-                <Rocket className="h-6 w-6 sm:h-8 sm:w-8 mr-0 sm:mr-3 mb-2 sm:mb-0 animate-bounce" />
-                🚀 Instoredealz Launching Soon!
-              </h2>
-              <p className="responsive-text opacity-90">
-                The future of deal discovery is almost here
-              </p>
-            </div>
-
-            <div className="bg-black/20 rounded-xl p-6 backdrop-blur-sm">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                  <Play className="h-10 w-10 text-white" />
-                </div>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Watch Our Launch Demo</h3>
-              <p className="text-sm opacity-80 mb-4">
-                See how Instoredealz will revolutionize the way you discover and claim deals
-              </p>
-              <Button 
-                onClick={handleWatchVideo}
-                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-6 py-2 animate-pulse"
-              >
-                <Play className="h-4 w-4 mr-2" />
-                Watch Launch Video
-              </Button>
-            </div>
+      <div className={`bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl banner-responsive text-white shadow-2xl ${className}`}>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="text-center space-y-2">
+            <Badge className="bg-white/20 text-white border-white/30 mb-4">
+              Coming Soon
+            </Badge>
+            <h2 className="responsive-heading font-bold flex flex-col sm:flex-row items-center justify-center">
+              <Rocket className="h-6 w-6 sm:h-8 sm:w-8 mr-0 sm:mr-3 mb-2 sm:mb-0 animate-bounce" />
+              🚀 Instoredealz Launching Soon!
+            </h2>
+            <p className="responsive-text opacity-90">
+              The future of deal discovery is almost here
+            </p>
           </div>
-        </div>
 
-        {/* Video Modal */}
-        <VideoModal 
-          isOpen={isVideoModalOpen}
-          onClose={() => setIsVideoModalOpen(false)}
-          onVisitWebsite={handleVisitWebsite}
-          videoUrl={videoUrl}
-          videoTitle={videoTitle}
-        />
-      </>
+          {/* Embedded Video */}
+          {showVideo && videoUrl && (
+            <div className="bg-black/20 rounded-xl overflow-hidden backdrop-blur-sm">
+              <div className="aspect-video w-full">
+                <iframe
+                  src={videoUrl}
+                  title={videoTitle}
+                  className="w-full h-full rounded-lg"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="p-4 text-center">
+                <h3 className="text-lg font-semibold mb-2">{videoTitle}</h3>
+                <p className="text-sm opacity-80 mb-4">
+                  See how Instoredealz will revolutionize the way you discover and claim deals
+                </p>
+                <Button 
+                  onClick={handleVisitWebsite}
+                  className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-6 py-2"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Visit Website
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 
   // Hero variant (default)
   return (
-    <>
-      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl banner-responsive text-white shadow-xl ${className}`}>
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-          <div className="space-y-3 text-center lg:text-left">
+    <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl banner-responsive text-white shadow-xl ${className}`}>
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-6">
+          <div className="space-y-3 text-center lg:text-left lg:flex-1">
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-3">
               <Rocket className="h-6 w-6 sm:h-8 sm:w-8 animate-bounce" />
               <Badge className="bg-white/20 text-white border-white/30">
@@ -155,7 +159,7 @@ export function PromotionalLaunchBanner({
             </p>
           </div>
           
-          {showVideo && (
+          {showVideo && !videoUrl && (
             <div className="text-center space-y-3">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-2">
                 <Play className="h-8 w-8 text-white" />
@@ -170,19 +174,34 @@ export function PromotionalLaunchBanner({
             </div>
           )}
         </div>
-      </div>
 
-      {/* Video Modal */}
-      {showVideo && (
-        <VideoModal 
-          isOpen={isVideoModalOpen}
-          onClose={() => setIsVideoModalOpen(false)}
-          onVisitWebsite={handleVisitWebsite}
-          videoUrl={videoUrl}
-          videoTitle={videoTitle}
-        />
-      )}
-    </>
+        {/* Embedded Video for Hero */}
+        {showVideo && videoUrl && (
+          <div className="bg-black/20 rounded-xl overflow-hidden backdrop-blur-sm">
+            <div className="aspect-video w-full">
+              <iframe
+                src={videoUrl}
+                title={videoTitle}
+                className="w-full h-full rounded-lg"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            <div className="p-4 text-center">
+              <h3 className="text-lg font-semibold mb-2">{videoTitle}</h3>
+              <Button 
+                onClick={handleVisitWebsite}
+                className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-6 py-2"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Visit Website
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
