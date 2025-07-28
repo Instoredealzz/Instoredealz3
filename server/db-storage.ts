@@ -957,6 +957,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(schema.promotionalBanners).orderBy(desc(schema.promotionalBanners.createdAt));
   }
 
+  async getPromotionalBanners(): Promise<PromotionalBanner[]> {
+    return await db.select().from(schema.promotionalBanners).orderBy(desc(schema.promotionalBanners.createdAt));
+  }
+
   async getActivePromotionalBanners(): Promise<PromotionalBanner[]> {
     return await db.select()
       .from(schema.promotionalBanners)

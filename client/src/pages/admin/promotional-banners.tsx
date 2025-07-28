@@ -31,7 +31,8 @@ import {
   PlayCircle,
   Image as ImageIcon,
   Save,
-  RefreshCw
+  RefreshCw,
+  MessageCircle
 } from 'lucide-react';
 import PromotionalLaunchBanner from '@/components/ui/promotional-launch-banner';
 
@@ -46,6 +47,7 @@ interface PromotionalBanner {
     instagram?: string;
     twitter?: string;
     website?: string;
+    whatsapp?: string;
   };
   variant: 'hero' | 'compact' | 'video';
   isActive: boolean;
@@ -104,7 +106,8 @@ export default function PromotionalBanners() {
       facebook: '',
       instagram: '',
       twitter: '',
-      website: ''
+      website: '',
+      whatsapp: ''
     },
     variant: 'hero' as 'hero' | 'compact' | 'video',
     isActive: true,
@@ -607,6 +610,21 @@ export default function PromotionalBanners() {
                       socialMediaLinks: { ...formData.socialMediaLinks, website: e.target.value }
                     })}
                     placeholder="https://your-website.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp" className="flex items-center">
+                    <MessageCircle className="h-4 w-4 mr-2 text-green-600" />
+                    WhatsApp Number
+                  </Label>
+                  <Input
+                    id="whatsapp"
+                    value={formData.socialMediaLinks.whatsapp}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      socialMediaLinks: { ...formData.socialMediaLinks, whatsapp: e.target.value }
+                    })}
+                    placeholder="+91 9876543210"
                   />
                 </div>
               </div>
