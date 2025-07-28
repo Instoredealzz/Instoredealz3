@@ -605,6 +605,13 @@ export default function PromotionalBanners() {
           </Tabs>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
+            {/* Debug Info - Remove after fixing */}
+            <div className="text-xs text-muted-foreground mr-4">
+              <div>Title: {formData.title ? '✓' : '✗'}</div>
+              <div>Content: {hasValidContent() ? '✓' : '✗'}</div>
+              <div>Pending: {createBannerMutation.isPending || updateBannerMutation.isPending ? '✓' : '✗'}</div>
+            </div>
+            
             <Button variant="outline" onClick={() => {
               setIsCreateOpen(false);
               setIsEditOpen(false);
@@ -620,7 +627,7 @@ export default function PromotionalBanners() {
                 createBannerMutation.isPending || 
                 updateBannerMutation.isPending
               }
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white disabled:opacity-50"
             >
               {createBannerMutation.isPending || updateBannerMutation.isPending ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
