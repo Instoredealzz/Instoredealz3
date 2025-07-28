@@ -255,17 +255,28 @@ export default function PromotionalBanners() {
             Manage the single promotional banner that displays across all pages with video support
           </p>
         </div>
-        <Button 
-          onClick={() => {
-            resetForm();
-            setIsCreateOpen(true);
-          }}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-          disabled={banners.length > 0}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          {banners.length > 0 ? 'Global Banner Exists' : 'Create Global Banner'}
-        </Button>
+        <div className="flex space-x-2">
+          {banners.length > 0 ? (
+            <Button 
+              onClick={() => openEditDialog(banners[0])}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Global Banner
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => {
+                resetForm();
+                setIsCreateOpen(true);
+              }}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Global Banner
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Analytics Overview */}
