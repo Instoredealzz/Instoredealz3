@@ -4627,7 +4627,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(banner);
     } catch (error) {
       console.error('Update promotional banner error:', error);
-      res.status(500).json({ message: "Failed to update promotional banner" });
+      console.error('Request body:', req.body);
+      console.error('Banner ID:', req.params.id);
+      res.status(500).json({ 
+        message: "Failed to update promotional banner",
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   });
 

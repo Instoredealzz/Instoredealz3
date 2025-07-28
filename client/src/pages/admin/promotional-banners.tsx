@@ -164,9 +164,10 @@ export default function PromotionalBanners() {
       resetForm();
     },
     onError: (error: any) => {
+      console.error('Banner update error:', error);
       toast({
         title: "Update Failed",
-        description: error.message || "Failed to update banner.",
+        description: error.message || error.error || "Failed to update banner. Please check your input data.",
         variant: "destructive",
       });
     },
@@ -532,7 +533,8 @@ export default function PromotionalBanners() {
               </div>
 
               <div className="space-y-2">
-                <Label>Display Pages</Label>
+                <Label>Display Pages *</Label>
+                <p className="text-xs text-muted-foreground">Select at least one page where this banner will appear</p>
                 <div className="grid grid-cols-2 gap-2">
                   {PAGE_OPTIONS.map((page) => (
                     <label key={page.value} className="flex items-center space-x-2">
@@ -558,6 +560,12 @@ export default function PromotionalBanners() {
                     </label>
                   ))}
                 </div>
+                {formData.displayPages.length === 0 && (
+                  <p className="text-sm text-red-500 flex items-center mt-2">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    Please select at least one page to display this banner
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center space-x-2">
@@ -725,6 +733,9 @@ export default function PromotionalBanners() {
                     })}
                     placeholder="+91 9876543210"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    💬 WhatsApp number with country code (e.g., +91 9876543210). This creates a direct chat link for customers.
+                  </p>
                 </div>
               </div>
             </TabsContent>
@@ -742,7 +753,12 @@ export default function PromotionalBanners() {
             </Button>
             <Button 
               onClick={handleSubmit}
-              disabled={!formData.title || createBannerMutation.isPending || updateBannerMutation.isPending}
+              disabled={
+                !formData.title || 
+                (!formData.displayPages.length) ||
+                createBannerMutation.isPending || 
+                updateBannerMutation.isPending
+              }
               className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
             >
               <Save className="h-4 w-4 mr-2" />
