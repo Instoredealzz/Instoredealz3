@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, MapPin, User, LogOut, Home, ShoppingBag, CreditCard, Store, Settings, Users, BarChart3, HelpCircle, Tag, Wand2, Heart, Clock, Shield, FileText, PlusCircle, UserCheck, TrendingUp, Package, Building, ClipboardList, Search, Archive } from "lucide-react";
+import { Menu, MapPin, User, LogOut, Home, ShoppingBag, CreditCard, Store, Settings, Users, BarChart3, HelpCircle, Tag, Wand2, Heart, Clock, Shield, FileText, PlusCircle, UserCheck, TrendingUp, Package, Building, ClipboardList, Search, Archive, Image } from "lucide-react";
 import { majorCities } from "@/lib/cities";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -75,6 +75,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           { label: "Users", href: "/admin/users", icon: Users },
           { label: "Vendors", href: "/admin/vendors", icon: Building },
           { label: "Deals", href: "/admin/deals", icon: Tag },
+          { label: "Banners", href: "/admin/promotional-banners", icon: Image },
           { label: "Reports", href: "/admin/reports", icon: FileText },
           { label: "Analytics", href: "/admin/analytics", icon: TrendingUp },
           { label: "Help", href: "/help", icon: HelpCircle },
