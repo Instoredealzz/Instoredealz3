@@ -197,10 +197,11 @@ export default function DealCard({
             </Badge>
           )}
         </div>
-        <div className={`absolute top-2 right-2 rounded-full px-2 py-1 text-xs font-semibold transition-all duration-300 ${
+        {/* Discount Badge */}
+        <div className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 shadow-md z-10 ${
           isFlashing 
             ? 'bg-red-500 text-white shadow-lg scale-110' 
-            : 'bg-card/90 backdrop-blur-sm text-foreground'
+            : 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
         }`}>
           {discountPercentage}% OFF
         </div>
