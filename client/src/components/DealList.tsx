@@ -343,10 +343,7 @@ const DealList = () => {
             </p>
           </div>
         ) : (
-          <div className={`grid gap-4 ${viewMode === 'grid' 
-            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-            : 'grid-cols-1 max-w-4xl mx-auto'
-          }`}>
+          <div className={viewMode === 'grid' ? 'deal-grid' : 'grid-cols-1 max-w-4xl mx-auto space-y-4'}>
           {sortedDeals.map((deal, index) => {
             const isExpired = new Date(deal.validUntil) < new Date();
             const isLimitReached = deal.maxRedemptions && deal.currentRedemptions && 

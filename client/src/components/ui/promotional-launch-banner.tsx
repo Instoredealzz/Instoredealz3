@@ -28,13 +28,13 @@ export function PromotionalLaunchBanner({
   if (variant === 'compact') {
     return (
       <>
-        <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-4 text-white shadow-lg ${className}`}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Rocket className="h-5 w-5 animate-pulse" />
+        <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg banner-responsive text-white shadow-lg ${className}`}>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center space-x-3 text-center sm:text-left">
+              <Rocket className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
               <div>
-                <h3 className="font-bold text-sm">🚀 Instoredealz Launching Soon!</h3>
-                <p className="text-xs opacity-90">Revolutionary deal discovery platform</p>
+                <h3 className="responsive-text font-bold">🚀 Instoredealz Launching Soon!</h3>
+                <p className="text-xs sm:text-sm opacity-90">Revolutionary deal discovery platform</p>
               </div>
             </div>
             {showVideo && (
@@ -66,17 +66,17 @@ export function PromotionalLaunchBanner({
   if (variant === 'video') {
     return (
       <>
-        <div className={`bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl p-8 text-white shadow-2xl ${className}`}>
-          <div className="text-center space-y-6">
+        <div className={`bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 rounded-2xl banner-responsive text-white shadow-2xl ${className}`}>
+          <div className="text-center space-y-4 sm:space-y-6">
             <div className="space-y-2">
               <Badge className="bg-white/20 text-white border-white/30 mb-4">
                 Coming Soon
               </Badge>
-              <h2 className="text-3xl font-bold flex items-center justify-center">
-                <Rocket className="h-8 w-8 mr-3 animate-bounce" />
+              <h2 className="responsive-heading font-bold flex flex-col sm:flex-row items-center justify-center">
+                <Rocket className="h-6 w-6 sm:h-8 sm:w-8 mr-0 sm:mr-3 mb-2 sm:mb-0 animate-bounce" />
                 🚀 Instoredealz Launching Soon!
               </h2>
-              <p className="text-xl opacity-90">
+              <p className="responsive-text opacity-90">
                 The future of deal discovery is almost here
               </p>
             </div>
@@ -115,19 +115,19 @@ export function PromotionalLaunchBanner({
   // Hero variant (default)
   return (
     <>
-      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl ${className}`}>
-        <div className="flex items-center justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <Rocket className="h-8 w-8 animate-bounce" />
+      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl banner-responsive text-white shadow-xl ${className}`}>
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="space-y-3 text-center lg:text-left">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-3">
+              <Rocket className="h-6 w-6 sm:h-8 sm:w-8 animate-bounce" />
               <Badge className="bg-white/20 text-white border-white/30">
                 Coming Soon
               </Badge>
             </div>
-            <h2 className="text-3xl font-bold">
+            <h2 className="responsive-heading font-bold">
               🚀 Instoredealz Launching Soon!
             </h2>
-            <p className="text-lg opacity-90 max-w-md">
+            <p className="responsive-text opacity-90 max-w-md">
               Revolutionary deal discovery platform connecting you with amazing local offers through advanced technology
             </p>
           </div>
@@ -170,7 +170,7 @@ interface VideoModalProps {
 function VideoModal({ isOpen, onClose, onVisitWebsite }: VideoModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden">
+      <DialogContent className="responsive-modal p-0 overflow-hidden">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-center justify-between">
             <div>

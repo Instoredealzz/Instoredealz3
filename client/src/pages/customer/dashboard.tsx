@@ -277,7 +277,7 @@ export default function CustomerDashboard() {
               </Button>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="deal-grid">
               {topDeals.map((deal: any) => (
                 <DealCard
                   key={deal.id}

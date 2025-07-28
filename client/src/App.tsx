@@ -16,6 +16,7 @@ import Pricing from "@/pages/shared/pricing";
 import Terms from "@/pages/shared/terms";
 import Privacy from "@/pages/shared/privacy";
 import Help from "@/pages/shared/help";
+import ResponsiveTest from "@/pages/shared/responsive-test";
 
 // Customer pages
 import CustomerDashboard from "@/pages/customer/dashboard";
@@ -128,6 +129,7 @@ function Router() {
   const [matchTerms] = useRoute("/terms");
   const [matchPrivacy] = useRoute("/privacy");
   const [matchHelp] = useRoute("/help");
+  const [matchResponsiveTest] = useRoute("/responsive-test");
   const [matchTest] = useRoute("/test");
   const [matchDeals] = useRoute("/deals");
   const [matchDealDetail, dealParams] = useRoute("/deals/:id");
@@ -194,6 +196,7 @@ function Router() {
   if (matchTerms) return <Terms />;
   if (matchPrivacy) return <Privacy />;
   if (matchHelp) return <Help />;
+  if (matchResponsiveTest) return <ResponsiveTest />;
   if (matchTest) return <TestFlows />;
   if (matchDeals) return <DealList />;
   if (matchBanners) return <BannerList />;

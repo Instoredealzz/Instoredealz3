@@ -334,7 +334,7 @@ export default function CustomerDeals() {
             <span className="ml-2 text-muted-foreground">Loading deals...</span>
           </div>
         ) : sortedDeals.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="deal-grid">
             {sortedDeals.map((deal: any) => {
               const isInWishlist = wishlist?.some((item: any) => item.dealId === deal.id);
               return (
