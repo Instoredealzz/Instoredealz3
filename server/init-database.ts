@@ -288,6 +288,9 @@ export async function initializeDatabase() {
       DROP COLUMN IF EXISTS video_title
     `);
 
+    // Clear existing banner analytics first to avoid foreign key constraint violations
+    await db.execute(sql`DELETE FROM banner_analytics WHERE banner_id IN (SELECT id FROM promotional_banners)`);
+    
     // Clear existing promotional banners and insert new carousel banners
     await db.execute(sql`DELETE FROM promotional_banners WHERE id > 0`);
     

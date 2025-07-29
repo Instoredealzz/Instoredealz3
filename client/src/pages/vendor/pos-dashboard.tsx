@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import QRScanner from "@/components/ui/qr-scanner";
 import { 
   ShoppingCart, 
   CreditCard, 
@@ -19,7 +20,9 @@ import {
   Power,
   PowerOff,
   Scan,
-  Calculator
+  Calculator,
+  UserCheck,
+  QrCode
 } from "lucide-react";
 interface Deal {
   id: number;
@@ -87,6 +90,8 @@ export default function PosDashboard() {
   const [terminalId, setTerminalId] = useState('TERMINAL_001');
   const [pinInput, setPinInput] = useState('');
   const [isProcessingTransaction, setIsProcessingTransaction] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [verifiedCustomer, setVerifiedCustomer] = useState<any>(null);
 
   // Fetch available deals for POS
   const { data: deals = [], isLoading: dealsLoading } = useQuery({
@@ -270,6 +275,31 @@ export default function PosDashboard() {
     });
   };
 
+  const handleQRScanSuccess = (customerData: any) => {
+    setVerifiedCustomer(customerData);
+    setPosState(prev => ({ 
+      ...prev, 
+      currentCustomer: { 
+        id: customerData.userId, 
+        name: customerData.userName 
+      } 
+    }));
+    setShowQRScanner(false);
+    
+    toast({
+      title: "Customer Verified",
+      description: `${customerData.userName} verified successfully`,
+    });
+  };
+
+  const handleQRScanError = (error: string) => {
+    toast({
+      title: "QR Scan Failed",
+      description: error,
+      variant: "destructive",
+    });
+  };
+
   const processTransaction = () => {
     if (!posState.activeSession || posState.selectedDeals.length === 0) return;
 
@@ -280,7 +310,7 @@ export default function PosDashboard() {
       const transactionData = {
         sessionId: posState.activeSession!.id,
         dealId: item.deal.id,
-        customerId: posState.currentCustomer?.id || null,
+        customerId: verifiedCustomer?.userId || posState.currentCustomer?.id || null,
         amount: (parseFloat(item.deal.discountedPrice || "0") * item.quantity).toString(),
         savingsAmount: ((parseFloat(item.deal.originalPrice || "0") - parseFloat(item.deal.discountedPrice || "0")) * item.quantity).toString(),
         transactionType: 'redeem',
@@ -356,6 +386,83 @@ export default function PosDashboard() {
                 <PowerOff className="h-4 w-4 mr-2" />
                 End Session
               </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Customer Verification */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              Customer Verification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!verifiedCustomer ? (
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => setShowQRScanner(true)}
+                  variant="outline"
+                  className="w-full"
+                  disabled={!posState.activeSession}
+                >
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Scan Customer QR Code
+                </Button>
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  or
+                </div>
+                
+                <Button 
+                  onClick={() => {
+                    // Manual customer entry for cases without QR code
+                    setVerifiedCustomer({
+                      userId: 0,
+                      userName: 'Walk-in Customer',
+                      membershipPlan: 'basic',
+                      email: 'walkin@customer.com'
+                    });
+                  }}
+                  variant="ghost"
+                  className="w-full"
+                  disabled={!posState.activeSession}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Walk-in Customer
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-green-800 dark:text-green-200">
+                        {verifiedCustomer.userName}
+                      </p>
+                      <p className="text-sm text-green-600 dark:text-green-300 capitalize">
+                        {verifiedCustomer.membershipPlan} Member
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      Verified
+                    </Badge>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => {
+                    setVerifiedCustomer(null);
+                    setPosState(prev => ({ ...prev, currentCustomer: null }));
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  Reset Customer
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -545,6 +652,20 @@ export default function PosDashboard() {
             </div>
           </CardContent>
         </Card>
+      )}
+      
+      {/* QR Scanner Modal */}
+      {showQRScanner && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <QRScanner
+              onScanSuccess={handleQRScanSuccess}
+              onScanError={handleQRScanError}
+              onClose={() => setShowQRScanner(false)}
+              className="p-4"
+            />
+          </div>
+        </div>
       )}
     </div>
   );

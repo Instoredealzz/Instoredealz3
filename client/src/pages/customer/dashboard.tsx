@@ -156,6 +156,8 @@ export default function CustomerDashboard() {
               isPromotionalUser={currentUser.isPromotionalUser}
               userId={currentUser.id}
               profileImage={currentUser.profileImage}
+              userEmail={currentUser.email}
+              userPhone={currentUser.phone}
             />
           </div>
           

@@ -149,24 +149,32 @@ export const generateDealClaimQR = async (
 };
 
 /**
- * Generates a magical QR code for membership verification
+ * Generates a comprehensive QR code for membership verification and deal claiming
  * @param userId - The user's unique identifier
  * @param membershipPlan - The membership plan type
  * @param userEmail - Optional user email for verification
+ * @param userName - User's name for display
+ * @param membershipId - Unique membership ID
  * @returns Promise<string> - Data URL of the membership QR code
  */
 export const generateMembershipQR = async (
   userId: number, 
   membershipPlan: string, 
-  userEmail?: string
+  userEmail?: string,
+  userName?: string,
+  membershipId?: string
 ): Promise<string> => {
   const membershipData = {
     userId,
+    userName: userName || `User ${userId}`,
+    membershipId: membershipId || `ISD-${userId.toString().padStart(8, '0')}`,
     membershipPlan,
+    email: userEmail,
     timestamp: Date.now(),
     type: 'membership_verification',
-    email: userEmail,
-    version: '1.0'
+    version: '2.0',
+    // Security token to prevent QR code forgery
+    securityToken: btoa(`${userId}_${membershipPlan}_${Date.now()}`).substring(0, 16)
   };
   
   const qrText = JSON.stringify(membershipData);
@@ -222,6 +230,34 @@ export const generatePaymentQR = async (
 };
 
 /**
+ * Generates a QR code for customer deal claiming with complete customer info
+ * @param customerData - Complete customer information
+ * @returns Promise<string> - Data URL of the customer claim QR code
+ */
+export const generateCustomerClaimQR = async (customerData: {
+  userId: number;
+  userName: string;
+  email: string;
+  membershipPlan: string;
+  membershipId: string;
+  phone?: string;
+  totalSavings?: string;
+}): Promise<string> => {
+  const claimData = {
+    ...customerData,
+    timestamp: Date.now(),
+    type: 'customer_claim',
+    version: '2.0',
+    // Security token to prevent QR code forgery
+    securityToken: btoa(`${customerData.userId}_${customerData.email}_${Date.now()}`).substring(0, 16)
+  };
+  
+  const qrText = JSON.stringify(claimData);
+  
+  return generateThemedQRCode(qrText, 'deal', 300);
+};
+
+/**
  * Generates a simple magical QR code from any text with automatic theme selection
  * @param text - The text to encode
  * @param type - The type of QR code for theme selection
@@ -234,4 +270,27 @@ export const generateMagicQR = async (
   size?: number
 ): Promise<string> => {
   return generateThemedQRCode(text, type, size);
+};
+
+/**
+ * Parses and validates QR code data
+ * @param qrData - The raw QR code string data
+ * @returns Parsed QR code data or null if invalid
+ */
+export const parseQRCodeData = (qrData: string) => {
+  try {
+    const parsed = JSON.parse(qrData);
+    
+    // Validate required fields based on QR type
+    if (parsed.type === 'customer_claim' || parsed.type === 'membership_verification') {
+      if (!parsed.userId || !parsed.membershipPlan || !parsed.timestamp) {
+        return null;
+      }
+    }
+    
+    return parsed;
+  } catch (error) {
+    console.error('Error parsing QR code data:', error);
+    return null;
+  }
 };

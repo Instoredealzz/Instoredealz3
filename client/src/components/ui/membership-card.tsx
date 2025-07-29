@@ -1,5 +1,5 @@
 import { QrCode, User } from "lucide-react";
-import { generateMembershipQR } from "@/lib/qr-code";
+import { generateCustomerClaimQR } from "@/lib/qr-code";
 import { useEffect, useState } from "react";
 
 interface MembershipCardProps {
@@ -11,6 +11,8 @@ interface MembershipCardProps {
   isPromotionalUser?: boolean;
   userId: number;
   profileImage?: string;
+  userEmail?: string;
+  userPhone?: string;
 }
 
 export default function MembershipCard({
@@ -22,13 +24,33 @@ export default function MembershipCard({
   isPromotionalUser,
   userId,
   profileImage,
+  userEmail,
+  userPhone,
 }: MembershipCardProps) {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
 
   useEffect(() => {
-    const qrCode = generateMembershipQR(userId, membershipId);
-    setQrCodeUrl(qrCode);
-  }, [userId, membershipId]);
+    const generateQR = async () => {
+      try {
+        const qrCode = await generateCustomerClaimQR({
+          userId,
+          userName,
+          email: userEmail || `user${userId}@instoredealz.com`,
+          membershipPlan,
+          membershipId,
+          phone: userPhone,
+          totalSavings
+        });
+        setQrCodeUrl(qrCode);
+      } catch (error) {
+        console.error('Error generating QR code:', error);
+        // Fallback QR code
+        setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(membershipId)}`);
+      }
+    };
+    
+    generateQR();
+  }, [userId, membershipId, userName, userEmail, membershipPlan, userPhone, totalSavings]);
 
   const getPlanColor = (plan: string | null | undefined) => {
     if (!plan) return "bg-gradient-to-br from-gray-600 to-gray-700";
