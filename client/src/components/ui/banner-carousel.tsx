@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight, Play, Pause, ExternalLink } from 'lucide-react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/auth';
 
 interface Banner {
   id: number;
@@ -43,6 +44,9 @@ export function BannerCarousel({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const autoSlideRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Get current user authentication state
+  const { user } = useAuth();
 
   // Fetch banners for this page
   const { data: banners = [], isLoading } = useQuery({
@@ -184,7 +188,7 @@ export function BannerCarousel({
 
               {/* Bottom actions */}
               <div className="flex flex-wrap gap-2 sm:gap-3">
-                {currentBanner?.dealId && (
+                {currentBanner?.dealId && user?.role === 'customer' && (
                   <Button asChild variant="secondary" size="sm" className="bg-white/90 hover:bg-white text-black">
                     <Link to={`/deals/${currentBanner.dealId}`}>
                       View Deal
@@ -245,7 +249,7 @@ export function BannerCarousel({
           {/* Dots indicator */}
           {banners.length > 1 && (
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-2">
-              {banners.map((_, index) => (
+              {banners.map((_: Banner, index: number) => (
                 <button
                   key={index}
                   className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${

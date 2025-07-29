@@ -127,7 +127,8 @@ Preferred communication style: Simple, everyday language.
 - **Back Button Navigation**: Added back button to promotional banner admin page for easy navigation back to home page
 - **Real-time Data Integration**: Connected frontend analytics display with existing backend API endpoints for live performance tracking
 
-### July 29, 2025 - Comprehensive QR Code Integration & POS Customer Verification System
+### July 29, 2025 - Role-Based Access Control & Comprehensive QR Code Integration
+- **Vendor Access Restriction**: Implemented role-based access control to prevent vendors from viewing deal details through promotional banner "View Deal" buttons - restricted to customers only
 - **Enhanced QR Code Generation**: Implemented comprehensive customer claim QR codes with complete customer data encoding for POS integration
 - **Customer Membership QR Codes**: QR codes now include userId, userName, email, membershipPlan, phone, totalSavings, and security tokens for verification
 - **POS System QR Scanner**: Created complete QR scanner component with camera, upload, and manual input options for vendor POS systems
@@ -137,6 +138,7 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced QR Code Library**: Added parseQRCodeData function for validating and processing customer QR codes in POS systems
 - **Seamless POS Integration**: Customer verification integrates directly with deal claiming and transaction processing workflows
 - **Multi-Modal QR Scanning**: Supports camera scanning, image upload, and manual QR data entry for maximum vendor flexibility
+- **Database Constraint Fix**: Resolved foreign key constraint issues in promotional banner analytics for smooth banner management
 
 ### July 29, 2025 - Theme-Aware Banner Background System
 - **Complete Background Integration**: Banner backgrounds now perfectly match the app's theme using CSS variables (--background, --foreground)
