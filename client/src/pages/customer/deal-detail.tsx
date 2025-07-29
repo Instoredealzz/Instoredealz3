@@ -74,6 +74,16 @@ interface Deal {
   };
 }
 
+interface ClaimResponse {
+  id: number;
+  dealId: number;
+  userId: number;
+  savingsAmount: string;
+  claimedAt: string;
+  claimCode: string;
+  codeExpiresAt: string;
+}
+
 
 
 interface DiscountError {
@@ -113,6 +123,7 @@ export default function DealDetail({ params }: DealDetailProps) {
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [showPinDialog, setShowPinDialog] = useState(false);
+  const [claimCode, setClaimCode] = useState<string | null>(null);
 
   // Always fetch public deal details as fallback
   const { data: deal, isLoading: isPublicLoading } = useQuery<Deal>({
@@ -163,32 +174,47 @@ export default function DealDetail({ params }: DealDetailProps) {
 
 
 
-  // Claim deal mutation
+  // Fetch user claims to check if this deal has been claimed
+  const { data: userClaims = [] } = useQuery<Array<{id: number, dealId: number, status: string, claimCode?: string, vendorVerified?: boolean}>>({
+    queryKey: ['/api/users/claims'],
+    enabled: isAuthenticated,
+    staleTime: 0,
+    retry: 3,
+    refetchOnMount: true,
+  });
+
+  // Check if current deal has been claimed
+  const userClaim = userClaims.find(claim => claim.dealId === Number(id));
+  const hasClaimedDeal = !!userClaim;
+
+  // New claim deal with code mutation (corrected system)
   const claimDealMutation = useMutation({
-    mutationFn: async (dealId: number) => {
-      return await apiRequest(`/api/deals/${dealId}/claim`, "POST", {});
+    mutationFn: async (dealId: number): Promise<ClaimResponse> => {
+      const response = await apiRequest(`/api/deals/${dealId}/claim-with-code`, 'POST', {});
+      return response as unknown as ClaimResponse;
     },
-    onSuccess: async (data: any) => {
+    onSuccess: (data) => {
+      // Store the claim code for display
+      setClaimCode(data.claimCode);
+      
       toast({
-        title: "Deal Claimed Successfully!",
-        description: data.message || "Visit the store and verify your PIN to complete the redemption and get your savings!",
+        title: "Deal Claimed Successfully! 🎉",
+        description: `Your claim code is ${data.claimCode}. Show this code at the store.`,
+        variant: "default",
       });
       
-      // Refresh deal claims data
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["/api/deals"] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/users/claims"] }),
-        queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}`] }),
-        queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}/secure`] }),
-      ]);
+      // Refresh user claims to update UI
+      queryClient.invalidateQueries({ queryKey: ["/api/users/claims"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}/secure`] });
     },
     onError: (error: any) => {
       toast({
         title: "Claim Failed",
-        description: error.message || "Unable to claim this deal",
+        description: error.message || "Failed to claim deal. Please try again.",
         variant: "destructive",
       });
-    },
+    }
   });
 
   // Wishlist mutations
@@ -414,23 +440,59 @@ export default function DealDetail({ params }: DealDetailProps) {
                       Login to Claim Deal
                     </Button>
                   ) : canAccessDeal() ? (
-                    <Button
-                      onClick={() => setShowPinDialog(true)}
-                      disabled={isExpired || !!isFullyRedeemed || !deal?.isActive}
-                      className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                      size="lg"
-                    >
-                      {isExpired ? (
-                        "Deal Expired"
-                      ) : isFullyRedeemed ? (
-                        "Fully Redeemed"
-                      ) : (
-                        <>
-                          <Shield className="w-4 h-4 mr-2" />
-                          Verify with PIN to Claim Deal
-                        </>
-                      )}
-                    </Button>
+                    !hasClaimedDeal ? (
+                      <Button
+                        onClick={handleClaimDeal}
+                        disabled={isExpired || !!isFullyRedeemed || !deal?.isActive || claimDealMutation.isPending}
+                        className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                        size="lg"
+                      >
+                        {claimDealMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Claiming...
+                          </>
+                        ) : isExpired ? (
+                          "Deal Expired"
+                        ) : isFullyRedeemed ? (
+                          "Fully Redeemed"
+                        ) : (
+                          <>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Claim Deal
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="text-center text-lg text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 rounded-lg py-3">
+                          ✅ Deal Claimed Successfully
+                        </div>
+                        
+                        {/* Show claim code if available */}
+                        {(claimCode || userClaim?.claimCode) && (
+                          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                            <div className="text-center">
+                              <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
+                                Your Claim Code
+                              </div>
+                              <div className="text-2xl font-bold text-blue-800 dark:text-blue-300 tracking-wider mb-2">
+                                {claimCode || userClaim?.claimCode}
+                              </div>
+                              <div className="text-sm text-blue-600 dark:text-blue-400">
+                                Show this code at the store to redeem your discount
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {userClaim?.status === 'claimed' && !userClaim?.vendorVerified && (
+                          <div className="text-center text-sm text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 rounded-lg py-2">
+                            📍 Visit the store with your claim code to complete redemption
+                          </div>
+                        )}
+                      </div>
+                    )
                   ) : (
                     <Button
                       onClick={() => setLocation('/customer/upgrade')}
@@ -446,15 +508,15 @@ export default function DealDetail({ params }: DealDetailProps) {
                     </Button>
                   )}
 
-                  {/* Deal Claiming Process Instructions - Updated for merged button */}
-                  {canAccessDeal() && (
+                  {/* Deal Claiming Process Instructions - Updated for claim code system */}
+                  {canAccessDeal() && !hasClaimedDeal && (
                     <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                         <h4 className="font-semibold text-blue-900 dark:text-blue-100">How do I claim a deal?</h4>
                       </div>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        Click "Verify with PIN to Claim Deal" above, then visit the store and ask for the current 4-digit PIN (changes every 30 minutes for security). Enter the PIN in the verification dialog to complete your claim and add the bill amount to track your actual savings.
+                        Click "Claim Deal" above to instantly receive your unique 6-digit claim code. Then visit the store and show this code to the vendor to redeem your discount. Simple and secure!
                       </p>
                     </div>
                   )}
