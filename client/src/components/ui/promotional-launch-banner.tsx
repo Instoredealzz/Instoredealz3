@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +32,7 @@ export function PromotionalLaunchBanner({
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState(false);
-  const [videoBackgroundType, setVideoBackgroundType] = useState<'default' | 'bright' | 'colorful' | 'brand' | 'corporate' | 'warm'>('default');
+  const [videoBackgroundType, setVideoBackgroundType] = useState<'default' | 'bright' | 'colorful' | 'brand' | 'corporate' | 'warm'>('warm');
 
   // Function to convert YouTube URL to embed format with autoplay
   const getEmbedUrl = (url: string): string => {
@@ -72,6 +72,14 @@ export function PromotionalLaunchBanner({
     
     const embedUrl = getEmbedUrl(videoUrl);
     
+    // Set background type immediately when component loads
+    useEffect(() => {
+      if (videoUrl) {
+        const bgType = detectVideoBackgroundType(videoUrl);
+        setVideoBackgroundType(bgType);
+      }
+    }, [videoUrl]);
+    
     // Define video container classes based on banner variant and background type
     const getVideoContainerClass = () => {
       const baseClass = 'banner-video-container';
@@ -96,6 +104,7 @@ export function PromotionalLaunchBanner({
       // Check URL and title for hints about video content
       const lowerUrl = url.toLowerCase();
       const lowerTitle = title.toLowerCase();
+      const lowerDescription = description.toLowerCase();
       
       // Brand/company promotional videos
       if (lowerUrl.includes('brand') || lowerUrl.includes('promo') || lowerTitle.includes('instoredealz') || lowerTitle.includes('brand')) {
@@ -107,23 +116,27 @@ export function PromotionalLaunchBanner({
         return 'corporate';
       }
       
-      // Warm/sales content
-      if (lowerUrl.includes('sale') || lowerUrl.includes('offer') || lowerUrl.includes('deal') || lowerTitle.includes('deal') || lowerTitle.includes('discount')) {
+      // Warm/sales content (matches current "peaceful" -> love theme)
+      if (lowerUrl.includes('sale') || lowerUrl.includes('offer') || lowerUrl.includes('deal') || 
+          lowerTitle.includes('deal') || lowerTitle.includes('discount') ||
+          lowerTitle.includes('love') || lowerTitle.includes('peaceful') || lowerDescription.includes('love')) {
         return 'warm';
       }
       
       // Bright/light background indicators
-      if (lowerUrl.includes('white') || lowerUrl.includes('light') || lowerUrl.includes('bright')) {
+      if (lowerUrl.includes('white') || lowerUrl.includes('light') || lowerUrl.includes('bright') ||
+          lowerTitle.includes('bright') || lowerTitle.includes('sunny')) {
         return 'bright';
       }
       
       // Colorful/vibrant content indicators
-      if (lowerUrl.includes('color') || lowerUrl.includes('vibrant') || lowerUrl.includes('rainbow') || lowerUrl.includes('creative')) {
+      if (lowerUrl.includes('color') || lowerUrl.includes('vibrant') || lowerUrl.includes('rainbow') || 
+          lowerUrl.includes('creative') || lowerTitle.includes('creative') || lowerTitle.includes('fun')) {
         return 'colorful';
       }
       
-      // Default to standard black background for video letterboxing
-      return 'default';
+      // For any video content, use warm background as it's more appealing than pure black
+      return 'warm';
     };
 
     const handleVideoLoad = () => {

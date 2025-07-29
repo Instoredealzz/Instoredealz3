@@ -1038,6 +1038,10 @@ body[data-non-blocking-modal-open] {
   background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); /* Warm advertising colors */
 }
 
+.dark .banner-video-container.video-warm {
+  background: linear-gradient(135deg, #cc4a1a 0%, #d4761a 100%); /* Darker warm colors for dark mode */
+}
+
 .dark .banner-video-container:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
