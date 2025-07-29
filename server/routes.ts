@@ -1580,6 +1580,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Comprehensive claim code analytics for admin dashboard
+  app.get('/api/admin/claim-code-analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get all claims with complete vendor data
+      const claims = await storage.getAllDealClaims();
+      const deals = await storage.getAllDeals();
+      const vendors = await storage.getAllVendors();
+      const users = await storage.getAllUsers();
+
+      // Create lookup maps for efficient data joining
+      const dealMap = new Map(deals.map(d => [d.id, d]));
+      const vendorMap = new Map(vendors.map(v => [v.id, v]));
+      const userMap = new Map(users.map(u => [u.id, u]));
+
+      // Process claims to include all vendor-required data
+      const enrichedClaims = claims.map(claim => {
+        const deal = dealMap.get(claim.dealId);
+        const vendor = deal ? vendorMap.get(deal.vendorId) : null;
+        const customer = userMap.get(claim.userId);
+
+        return {
+          // Core claim data
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          status: claim.status,
+          claimedAt: claim.claimedAt,
+          verifiedAt: claim.verifiedAt,
+          vendorVerified: claim.vendorVerified,
+          
+          // Required vendor data
+          vendorId: deal?.vendorId,
+          vendorName: vendor?.businessName,
+          vendorCity: vendor?.city,
+          vendorState: vendor?.state,
+          
+          // Required customer data  
+          customerId: claim.userId,
+          customerName: customer?.name,
+          customerEmail: customer?.email,
+          customerMembership: customer?.membershipPlan,
+          
+          // Required deal data
+          dealId: claim.dealId,
+          dealTitle: deal?.title,
+          dealCategory: deal?.category,
+          discountPercentage: deal?.discountPercentage,
+          
+          // Required financial data
+          totalAmount: claim.billAmount || 0,
+          actualSavings: claim.savingsAmount || 0,
+          maxPossibleDiscount: deal?.discountPercentage || 0,
+          
+          // Additional analytics
+          cityLocation: deal?.city,
+          expirationDate: claim.codeExpiresAt,
+          isExpired: claim.codeExpiresAt ? new Date() > new Date(claim.codeExpiresAt) : false
+        };
+      });
+
+      // Calculate summary statistics
+      const totalClaims = enrichedClaims.length;
+      const verifiedClaims = enrichedClaims.filter(c => c.vendorVerified).length;
+      const totalSavings = enrichedClaims.reduce((sum, c) => sum + (parseFloat(c.actualSavings) || 0), 0);
+      const averageSavings = totalClaims > 0 ? totalSavings / totalClaims : 0;
+      const verificationRate = totalClaims > 0 ? (verifiedClaims / totalClaims) * 100 : 0;
+
+      // Vendor performance breakdown
+      const vendorPerformance = vendors.map(vendor => {
+        const vendorClaims = enrichedClaims.filter(c => c.vendorId === vendor.id);
+        const vendorVerified = vendorClaims.filter(c => c.vendorVerified).length;
+        const vendorSavings = vendorClaims.reduce((sum, c) => sum + (parseFloat(c.actualSavings) || 0), 0);
+        
+        return {
+          vendorId: vendor.id,
+          vendorName: vendor.businessName,
+          totalClaims: vendorClaims.length,
+          verifiedClaims: vendorVerified,
+          totalSavings: vendorSavings,
+          verificationRate: vendorClaims.length > 0 ? (vendorVerified / vendorClaims.length) * 100 : 0
+        };
+      });
+
+      // Category breakdown
+      const categoryStats = {};
+      enrichedClaims.forEach(claim => {
+        const category = claim.dealCategory || 'Other';
+        if (!categoryStats[category]) {
+          categoryStats[category] = { claims: 0, savings: 0, verified: 0 };
+        }
+        categoryStats[category].claims++;
+        categoryStats[category].savings += parseFloat(claim.actualSavings) || 0;
+        if (claim.vendorVerified) categoryStats[category].verified++;
+      });
+
+      res.json({
+        summary: {
+          totalClaims,
+          verifiedClaims,
+          totalSavings,
+          averageSavings,
+          verificationRate: Math.round(verificationRate * 100) / 100
+        },
+        claims: enrichedClaims,
+        vendorPerformance: vendorPerformance.filter(v => v.totalClaims > 0),
+        categoryBreakdown: Object.entries(categoryStats).map(([category, stats]) => ({
+          category,
+          ...stats,
+          verificationRate: stats.claims > 0 ? Math.round((stats.verified / stats.claims) * 100) : 0
+        }))
+      });
+
+    } catch (error) {
+      console.error('Claim code analytics error:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch claim code analytics",
+        summary: { totalClaims: 0, verifiedClaims: 0, totalSavings: 0, averageSavings: 0, verificationRate: 0 },
+        claims: [],
+        vendorPerformance: [],
+        categoryBreakdown: []
+      });
+    }
+  });
+
   // Location-based analytics for admin
   app.get('/api/admin/location-analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
@@ -4877,31 +5000,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
-      // Create claim with code
+      // Get user and vendor information for complete tracking
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(400).json({
+          success: false,
+          error: "User not found"
+        });
+      }
+
+      // Calculate maximum possible discount
+      const maxDiscount = deal.discountPercentage || 0;
+      const estimatedSavings = "0"; // Will be updated when bill amount is provided
+
+      // Create claim with code and complete vendor data
       const claim = await storage.claimDeal({
         dealId,
         userId,
         status: "claimed",
-        savingsAmount: "0",
+        savingsAmount: estimatedSavings,
         claimCode,
         codeExpiresAt: expiresAt,
-        vendorVerified: false
+        vendorVerified: false,
+        claimedAt: new Date() // Ensure claimedAt is set
       });
 
-      // Log the claim creation
-      await storage.createSystemLog({
-        userId,
-        action: "DEAL_CLAIMED_WITH_CODE",
-        details: {
-          dealId,
-          claimId: claim.id,
-          claimCode,
-          dealTitle: deal.title,
-          expiresAt: expiresAt.toISOString()
-        },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent']
-      });
+      // Log comprehensive claim creation for admin analytics
+      try {
+        await storage.createSystemLog({
+          userId,
+          action: "DEAL_CLAIMED_WITH_CODE",
+          details: {
+            // Required vendor data
+            vendorId: deal.vendorId,
+            customerId: userId,
+            customerName: user.name,
+            customerEmail: user.email,
+            dealId,
+            claimId: claim.id,
+            claimCode,
+            dealTitle: deal.title,
+            discountPercentage: deal.discountPercentage,
+            maxPossibleDiscount: maxDiscount,
+            totalAmount: 0, // Will be updated when transaction completes
+            claimedAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            // Additional analytics data
+            category: deal.category,
+            vendorCity: deal.city,
+            membershipLevel: user.membershipPlan
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        });
+      } catch (logError) {
+        console.warn('System log creation failed:', logError.message);
+      }
 
       res.json({
         success: true,
@@ -4909,6 +5063,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         claimCode: claimCode,
         dealTitle: deal.title,
         discountPercentage: deal.discountPercentage,
+        vendorId: deal.vendorId, // Include vendor ID for POS verification
+        customerId: userId, // Include customer ID for vendor reference
+        customerName: user.name, // Include customer name for vendor display
         expiresAt: expiresAt.toISOString(),
         instructions: `Show this code at the store: ${claimCode}`,
         message: "Deal claimed successfully! Show your claim code at the store to redeem."
