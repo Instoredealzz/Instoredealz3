@@ -1,179 +1,285 @@
 #!/usr/bin/env node
 
-// Test script for corrected customer claim code system
-console.log('🧪 Testing Corrected Customer Claim Code System\n');
+/**
+ * Test Script: Corrected Customer Claim Code Flow
+ * Tests the complete end-to-end claim code system with vendor data integration
+ */
 
-// Simulate the corrected claim flow
-function testCorrectedClaimFlow() {
-  console.log('=== CORRECTED CUSTOMER CLAIM CODE FLOW ===\n');
+import axios from 'axios';
 
-  // Step 1: Customer Claims Deal Online
-  console.log('📱 Step 1: Customer Claims Deal Online');
-  const claimResponse = {
-    success: true,
-    claimId: 123,
-    claimCode: "ABC123",
-    dealTitle: "Summer Electronics Sale - 20% Off",
-    discountPercentage: 20,
-    expiresAt: "2025-07-30T14:30:00Z",
-    instructions: "Show this code at the store: ABC123",
-    message: "Deal claimed successfully! Show your claim code at the store to redeem."
-  };
-  
-  console.log('✅ Customer receives claim code:', claimResponse.claimCode);
-  console.log('   Deal:', claimResponse.dealTitle);
-  console.log('   Expires:', claimResponse.expiresAt);
-  console.log('   Instructions:', claimResponse.instructions);
-  console.log('');
+const BASE_URL = 'http://localhost:5000';
 
-  // Step 2: Customer Goes to Store
-  console.log('🏪 Step 2: Customer Goes to Store');
-  console.log('   Customer tells vendor: "I have claim code ABC123"');
-  console.log('   Vendor enters code in POS system');
-  console.log('');
+// Test credentials
+const customerCreds = { email: 'customer@test.com', password: 'customer123' };
+const vendorCreds = { email: 'vendor@test.com', password: 'vendor123' };
+const adminCreds = { email: 'admin@instoredealz.com', password: 'admin123' };
 
-  // Step 3: Vendor Verifies Claim Code
-  console.log('🔍 Step 3: Vendor Verifies Claim Code');
-  const verificationResponse = {
-    success: true,
-    valid: true,
-    claimId: 123,
-    customer: {
-      name: "John Doe",
-      email: "john@example.com",
-      membershipPlan: "premium"
-    },
-    deal: {
-      id: 867,
-      title: "Summer Electronics Sale - 20% Off",
-      discountPercentage: 20,
-      originalPrice: "500.00",
-      discountedPrice: "400.00",
-      maxDiscount: 100
-    },
-    claimCode: "ABC123",
-    claimedAt: "2025-07-29T14:30:00Z",
-    expiresAt: "2025-07-30T14:30:00Z"
-  };
+let customerToken, vendorToken, adminToken;
+let testDealId = 1;
+let testClaimCode;
 
-  console.log('✅ Claim code verified successfully!');
-  console.log('   Customer:', verificationResponse.customer.name);
-  console.log('   Deal:', verificationResponse.deal.title);
-  console.log('   Discount:', verificationResponse.deal.discountPercentage + '%');
-  console.log('   Max Discount: ₹' + verificationResponse.deal.maxDiscount);
-  console.log('');
-
-  // Step 4: Complete Transaction
-  console.log('💳 Step 4: Complete Transaction');
-  console.log('   Customer bill: ₹450');
-  console.log('   Vendor applies 20% discount: ₹90');
-  console.log('   Final amount: ₹360');
-  console.log('');
-
-  const transactionResponse = {
-    success: true,
-    message: "Transaction completed successfully",
-    claimId: 123,
-    actualDiscount: 90,
-    billAmount: 450,
-    customerSavings: 90
-  };
-
-  console.log('✅ Transaction completed!');
-  console.log('   Claim ID:', transactionResponse.claimId);
-  console.log('   Customer savings: ₹' + transactionResponse.customerSavings);
-  console.log('   Total bill: ₹' + transactionResponse.billAmount);
-  console.log('');
-
-  return true;
+async function makeRequest(method, endpoint, data, token) {
+  try {
+    const config = {
+      method,
+      url: `${BASE_URL}${endpoint}`,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      ...(data && { data })
+    };
+    
+    const response = await axios(config);
+    return { success: true, data: response.data, status: response.status };
+  } catch (error) {
+    return { 
+      success: false, 
+      error: error.response?.data?.error || error.message,
+      status: error.response?.status || 500
+    };
+  }
 }
 
-// Compare with problematic old flow
-function showProblematicOldFlow() {
-  console.log('=== PROBLEMATIC OLD PIN SYSTEM ===\n');
-  
-  console.log('❌ Problems with old system:');
-  console.log('   1. Vendor creates deal with PIN "1234"');
-  console.log('   2. Customer finds deal but CANNOT see PIN');
-  console.log('   3. Customer goes to store with no PIN');
-  console.log('   4. Vendor asks for PIN - customer doesn\'t know it');
-  console.log('   5. Customer cannot redeem deal they claimed');
-  console.log('');
-  
-  console.log('🔄 Additional issues:');
-  console.log('   - PINs supposedly change every 30 minutes');
-  console.log('   - Only vendors know current PIN');
-  console.log('   - No way for customers to get PIN');
-  console.log('   - System fails completely for offline use');
-  console.log('');
+async function testStep(stepName, testFunction) {
+  console.log(`\n🔄 Testing: ${stepName}`);
+  try {
+    const result = await testFunction();
+    if (result.success) {
+      console.log(`✅ ${stepName} - PASSED`);
+      return result;
+    } else {
+      console.log(`❌ ${stepName} - FAILED: ${result.error}`);
+      return result;
+    }
+  } catch (error) {
+    console.log(`❌ ${stepName} - ERROR: ${error.message}`);
+    return { success: false, error: error.message };
+  }
 }
 
-// Show benefits of corrected system
-function showBenefits() {
-  console.log('=== BENEFITS OF CORRECTED SYSTEM ===\n');
+async function authenticateUsers() {
+  console.log('\n🔐 Authentication Phase');
   
-  console.log('✅ Customer Benefits:');
-  console.log('   - Immediately receive claim code when claiming deal');
-  console.log('   - Clear instructions on how to redeem');
-  console.log('   - 24-hour window to visit store');
-  console.log('   - No confusion about PINs or access');
-  console.log('');
-  
-  console.log('✅ Vendor Benefits:');
-  console.log('   - Simple code verification process');
-  console.log('   - No need to remember or share PINs');
-  console.log('   - Real-time validation of customer claims');
-  console.log('   - Automatic discount calculation');
-  console.log('');
-  
-  console.log('✅ Platform Benefits:');
-  console.log('   - Proper claim tracking and analytics');
-  console.log('   - Reduced customer support issues');
-  console.log('   - Better conversion rates');
-  console.log('   - Clear audit trail for all transactions');
-  console.log('');
+  // Login customer
+  const customerLogin = await makeRequest('POST', '/api/auth/login', customerCreds);
+  if (!customerLogin.success) {
+    throw new Error('Customer login failed');
+  }
+  customerToken = customerLogin.data.token;
+  console.log('✅ Customer authenticated');
+
+  // Login vendor
+  const vendorLogin = await makeRequest('POST', '/api/auth/login', vendorCreds);
+  if (!vendorLogin.success) {
+    throw new Error('Vendor login failed');
+  }
+  vendorToken = vendorLogin.data.token;
+  console.log('✅ Vendor authenticated');
+
+  // Login admin
+  const adminLogin = await makeRequest('POST', '/api/auth/login', adminCreds);
+  if (!adminLogin.success) {
+    throw new Error('Admin login failed');
+  }
+  adminToken = adminLogin.data.token;
+  console.log('✅ Admin authenticated');
 }
 
-// API endpoints for the corrected system
-function showAPIEndpoints() {
-  console.log('=== NEW API ENDPOINTS ===\n');
-  
-  console.log('1. Customer Claims Deal:');
-  console.log('   POST /api/deals/:id/claim-with-code');
-  console.log('   Response: { claimCode: "ABC123", expiresAt: "..." }');
-  console.log('');
-  
-  console.log('2. Vendor Verifies Code:');
-  console.log('   POST /api/pos/verify-claim-code');
-  console.log('   Body: { claimCode: "ABC123" }');
-  console.log('   Response: { valid: true, customer: {...}, deal: {...} }');
-  console.log('');
-  
-  console.log('3. Complete Transaction:');
-  console.log('   POST /api/pos/complete-claim-transaction');
-  console.log('   Body: { claimCode: "ABC123", billAmount: 450, actualDiscount: 90 }');
-  console.log('   Response: { success: true, customerSavings: 90 }');
-  console.log('');
+async function testClaimWithCode() {
+  return await testStep('Customer claims deal with code', async () => {
+    const result = await makeRequest('POST', `/api/deals/${testDealId}/claim-with-code`, {}, customerToken);
+    
+    if (result.success && result.data.claimCode) {
+      testClaimCode = result.data.claimCode;
+      console.log(`   📋 Claim Code Generated: ${testClaimCode}`);
+      console.log(`   🏪 Vendor ID: ${result.data.vendorId}`);
+      console.log(`   👤 Customer ID: ${result.data.customerId}`);
+      console.log(`   📅 Expires: ${new Date(result.data.expiresAt).toLocaleString()}`);
+      return result;
+    }
+    
+    return { success: false, error: 'No claim code generated' };
+  });
 }
 
-// Run all tests
-function runAllTests() {
-  console.log('🔧 CORRECTED CUSTOMER CLAIM CODE SYSTEM TEST\n');
-  console.log('Date:', new Date().toISOString());
-  console.log('Platform: Instoredealz');
-  console.log('Issue: Customers cannot access vendor PINs\n');
-  
-  showProblematicOldFlow();
-  testCorrectedClaimFlow();
-  showBenefits();
-  showAPIEndpoints();
-  
-  console.log('🎉 CONCLUSION: Corrected system solves PIN access problem!');
-  console.log('   - Customers get claim codes they can actually use');
-  console.log('   - Vendors can verify codes easily');
-  console.log('   - System works as intended for offline redemption');
-  console.log('');
+async function testPOSVerification() {
+  return await testStep('Vendor verifies claim code via POS', async () => {
+    const result = await makeRequest('POST', '/api/pos/verify-claim-code', {
+      claimCode: testClaimCode
+    }, vendorToken);
+    
+    if (result.success && result.data.valid) {
+      console.log(`   ✅ Code Verified: ${result.data.claim.claimCode}`);
+      console.log(`   👤 Customer: ${result.data.customer.customerName} (${result.data.customer.customerEmail})`);
+      console.log(`   🏷️  Deal: ${result.data.deal.dealTitle}`);
+      console.log(`   💰 Discount: ${result.data.deal.discountPercentage}%`);
+      console.log(`   🏪 Vendor: ${result.data.vendor.vendorName}`);
+      return result;
+    }
+    
+    return { success: false, error: 'Code verification failed' };
+  });
 }
 
-// Execute the test
-runAllTests();
+async function testTransactionCompletion() {
+  return await testStep('Complete transaction with bill amount', async () => {
+    const billAmount = 1000;
+    const result = await makeRequest('POST', '/api/pos/complete-claim-transaction', {
+      claimCode: testClaimCode,
+      billAmount: billAmount
+    }, vendorToken);
+    
+    if (result.success) {
+      console.log(`   💸 Bill Amount: ₹${result.data.transaction.billAmount}`);
+      console.log(`   💰 Actual Savings: ₹${result.data.transaction.actualSavings}`);
+      console.log(`   👤 Customer New Total: ₹${result.data.customer.newTotalSavings}`);
+      console.log(`   ⏰ Completed: ${new Date(result.data.transaction.completedAt).toLocaleString()}`);
+      return result;
+    }
+    
+    return { success: false, error: 'Transaction completion failed' };
+  });
+}
+
+async function testAdminAnalytics() {
+  return await testStep('Admin views comprehensive claim code analytics', async () => {
+    const result = await makeRequest('GET', '/api/admin/claim-code-analytics', null, adminToken);
+    
+    if (result.success) {
+      const analytics = result.data;
+      console.log(`   📊 Total Claims: ${analytics.summary.totalClaims}`);
+      console.log(`   ✅ Verified Claims: ${analytics.summary.verifiedClaims}`);
+      console.log(`   💰 Total Savings: ₹${analytics.summary.totalSavings}`);
+      console.log(`   📈 Verification Rate: ${analytics.summary.verificationRate}%`);
+      console.log(`   🏪 Vendor Performance Records: ${analytics.vendorPerformance.length}`);
+      console.log(`   📂 Category Breakdown: ${analytics.categoryBreakdown.length} categories`);
+      
+      // Show sample claim data with vendor info
+      if (analytics.claims.length > 0) {
+        const claim = analytics.claims[0];
+        console.log(`   📋 Sample Claim Data:`);
+        console.log(`      - Vendor ID: ${claim.vendorId}, Customer ID: ${claim.customerId}`);
+        console.log(`      - Deal ID: ${claim.dealId}, Total Amount: ₹${claim.totalAmount}`);
+        console.log(`      - Claimed At: ${claim.claimedAt}`);
+      }
+      
+      return result;
+    }
+    
+    return { success: false, error: 'Analytics fetch failed' };
+  });
+}
+
+async function testVendorClaimedDeals() {
+  return await testStep('Vendor views only claimed deals dashboard', async () => {
+    const result = await makeRequest('GET', '/api/vendors/claimed-deals', null, vendorToken);
+    
+    if (result.success) {
+      const dashboard = result.data;
+      console.log(`   🏪 Vendor: ${dashboard.vendor.name} (${dashboard.vendor.city})`);
+      console.log(`   📊 Dashboard Summary:`);
+      console.log(`      - Total Claims: ${dashboard.summary.totalClaims}`);
+      console.log(`      - Verified Claims: ${dashboard.summary.verifiedClaims}`);
+      console.log(`      - Pending Claims: ${dashboard.summary.pendingClaims}`);
+      console.log(`      - Total Revenue: ₹${dashboard.summary.totalRevenue}`);
+      console.log(`      - Verification Rate: ${dashboard.summary.verificationRate}%`);
+      console.log(`   📋 Claimed Deals: ${dashboard.claimedDeals.length}`);
+      console.log(`   📈 Deal Performance: ${dashboard.dealPerformance.length} deals`);
+      
+      // Show sample claimed deal with complete data
+      if (dashboard.claimedDeals.length > 0) {
+        const claim = dashboard.claimedDeals[0];
+        console.log(`   💼 Sample Claimed Deal:`);
+        console.log(`      - Customer: ${claim.customerName} (ID: ${claim.customerId})`);
+        console.log(`      - Deal: ${claim.dealTitle} (ID: ${claim.dealId})`);
+        console.log(`      - Amount: ₹${claim.totalAmount}, Savings: ₹${claim.actualSavings}`);
+        console.log(`      - Verified: ${claim.vendorVerified}, Code: ${claim.claimCode}`);
+      }
+      
+      return result;
+    }
+    
+    return { success: false, error: 'Vendor dashboard fetch failed' };
+  });
+}
+
+async function testValidateDataFlow() {
+  return await testStep('Validate complete data flow with vendor requirements', async () => {
+    // Get the claim from admin analytics
+    const analyticsResult = await makeRequest('GET', '/api/admin/claim-code-analytics', null, adminToken);
+    if (!analyticsResult.success) {
+      return { success: false, error: 'Could not fetch analytics for validation' };
+    }
+    
+    const claims = analyticsResult.data.claims;
+    const testClaim = claims.find(c => c.claimCode === testClaimCode);
+    
+    if (!testClaim) {
+      return { success: false, error: 'Test claim not found in analytics' };
+    }
+    
+    // Validate all required vendor data is present
+    const requiredFields = ['vendorId', 'customerId', 'dealId', 'totalAmount', 'claimedAt'];
+    const missingFields = requiredFields.filter(field => !testClaim[field] && testClaim[field] !== 0);
+    
+    if (missingFields.length > 0) {
+      return { success: false, error: `Missing required fields: ${missingFields.join(', ')}` };
+    }
+    
+    console.log(`   ✅ All vendor-required data present:`);
+    console.log(`      - Vendor ID: ${testClaim.vendorId}`);
+    console.log(`      - Customer ID: ${testClaim.customerId}`);
+    console.log(`      - Deal ID: ${testClaim.dealId}`);
+    console.log(`      - Total Amount: ₹${testClaim.totalAmount}`);
+    console.log(`      - Claimed At: ${testClaim.claimedAt}`);
+    console.log(`      - Customer Name: ${testClaim.customerName}`);
+    console.log(`      - Vendor Name: ${testClaim.vendorName}`);
+    
+    return { success: true, data: testClaim };
+  });
+}
+
+async function runTests() {
+  console.log('🚀 Starting Corrected Customer Claim Code Flow Tests');
+  console.log('=' * 60);
+  
+  try {
+    await authenticateUsers();
+    
+    const tests = [
+      () => testClaimWithCode(),
+      () => testPOSVerification(),
+      () => testTransactionCompletion(),
+      () => testAdminAnalytics(),
+      () => testVendorClaimedDeals(),
+      () => testValidateDataFlow()
+    ];
+    
+    let passedTests = 0;
+    let totalTests = tests.length;
+    
+    for (const test of tests) {
+      const result = await test();
+      if (result.success) passedTests++;
+    }
+    
+    console.log('\n' + '=' * 60);
+    console.log(`📋 Test Results: ${passedTests}/${totalTests} tests passed`);
+    
+    if (passedTests === totalTests) {
+      console.log('🎉 ALL TESTS PASSED! Corrected claim code system is fully operational.');
+      console.log('\n✅ Key Features Verified:');
+      console.log('   - Customer claim code generation with vendor data');
+      console.log('   - POS verification with complete customer/deal info');
+      console.log('   - Transaction completion with bill amount tracking');
+      console.log('   - Admin analytics with all vendor-required data');
+      console.log('   - Vendor dashboard showing only claimed deals');
+      console.log('   - Complete data flow validation');
+    } else {
+      console.log(`⚠️  ${totalTests - passedTests} tests failed. System needs attention.`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Test execution failed:', error.message);
+  }
+}
+
+runTests();

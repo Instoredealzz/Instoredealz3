@@ -1703,6 +1703,370 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Vendor dashboard - claimed deals only with complete data
+  app.get('/api/vendors/claimed-deals', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      // Get vendor information
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ error: "Vendor not found" });
+      }
+
+      // Get all claims for this vendor's deals
+      const allClaims = await storage.getAllDealClaims();
+      const vendorDeals = await storage.getVendorDeals(vendor.id);
+      const users = await storage.getAllUsers();
+
+      // Create lookup maps
+      const dealMap = new Map(vendorDeals.map(d => [d.id, d]));
+      const userMap = new Map(users.map(u => [u.id, u]));
+
+      // Filter claims for this vendor's deals only
+      const vendorClaims = allClaims.filter(claim => {
+        const deal = dealMap.get(claim.dealId);
+        return deal && deal.vendorId === vendor.id;
+      });
+
+      // Enrich claims with complete vendor-required data
+      const enrichedClaims = vendorClaims.map(claim => {
+        const deal = dealMap.get(claim.dealId);
+        const customer = userMap.get(claim.userId);
+
+        return {
+          // Core claim information
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          status: claim.status,
+          claimedAt: claim.claimedAt,
+          verifiedAt: claim.verifiedAt,
+          vendorVerified: claim.vendorVerified,
+          codeExpiresAt: claim.codeExpiresAt,
+          
+          // Required vendor data
+          vendorId: vendor.id,
+          vendorName: vendor.businessName,
+          
+          // Required customer data
+          customerId: claim.userId,
+          customerName: customer?.name || 'Unknown Customer',
+          customerEmail: customer?.email || 'N/A',
+          customerPhone: customer?.phone || 'N/A',
+          customerMembership: customer?.membershipPlan || 'basic',
+          
+          // Required deal data
+          dealId: claim.dealId,
+          dealTitle: deal?.title || 'Unknown Deal',
+          dealCategory: deal?.category || 'Other',
+          discountPercentage: deal?.discountPercentage || 0,
+          
+          // Required financial data
+          totalAmount: parseFloat(claim.billAmount || '0'),
+          actualSavings: parseFloat(claim.savingsAmount || '0'),
+          maxPossibleDiscount: deal?.discountPercentage || 0,
+          
+          // Additional useful information
+          isExpired: claim.codeExpiresAt ? new Date() > new Date(claim.codeExpiresAt) : false,
+          daysSinceClaim: claim.claimedAt ? Math.floor((new Date().getTime() - new Date(claim.claimedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0,
+          canBeVerified: !claim.vendorVerified && (!claim.codeExpiresAt || new Date() <= new Date(claim.codeExpiresAt))
+        };
+      });
+
+      // Sort by most recent claims first
+      enrichedClaims.sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime());
+
+      // Calculate vendor summary statistics
+      const totalClaims = enrichedClaims.length;
+      const verifiedClaims = enrichedClaims.filter(c => c.vendorVerified).length;
+      const pendingClaims = enrichedClaims.filter(c => !c.vendorVerified && !c.isExpired).length;
+      const expiredClaims = enrichedClaims.filter(c => c.isExpired && !c.vendorVerified).length;
+      const totalRevenue = enrichedClaims.reduce((sum, c) => sum + c.totalAmount, 0);
+      const totalSavingsProvided = enrichedClaims.reduce((sum, c) => sum + c.actualSavings, 0);
+      const verificationRate = totalClaims > 0 ? (verifiedClaims / totalClaims) * 100 : 0;
+
+      // Group by deal for deal-specific analytics
+      const dealPerformance = {};
+      enrichedClaims.forEach(claim => {
+        const dealId = claim.dealId;
+        if (!dealPerformance[dealId]) {
+          dealPerformance[dealId] = {
+            dealId,
+            dealTitle: claim.dealTitle,
+            totalClaims: 0,
+            verifiedClaims: 0,
+            totalRevenue: 0,
+            totalSavings: 0
+          };
+        }
+        dealPerformance[dealId].totalClaims++;
+        if (claim.vendorVerified) dealPerformance[dealId].verifiedClaims++;
+        dealPerformance[dealId].totalRevenue += claim.totalAmount;
+        dealPerformance[dealId].totalSavings += claim.actualSavings;
+      });
+
+      res.json({
+        vendor: {
+          id: vendor.id,
+          name: vendor.businessName,
+          city: vendor.city,
+          state: vendor.state
+        },
+        summary: {
+          totalClaims,
+          verifiedClaims,
+          pendingClaims,
+          expiredClaims,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          totalSavingsProvided: Math.round(totalSavingsProvided * 100) / 100,
+          verificationRate: Math.round(verificationRate * 100) / 100
+        },
+        claimedDeals: enrichedClaims,
+        dealPerformance: Object.values(dealPerformance)
+      });
+
+    } catch (error) {
+      console.error('Vendor claimed deals error:', error);
+      res.status(500).json({ 
+        error: "Failed to fetch claimed deals",
+        vendor: null,
+        summary: {
+          totalClaims: 0,
+          verifiedClaims: 0,
+          pendingClaims: 0,
+          expiredClaims: 0,
+          totalRevenue: 0,
+          totalSavingsProvided: 0,
+          verificationRate: 0
+        },
+        claimedDeals: [],
+        dealPerformance: []
+      });
+    }
+  });
+
+  // POS verification - verify customer claim code
+  app.post('/api/pos/verify-claim-code', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode } = req.body;
+      
+      if (!claimCode) {
+        return res.status(400).json({
+          success: false,
+          error: "Claim code is required"
+        });
+      }
+
+      // Get vendor information
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          error: "Vendor not found"
+        });
+      }
+
+      // Find claim by code
+      const allClaims = await storage.getAllDealClaims();
+      const claim = allClaims.find(c => c.claimCode === claimCode);
+      
+      if (!claim) {
+        return res.status(404).json({
+          success: false,
+          error: "Invalid claim code"
+        });
+      }
+
+      // Get deal and customer information
+      const deal = await storage.getDeal(claim.dealId);
+      const customer = await storage.getUser(claim.userId);
+
+      if (!deal || !customer) {
+        return res.status(404).json({
+          success: false,
+          error: "Deal or customer not found"
+        });
+      }
+
+      // Verify this claim belongs to this vendor's deal
+      if (deal.vendorId !== vendor.id) {
+        return res.status(403).json({
+          success: false,
+          error: "This claim code is not for your deals"
+        });
+      }
+
+      // Check if code is expired
+      if (claim.codeExpiresAt && new Date() > new Date(claim.codeExpiresAt)) {
+        return res.status(400).json({
+          success: false,
+          error: "Claim code has expired"
+        });
+      }
+
+      // Check if already verified
+      if (claim.vendorVerified) {
+        return res.status(400).json({
+          success: false,
+          error: "Claim code has already been used",
+          verifiedAt: claim.verifiedAt
+        });
+      }
+
+      // Return complete verification data for vendor
+      res.json({
+        success: true,
+        valid: true,
+        claim: {
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          status: claim.status,
+          claimedAt: claim.claimedAt,
+          expiresAt: claim.codeExpiresAt
+        },
+        customer: {
+          customerId: customer.id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerPhone: customer.phone || 'N/A',
+          membershipLevel: customer.membershipPlan
+        },
+        deal: {
+          dealId: deal.id,
+          dealTitle: deal.title,
+          dealCategory: deal.category,
+          discountPercentage: deal.discountPercentage,
+          maxDiscount: deal.discountPercentage
+        },
+        vendor: {
+          vendorId: vendor.id,
+          vendorName: vendor.businessName
+        },
+        message: "Claim code verified successfully. You can now process the transaction."
+      });
+
+    } catch (error) {
+      console.error('POS verify claim code error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to verify claim code"
+      });
+    }
+  });
+
+  // POS completion - complete transaction with bill amount
+  app.post('/api/pos/complete-claim-transaction', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode, billAmount, actualDiscount } = req.body;
+      
+      if (!claimCode || billAmount === undefined) {
+        return res.status(400).json({
+          success: false,
+          error: "Claim code and bill amount are required"
+        });
+      }
+
+      // Get vendor information
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          error: "Vendor not found"
+        });
+      }
+
+      // Find and verify claim
+      const allClaims = await storage.getAllDealClaims();
+      const claim = allClaims.find(c => c.claimCode === claimCode);
+      
+      if (!claim) {
+        return res.status(404).json({
+          success: false,
+          error: "Invalid claim code"
+        });
+      }
+
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal || deal.vendorId !== vendor.id) {
+        return res.status(403).json({
+          success: false,
+          error: "Unauthorized access to this claim"
+        });
+      }
+
+      if (claim.vendorVerified) {
+        return res.status(400).json({
+          success: false,
+          error: "Transaction already completed"
+        });
+      }
+
+      // Calculate actual savings
+      const calculatedSavings = actualDiscount || (billAmount * (deal.discountPercentage || 0) / 100);
+
+      // Update claim with transaction details
+      const updatedClaim = await storage.updateDealClaim(claim.id, {
+        status: "used",
+        vendorVerified: true,
+        verifiedAt: new Date(),
+        billAmount: billAmount.toString(),
+        savingsAmount: calculatedSavings.toString()
+      });
+
+      // Update user's total savings
+      const customer = await storage.getUser(claim.userId);
+      if (customer) {
+        const currentSavings = parseFloat(customer.totalSavings || '0');
+        await storage.updateUser(customer.id, {
+          totalSavings: (currentSavings + calculatedSavings).toString()
+        });
+      }
+
+      // Log the completed transaction
+      try {
+        await storage.createSystemLog({
+          userId: req.user!.id,
+          action: "CLAIM_TRANSACTION_COMPLETED",
+          details: {
+            claimId: claim.id,
+            claimCode,
+            vendorId: vendor.id,
+            customerId: claim.userId,
+            dealId: claim.dealId,
+            billAmount,
+            actualSavings: calculatedSavings,
+            completedAt: new Date().toISOString()
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        });
+      } catch (logError) {
+        console.warn('System log creation failed:', logError.message);
+      }
+
+      res.json({
+        success: true,
+        message: "Transaction completed successfully",
+        transaction: {
+          claimId: claim.id,
+          claimCode,
+          billAmount,
+          actualSavings: calculatedSavings,
+          completedAt: new Date().toISOString()
+        },
+        customer: {
+          customerId: claim.userId,
+          newTotalSavings: customer ? parseFloat(customer.totalSavings || '0') + calculatedSavings : calculatedSavings
+        }
+      });
+
+    } catch (error) {
+      console.error('POS complete transaction error:', error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to complete transaction"
+      });
+    }
+  });
+
   // Location-based analytics for admin
   app.get('/api/admin/location-analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {

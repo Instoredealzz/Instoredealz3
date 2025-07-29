@@ -396,6 +396,10 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(schema.posSessions.startedAt));
   }
 
+  async getPosSessionsByVendor(vendorId: number): Promise<PosSession[]> {
+    return this.getVendorPosSessions(vendorId);
+  }
+
   // POS Transaction operations
   async createPosTransaction(transaction: InsertPosTransaction): Promise<PosTransaction> {
     const result = await db.insert(schema.posTransactions).values(transaction).returning();
@@ -421,6 +425,17 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getPosTransactionsBySession(sessionId: number): Promise<PosTransaction[]> {
+    return this.getSessionTransactions(sessionId);
+  }
+
+  async getPosTransactionsByVendor(vendorId: number): Promise<PosTransaction[]> {
+    return await db.select().from(schema.posTransactions)
+      .innerJoin(schema.posSessions, eq(schema.posTransactions.sessionId, schema.posSessions.id))
+      .where(eq(schema.posSessions.vendorId, vendorId))
+      .orderBy(desc(schema.posTransactions.processedAt));
+  }
+
   // POS Inventory operations
   async createPosInventory(inventory: InsertPosInventory): Promise<PosInventory> {
     const result = await db.insert(schema.posInventory).values(inventory).returning();
@@ -436,6 +451,28 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(schema.posInventory)
       .where(eq(schema.posInventory.vendorId, vendorId))
       .orderBy(desc(schema.posInventory.lastUpdated));
+  }
+
+  async getPosInventoryByVendor(vendorId: number): Promise<PosInventory[]> {
+    return this.getVendorPosInventory(vendorId);
+  }
+
+  async getPosInventoryByDeal(dealId: number): Promise<PosInventory | undefined> {
+    const result = await db.select().from(schema.posInventory)
+      .where(eq(schema.posInventory.dealId, dealId));
+    return result[0];
+  }
+
+  async getActivePosSession(vendorId: number, terminalId: string): Promise<PosSession | undefined> {
+    const result = await db.select().from(schema.posSessions)
+      .where(
+        and(
+          eq(schema.posSessions.vendorId, vendorId),
+          eq(schema.posSessions.terminalId, terminalId),
+          eq(schema.posSessions.isActive, true)
+        )
+      );
+    return result[0];
   }
 
   async updatePosInventory(id: number, updates: Partial<PosInventory>): Promise<PosInventory | undefined> {
