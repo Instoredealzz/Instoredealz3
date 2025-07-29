@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { generateCustomerClaimQR } from "@/lib/qr-code";
-import QRScanner from "@/components/ui/qr-scanner";
+import MobileQRScanner from "@/components/ui/mobile-qr-scanner";
 import {
   QrCode,
   Scan,
@@ -164,7 +164,7 @@ export default function QRTest() {
                       </div>
                     </div>
                   ) : (
-                    <QRScanner
+                    <MobileQRScanner
                       onScanSuccess={handleScanSuccess}
                       onScanError={handleScanError}
                       onClose={() => setShowScanner(false)}

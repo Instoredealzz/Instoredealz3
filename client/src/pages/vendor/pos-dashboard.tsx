@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import QRScanner from "@/components/ui/qr-scanner";
+import MobileQRScanner from "@/components/ui/mobile-qr-scanner";
 import { 
   ShoppingCart, 
   CreditCard, 
@@ -658,7 +658,7 @@ export default function PosDashboard() {
       {showQRScanner && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-background rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <QRScanner
+            <MobileQRScanner
               onScanSuccess={handleQRScanSuccess}
               onScanError={handleQRScanError}
               onClose={() => setShowQRScanner(false)}

@@ -189,22 +189,10 @@ export function BannerCarousel({
               {/* Bottom actions */}
               <div className="flex flex-wrap gap-2 sm:gap-3">
                 {currentBanner?.dealId && user?.role === 'customer' && (
-                  <Button asChild variant="secondary" size="sm" className="bg-white/90 hover:bg-white text-black">
+                  <Button asChild variant="secondary" size="sm" className="bg-transparent hover:bg-white/10 text-white border border-white/30">
                     <Link to={`/deals/${currentBanner.dealId}`}>
                       View Deal
                     </Link>
-                  </Button>
-                )}
-                
-                {currentBanner?.socialMediaLinks?.website && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(currentBanner.socialMediaLinks?.website, '_blank')}
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-1" />
-                    Website
                   </Button>
                 )}
               </div>
