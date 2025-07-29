@@ -150,7 +150,7 @@ export function PromotionalLaunchBanner({
 
   if (variant === 'compact') {
     return (
-      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 banner-full-width text-white shadow-lg ${className}`}>
+      <div className={`bg-background banner-full-width text-foreground shadow-lg ${className}`}>
         <div className="px-4 py-6 space-y-4 container mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center space-x-3 text-center sm:text-left">
@@ -173,7 +173,7 @@ export function PromotionalLaunchBanner({
 
   if (variant === 'video') {
     return (
-      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 banner-full-width text-white shadow-lg ${className}`}>
+      <div className={`bg-background banner-full-width text-foreground shadow-lg ${className}`}>
         <div className="px-4 py-8 text-center space-y-4 container mx-auto">
           <div className="flex items-center justify-center space-x-2">
             <Rocket className="h-6 w-6 animate-pulse" />
@@ -189,7 +189,7 @@ export function PromotionalLaunchBanner({
                   <Button 
                     variant="secondary" 
                     onClick={handleVisitWebsite}
-                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    className="bg-primary/20 hover:bg-primary/30 text-primary-foreground border-primary/30"
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Visit Website
@@ -205,7 +205,7 @@ export function PromotionalLaunchBanner({
 
   // Hero variant (default)
   return (
-    <div className={`bg-gradient-to-r from-blue-600 to-purple-600 banner-full-width text-white shadow-lg ${className}`}>
+    <div className={`bg-background banner-full-width text-foreground shadow-lg ${className}`}>
       <div className="px-4 py-12 text-center space-y-6 container mx-auto">
         <div className="space-y-4">
           <div className="flex items-center justify-center space-x-3">
@@ -228,7 +228,7 @@ export function PromotionalLaunchBanner({
               variant="secondary" 
               size="lg"
               onClick={handleVisitWebsite}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30 touch-target"
+              className="bg-primary/20 hover:bg-primary/30 text-primary-foreground border-primary/30 touch-target"
             >
               <ExternalLink className="h-5 w-5 mr-2" />
               Visit Website
