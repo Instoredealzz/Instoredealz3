@@ -32,6 +32,7 @@ export function PromotionalLaunchBanner({
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState(false);
+  const [videoBackgroundType, setVideoBackgroundType] = useState<'default' | 'bright' | 'colorful' | 'brand' | 'corporate' | 'warm'>('default');
 
   // Function to convert YouTube URL to embed format with autoplay
   const getEmbedUrl = (url: string): string => {
@@ -71,25 +72,66 @@ export function PromotionalLaunchBanner({
     
     const embedUrl = getEmbedUrl(videoUrl);
     
-    // Define video container classes based on banner variant
+    // Define video container classes based on banner variant and background type
     const getVideoContainerClass = () => {
       const baseClass = 'banner-video-container';
       const loadingClass = isVideoLoading ? 'loading' : '';
+      const backgroundClass = !isVideoLoading ? `video-${videoBackgroundType}` : '';
       
       switch (videoVariant) {
         case 'compact':
-          return `${baseClass} banner-video-compact ${loadingClass}`;
+          return `${baseClass} banner-video-compact ${loadingClass} ${backgroundClass}`.trim();
         case 'video':
-          return `${baseClass} banner-video-video ${loadingClass}`;
+          return `${baseClass} banner-video-video ${loadingClass} ${backgroundClass}`.trim();
         case 'hero':
         default:
-          return `${baseClass} banner-video-hero ${loadingClass}`;
+          return `${baseClass} banner-video-hero ${loadingClass} ${backgroundClass}`.trim();
       }
+    };
+
+    // Detect video background type based on URL, title, and content hints
+    const detectVideoBackgroundType = (url: string): 'default' | 'bright' | 'colorful' | 'brand' | 'corporate' | 'warm' => {
+      if (!url) return 'default';
+      
+      // Check URL and title for hints about video content
+      const lowerUrl = url.toLowerCase();
+      const lowerTitle = title.toLowerCase();
+      
+      // Brand/company promotional videos
+      if (lowerUrl.includes('brand') || lowerUrl.includes('promo') || lowerTitle.includes('instoredealz') || lowerTitle.includes('brand')) {
+        return 'brand';
+      }
+      
+      // Corporate/professional content
+      if (lowerUrl.includes('corporate') || lowerUrl.includes('business') || lowerUrl.includes('professional') || lowerTitle.includes('corporate')) {
+        return 'corporate';
+      }
+      
+      // Warm/sales content
+      if (lowerUrl.includes('sale') || lowerUrl.includes('offer') || lowerUrl.includes('deal') || lowerTitle.includes('deal') || lowerTitle.includes('discount')) {
+        return 'warm';
+      }
+      
+      // Bright/light background indicators
+      if (lowerUrl.includes('white') || lowerUrl.includes('light') || lowerUrl.includes('bright')) {
+        return 'bright';
+      }
+      
+      // Colorful/vibrant content indicators
+      if (lowerUrl.includes('color') || lowerUrl.includes('vibrant') || lowerUrl.includes('rainbow') || lowerUrl.includes('creative')) {
+        return 'colorful';
+      }
+      
+      // Default to standard black background for video letterboxing
+      return 'default';
     };
 
     const handleVideoLoad = () => {
       setIsVideoLoading(false);
       setVideoError(false);
+      // Detect and set video background type
+      const bgType = detectVideoBackgroundType(videoUrl || '');
+      setVideoBackgroundType(bgType);
     };
 
     const handleVideoError = () => {
