@@ -776,6 +776,218 @@ body[data-non-blocking-modal-open] {
   .dark .bg-gray-50 {
     background-color: hsl(0, 0%, 18%) !important;
   }
+
+  /* Enhanced dark mode text visibility for vendor profile and all pages */
+  .dark label,
+  .dark .text-sm,
+  .dark .text-xs,
+  .dark .text-lg,
+  .dark .text-xl,
+  .dark .text-2xl,
+  .dark .text-3xl {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Form labels and input placeholders */
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: hsl(0, 0%, 60%) !important;
+  }
+
+  /* Specific fixes for vendor profile elements */
+  .dark .font-medium,
+  .dark .font-semibold,
+  .dark .font-bold {
+    color: hsl(0, 0%, 95%) !important;
+  }
+
+  /* Card content text */
+  .dark .space-y-2 span,
+  .dark .space-y-4 span,
+  .dark .flex span {
+    color: hsl(0, 0%, 85%) !important;
+  }
+
+  /* Stats and numeric values */
+  .dark .text-blue-900,
+  .dark .text-green-900,
+  .dark .text-yellow-900,
+  .dark .font-bold.text-blue-900,
+  .dark .font-bold.text-green-900,
+  .dark .font-bold.text-yellow-900 {
+    color: hsl(0, 0%, 95%) !important;
+  }
+
+  /* Account details and member info */
+  .dark .text-foreground {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Specific background fixes for stats cards */
+  .dark .bg-blue-50 {
+    background-color: hsl(220, 30%, 25%) !important;
+  }
+
+  .dark .bg-green-50 {
+    background-color: hsl(140, 30%, 25%) !important;
+  }
+
+  .dark .bg-yellow-50 {
+    background-color: hsl(45, 30%, 25%) !important;
+  }
+
+  /* Business information text */
+  .dark .text-muted-foreground {
+    color: hsl(0, 0%, 70%) !important;
+  }
+
+  /* Button text visibility */
+  .dark button span,
+  .dark button {
+    color: hsl(0, 0%, 95%);
+  }
+
+  .dark .bg-gradient-to-r span {
+    color: white !important;
+  }
+
+  /* Ensure all text in cards is visible */
+  .dark .card-content *,
+  .dark [class*="CardContent"] *,
+  .dark [class*="card"] * {
+    color: hsl(0, 0%, 85%);
+  }
+
+  /* Override any remaining invisible text */
+  .dark .text-black {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  .dark .text-gray-900 {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Business stats specific styling */
+  .dark .p-3 span {
+    color: hsl(0, 0%, 95%) !important;
+  }
+
+  /* Rating and date text */
+  .dark .flex.items-center span {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Input field text */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    color: hsl(0, 0%, 90%) !important;
+    background-color: hsl(0, 0%, 18%) !important;
+    border-color: hsl(0, 0%, 30%) !important;
+  }
+
+  /* Form field labels */
+  .dark .form-label,
+  .dark [class*="FormLabel"] {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Additional specific vendor profile fixes */
+  .dark .badge,
+  .dark [class*="Badge"] {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Account details section */
+  .dark .text-sm.text-foreground,
+  .dark .text-foreground {
+    color: hsl(0, 0%, 85%) !important;
+  }
+
+  /* Member since and rating text */
+  .dark .text-sm.text-muted-foreground {
+    color: hsl(0, 0%, 70%) !important;
+  }
+
+  /* Ensure buttons maintain visibility */
+  .dark .bg-primary {
+    background-color: hsl(217, 91%, 60%) !important;
+    color: white !important;
+  }
+
+  .dark .bg-primary:hover {
+    background-color: hsl(217, 91%, 50%) !important;
+  }
+
+  /* Card headers and titles */
+  .dark [class*="CardTitle"],
+  .dark [class*="CardHeader"] {
+    color: hsl(0, 0%, 95%) !important;
+  }
+
+  /* Fix any remaining stats text */
+  .dark .justify-between span:first-child {
+    color: hsl(0, 0%, 80%) !important;
+  }
+
+  .dark .justify-between span:last-child {
+    color: hsl(0, 0%, 95%) !important;
+  }
+
+  /* Specific fix for business info text */
+  .dark .grid.grid-cols-1 span,
+  .dark .space-y-2 > div span {
+    color: hsl(0, 0%, 85%) !important;
+  }
+
+  /* Loading state text */
+  .dark .animate-spin + span {
+    color: hsl(0, 0%, 90%) !important;
+  }
+
+  /* Enhanced square logo styling */
+  .logo-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .logo-container:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Logo gradient border animations */
+  .logo-gradient-border {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #f59e0b 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Square logo responsive sizing */
+  .square-logo-sm { width: 24px; height: 24px; }
+  .square-logo-md { width: 32px; height: 32px; }
+  .square-logo-lg { width: 48px; height: 48px; }
+  .square-logo-xl { width: 64px; height: 64px; }
+
+  /* Enhanced logo visibility in navbar */
+  .navbar .logo-container {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+
+  .dark .navbar .logo-container {
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.1));
+  }
+
+  /* Logo focus states for accessibility */
+  .logo-container:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }
 
 @layer utilities {

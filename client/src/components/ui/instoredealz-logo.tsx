@@ -19,12 +19,14 @@ export default function InstoredeelzLogo({
   };
 
   const LogoIcon = () => (
-    <div className={`${sizeClasses[size]} aspect-square rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 p-0.5 shadow-lg`}>
-      <img 
-        src={logoImage} 
-        alt="Instoredealz" 
-        className={`w-full h-full object-cover rounded-full ${className}`}
-      />
+    <div className={`logo-container ${sizeClasses[size]} aspect-square rounded-lg overflow-hidden logo-gradient-border p-0.5 shadow-lg hover:shadow-xl`}>
+      <div className="w-full h-full bg-white dark:bg-gray-900 rounded-md overflow-hidden">
+        <img 
+          src={logoImage} 
+          alt="Instoredealz" 
+          className={`w-full h-full object-cover ${className}`}
+        />
+      </div>
     </div>
   );
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -48,41 +48,44 @@ export default function VendorProfile() {
   const form = useForm<UpdateVendorProfile>({
     resolver: zodResolver(updateVendorProfileSchema),
     defaultValues: {
-      businessName: vendor?.businessName || "",
-      gstNumber: vendor?.gstNumber || "",
-      panNumber: vendor?.panNumber || "",
-      logoUrl: vendor?.logoUrl || "",
-      description: vendor?.description || "",
-      address: vendor?.address || "",
-      city: vendor?.city || "",
-      state: vendor?.state || "",
-      latitude: vendor?.latitude || "",
-      longitude: vendor?.longitude || "",
+      businessName: "",
+      gstNumber: "",
+      panNumber: "",
+      logoUrl: "",
+      description: "",
+      address: "",
+      city: "",
+      state: "",
+      latitude: "",
+      longitude: "",
     },
   });
 
   // Update form defaults when vendor data loads
-  useState(() => {
+  useEffect(() => {
     if (vendor) {
       form.reset({
-        businessName: vendor.businessName || "",
-        gstNumber: vendor.gstNumber || "",
-        panNumber: vendor.panNumber || "",
-        logoUrl: vendor.logoUrl || "",
-        description: vendor.description || "",
-        address: vendor.address || "",
-        city: vendor.city || "",
-        state: vendor.state || "",
-        latitude: vendor.latitude || "",
-        longitude: vendor.longitude || "",
+        businessName: (vendor as any).businessName || "",
+        gstNumber: (vendor as any).gstNumber || "",
+        panNumber: (vendor as any).panNumber || "",
+        logoUrl: (vendor as any).logoUrl || "",
+        description: (vendor as any).description || "",
+        address: (vendor as any).address || "",
+        city: (vendor as any).city || "",
+        state: (vendor as any).state || "",
+        latitude: (vendor as any).latitude || "",
+        longitude: (vendor as any).longitude || "",
       });
     }
-  });
+  }, [vendor, form]);
 
   const updateMutation = useMutation({
     mutationFn: (data: UpdateVendorProfile) => 
       apiRequest('/api/vendors/profile', {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
@@ -170,10 +173,10 @@ export default function VendorProfile() {
         {/* Status Badge */}
         <div className="mb-6">
           <Badge 
-            variant={vendor.isApproved ? "default" : "secondary"}
-            className={`text-sm ${vendor.isApproved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+            variant={(vendor as any)?.isApproved ? "default" : "secondary"}
+            className={`text-sm ${(vendor as any)?.isApproved ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
           >
-            {vendor.isApproved ? (
+            {(vendor as any)?.isApproved ? (
               <>
                 <Award className="h-4 w-4 mr-1" />
                 Approved Business
