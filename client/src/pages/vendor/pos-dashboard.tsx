@@ -483,10 +483,11 @@ export default function PosDashboard() {
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 disabled={!posState.activeSession}
-                placeholder="4-digit PIN"
-                maxLength={4}
-                pattern="[0-9]*"
-                inputMode="numeric"
+                placeholder="6-character code"
+                maxLength={6}
+                pattern="[A-Za-z0-9]*"
+                inputMode="text"
+                style={{ textTransform: 'uppercase' }}
               />
             </div>
             

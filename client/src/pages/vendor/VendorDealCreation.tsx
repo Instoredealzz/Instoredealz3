@@ -599,7 +599,7 @@ const VendorDealCreation = () => {
                                 <FormControl>
                                   <Input
                                     placeholder="1234"
-                                    maxLength={4}
+                                    maxLength={6}
                                     {...field}
                                     disabled={previewMode}
                                   />
@@ -614,7 +614,7 @@ const VendorDealCreation = () => {
                                 </Button>
                               </div>
                               <FormDescription>
-                                4-digit PIN for customers to verify their purchase at your store
+                                6-character code for customers to verify their purchase at your store
                               </FormDescription>
                               <FormMessage />
                             </FormItem>

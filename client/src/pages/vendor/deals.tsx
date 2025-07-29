@@ -44,7 +44,7 @@ const dealSchema = z.object({
   customCategory: z.string().optional(),
   imageUrl: z.string().optional().or(z.literal("")),
   discountPercentage: z.number().min(1, "Discount must be at least 1%").max(90, "Discount cannot exceed 90%"),
-  verificationPin: z.string().min(4, "PIN must be 4 digits").max(4, "PIN must be 4 digits"),
+  verificationPin: z.string().min(6, "Verification code must be 6 characters").max(6, "Verification code must be 6 characters"),
   validUntil: z.string().min(1, "Please select an end date"),
   maxRedemptions: z.number().optional(),
   requiredMembership: z.enum(["basic", "premium", "ultimate"]),
@@ -301,7 +301,10 @@ export default function VendorDeals() {
         longitude: data.longitude ? data.longitude.toString() : undefined,
         locations: data.dealAvailability === "selected-locations" ? storeLocations : []
       };
-      return apiRequest('/api/vendors/deals', 'POST', finalData);
+      return apiRequest('/api/vendors/deals', {
+        method: 'POST',
+        body: finalData
+      });
     },
     onSuccess: () => {
       toast({
@@ -335,7 +338,10 @@ export default function VendorDeals() {
         latitude: data.latitude ? data.latitude.toString() : undefined,
         longitude: data.longitude ? data.longitude.toString() : undefined,
       };
-      return apiRequest(`/api/vendors/deals/${editingDeal.id}`, 'PUT', finalData);
+      return apiRequest(`/api/vendors/deals/${editingDeal.id}`, {
+        method: 'PUT',
+        body: finalData
+      });
     },
     onSuccess: () => {
       toast({
@@ -589,19 +595,20 @@ export default function VendorDeals() {
                         name="verificationPin"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm">Verification PIN *</FormLabel>
+                            <FormLabel className="text-sm">Verification Code *</FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
                                 type="text"
-                                placeholder="4-digit PIN"
-                                maxLength={4}
-                                pattern="[0-9]{4}"
-                                className="h-12 text-base text-center font-mono"
+                                placeholder="6-character code"
+                                maxLength={6}
+                                pattern="[A-Za-z0-9]{6}"
+                                className="h-12 text-base text-center font-mono uppercase"
+                                onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                               />
                             </FormControl>
                             <FormDescription className="text-xs">
-                              Set your deal PIN. The system also provides rotating PINs (change every 30 minutes) for enhanced security. Customers use this for the 3-step claiming process: 1) Claim online, 2) Visit store for current PIN, 3) Verify & add bill amount
+                              Set your 6-character alphanumeric deal code. The system also provides rotating codes (change every 30 minutes) for enhanced security. Customers use this for the 3-step claiming process: 1) Claim online, 2) Visit store for current code, 3) Verify & add bill amount
                             </FormDescription>
                             <FormMessage />
                           </FormItem>

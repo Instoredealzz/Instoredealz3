@@ -50,9 +50,12 @@ export function PinVerificationDialog({
   // Update bill amount mutation
   const updateBillMutation = useMutation({
     mutationFn: async ({ billAmount, savings }: { billAmount: number, savings: number }) => {
-      return apiRequest(`/api/deals/${dealId}/update-bill`, 'POST', {
-        billAmount,
-        actualSavings: savings
+      return apiRequest(`/api/deals/${dealId}/update-bill`, {
+        method: 'POST',
+        body: {
+          billAmount,
+          actualSavings: savings
+        }
       });
     },
     onSuccess: (data) => {
@@ -84,7 +87,10 @@ export function PinVerificationDialog({
   const verifyPinMutation = useMutation({
     mutationFn: async (pin: string) => {
       try {
-        const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
+        const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, {
+          method: 'POST', 
+          body: { pin }
+        });
         const data = await response.json();
         
         // Ensure we have a success response
@@ -135,10 +141,10 @@ export function PinVerificationDialog({
   });
 
   const handleVerify = () => {
-    if (pin.length !== 4) {
+    if (pin.length !== 6) {
       toast({
-        title: "Invalid PIN",
-        description: "Please enter a 4-digit PIN",
+        title: "Invalid Code",
+        description: "Please enter a 6-character code",
         variant: "destructive",
       });
       return;
@@ -171,7 +177,7 @@ export function PinVerificationDialog({
                 Verify Deal PIN
               </DialogTitle>
               <DialogDescription>
-                Enter the 4-digit PIN provided by the vendor for{" "}
+                Enter the 6-character code provided by the vendor for{" "}
                 <span className="font-semibold">"{dealTitle}"</span>
               </DialogDescription>
             </DialogHeader>
@@ -189,13 +195,13 @@ export function PinVerificationDialog({
               <div className="space-y-4">
                 <div className="text-center">
                   <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Enter 4-digit PIN
+                    Enter 6-character code
                   </label>
                   <PinInput
                     value={pin}
                     onChange={setPin}
                     onComplete={(completedPin: string) => {
-                      if (completedPin.length === 4) {
+                      if (completedPin.length === 6) {
                         setPin(completedPin);
                         setTimeout(() => verifyPinMutation.mutate(completedPin), 100);
                       }
@@ -205,17 +211,17 @@ export function PinVerificationDialog({
                   />
                 </div>
 
-                {pin.length === 4 && !verifyPinMutation.isPending && (
+                {pin.length === 6 && !verifyPinMutation.isPending && (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <CheckCircle className="w-4 h-4" />
-                    <span className="text-sm">PIN entered, ready to verify</span>
+                    <span className="text-sm">Code entered, ready to verify</span>
                   </div>
                 )}
 
                 {verifyPinMutation.isPending && (
                   <div className="flex items-center justify-center gap-2 text-blue-600">
                     <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full" />
-                    <span className="text-sm">Verifying PIN...</span>
+                    <span className="text-sm">Verifying code...</span>
                   </div>
                 )}
               </div>
@@ -224,9 +230,9 @@ export function PinVerificationDialog({
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div className="text-sm text-blue-800 dark:text-blue-200">
-                    <p className="font-medium mb-1">How Advanced PIN Verification Works</p>
+                    <p className="font-medium mb-1">How Advanced Code Verification Works</p>
                     <p className="text-xs">
-                      Visit the store and ask for the current 4-digit PIN from the vendor (changes every 30 minutes for security). Enter it below to claim the deal and add your bill amount to track actual savings. Our multi-layer PIN system ensures authentic store visits.
+                      Visit the store and ask for the current 6-character verification code from the vendor (changes every 30 minutes for security). Enter it below to claim the deal and add your bill amount to track actual savings. Our multi-layer verification system ensures authentic store visits.
                     </p>
                   </div>
                 </div>
@@ -244,7 +250,7 @@ export function PinVerificationDialog({
               </Button>
               <Button 
                 onClick={handleVerify} 
-                disabled={pin.length !== 4 || verifyPinMutation.isPending}
+                disabled={pin.length !== 6 || verifyPinMutation.isPending}
                 className="w-full py-3 text-sm sm:text-base bg-blue-600 hover:bg-blue-700"
               >
                 {verifyPinMutation.isPending ? (

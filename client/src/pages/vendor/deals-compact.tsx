@@ -41,7 +41,7 @@ const dealFormSchema = z.object({
   subcategory: z.string().optional(),
   customCategory: z.string().optional(),
   discountPercentage: z.number().min(1).max(90).optional().refine(val => val !== undefined, "Discount percentage is required"),
-  verificationPin: z.string().length(4, "PIN must be 4 digits"),
+  verificationPin: z.string().length(6, "Verification code must be 6 characters"),
   dealAvailability: z.enum(["all-stores", "selected-locations"]),
   selectedCities: z.array(z.string()).optional(),
   validUntil: z.string().min(1, "Valid until date is required"),
@@ -153,7 +153,10 @@ export default function CompactDealsPage() {
 
   const createDealMutation = useMutation({
     mutationFn: async (data: DealFormData) => {
-      const response = await apiRequest("/api/magic/deals/vendor", "POST", data);
+      const response = await apiRequest("/api/magic/deals/vendor", {
+        method: "POST",
+        body: data
+      });
       return response;
     },
     onSuccess: () => {
@@ -380,11 +383,11 @@ export default function CompactDealsPage() {
                               <div className="flex items-center space-x-2">
                                 <Input 
                                   type="text" 
-                                  maxLength={4}
-                                  placeholder="Enter 4-digit PIN"
+                                  maxLength={6}
+                                  placeholder="Enter 6-character code"
                                   {...field}
                                   onChange={(e) => {
-                                    const value = e.target.value.replace(/\D/g, '');
+                                    const value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
                                     field.onChange(value);
                                   }}
                                 />

@@ -121,7 +121,10 @@ export default function VendorDealsEnhanced() {
         ...data,
         selectedCities: data.dealAvailability === "all-stores" ? null : data.selectedCities,
       };
-      return apiRequest('/api/vendors/deals', 'POST', payload);
+      return apiRequest('/api/vendors/deals', {
+        method: 'POST',
+        body: payload
+      });
     },
     onSuccess: () => {
       toast({
@@ -319,11 +322,11 @@ export default function VendorDealsEnhanced() {
                                 <div className="flex items-center space-x-2">
                                   <Input 
                                     type="text" 
-                                    maxLength={4}
-                                    placeholder="Enter 4-digit PIN"
+                                    maxLength={6}
+                                    placeholder="Enter 6-character code"
                                     {...field}
                                     onChange={(e) => {
-                                      const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                      const value = e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
                                       field.onChange(value);
                                     }}
                                   />

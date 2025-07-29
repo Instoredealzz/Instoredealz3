@@ -13,7 +13,7 @@ interface PinInputProps {
 }
 
 export function PinInput({
-  length = 4,
+  length = 6,
   value,
   onChange,
   onComplete,
@@ -34,11 +34,11 @@ export function PinInput({
   }, [value, length]);
 
   const handleChange = (index: number, newValue: string) => {
-    // Only allow digits
-    if (newValue && !/^\d$/.test(newValue)) return;
+    // Allow alphanumeric characters (letters and digits)
+    if (newValue && !/^[A-Za-z0-9]$/.test(newValue)) return;
 
     const newPins = [...pins];
-    newPins[index] = newValue;
+    newPins[index] = newValue.toUpperCase();
     setPins(newPins);
 
     const newPinValue = newPins.join("");
@@ -65,16 +65,16 @@ export function PinInput({
     if (e.key === "v" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       navigator.clipboard.readText().then((text) => {
-        const digits = text.replace(/\D/g, "").slice(0, length);
+        const alphanumeric = text.replace(/[^A-Za-z0-9]/g, "").slice(0, length).toUpperCase();
         const newPins = Array(length).fill("");
-        for (let i = 0; i < digits.length; i++) {
-          newPins[i] = digits[i];
+        for (let i = 0; i < alphanumeric.length; i++) {
+          newPins[i] = alphanumeric[i];
         }
         setPins(newPins);
-        onChange(digits);
+        onChange(alphanumeric);
         
-        if (digits.length === length && onComplete) {
-          onComplete(digits);
+        if (alphanumeric.length === length && onComplete) {
+          onComplete(alphanumeric);
         }
       });
     }
@@ -87,7 +87,7 @@ export function PinInput({
           key={index}
           ref={(el) => (inputRefs.current[index] = el)}
           type="text"
-          inputMode="numeric"
+          inputMode="text"
           maxLength={1}
           value={pin}
           onChange={(e) => handleChange(index, e.target.value)}
