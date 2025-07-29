@@ -117,9 +117,12 @@ export const dealClaims = pgTable("deal_claims", {
 // Help tickets
 export const helpTickets = pgTable("help_tickets", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id), // Nullable for public tickets
+  name: text("name"), // Name for unauthenticated users
+  email: text("email"), // Email for unauthenticated users  
   subject: text("subject").notNull(),
   message: text("message").notNull(),
+  category: text("category").default("general"), // Category for help tickets
   status: text("status").default("open"), // open, in_progress, resolved, closed
   priority: text("priority").default("medium"), // low, medium, high, urgent
   assignedTo: integer("assigned_to").references(() => users.id),

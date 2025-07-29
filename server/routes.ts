@@ -1169,16 +1169,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor routes
-  app.post('/api/vendors/register', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/vendors/register', async (req: Request, res) => {
     try {
+      // First create the user account, then the vendor profile
+      const userData = signupSchema.parse(req.body);
+      const newUser = await storage.createUser({
+        ...userData,
+        role: "vendor"
+      });
+
       const vendorData = insertVendorSchema.parse({
         ...req.body,
-        userId: req.user!.id,
+        userId: newUser.id,
         isApproved: false, // Requires admin approval
       });
       
       // Check if user already has a vendor profile
-      const existingVendor = await storage.getVendorByUserId(req.user!.id);
+      const existingVendor = await storage.getVendorByUserId(newUser.id);
       if (existingVendor) {
         return res.status(400).json({ message: "Vendor profile already exists" });
       }
@@ -1187,7 +1194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Log vendor registration
       await storage.createSystemLog({
-        userId: req.user!.id,
+        userId: newUser.id,
         action: "VENDOR_REGISTRATION",
         details: { 
           vendorId: vendor.id,
@@ -1201,20 +1208,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send business registration email
       try {
-        const user = await storage.getUser(req.user!.id);
-        if (user) {
-          const emailData = getVendorRegistrationEmail(
-            vendor.businessName,
-            user.name,
-            user.email
-          );
-          await sendEmail(emailData);
-          Logger.info('Vendor registration email sent successfully', { 
-            vendorId: vendor.id, 
-            businessName: vendor.businessName,
-            email: user.email 
-          });
-        }
+        const emailData = getVendorRegistrationEmail(
+          vendor.businessName,
+          newUser.name,
+          newUser.email
+        );
+        await sendEmail(emailData);
+        Logger.info('Vendor registration email sent successfully', { 
+          vendorId: vendor.id, 
+          businessName: vendor.businessName,
+          email: newUser.email 
+        });
       } catch (emailError) {
         Logger.error('Failed to send vendor registration email', { 
           vendorId: vendor.id, 
@@ -1565,6 +1569,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Legacy analytics endpoint for backward compatibility
+  app.get('/api/analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const analytics = await storage.getAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error('Analytics API error:', error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
   // Location-based analytics for admin
   app.get('/api/admin/location-analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
@@ -1871,11 +1886,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Help ticket routes
-  app.post('/api/help-tickets', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.post('/api/help-tickets', async (req: Request, res) => {
     try {
       const ticketData = insertHelpTicketSchema.parse({
         ...req.body,
-        userId: req.user!.id,
+        userId: null, // Help tickets can be created without authentication
       });
       
       const ticket = await storage.createHelpTicket(ticketData);
