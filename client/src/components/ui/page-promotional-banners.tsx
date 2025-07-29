@@ -1,44 +1,28 @@
 import React from 'react';
-import { usePromotionalBanners } from '@/hooks/usePromotionalBanners';
-import { PromotionalLaunchBanner } from '@/components/ui/promotional-launch-banner';
+import { BannerCarousel } from '@/components/ui/banner-carousel';
 
 interface PagePromotionalBannersProps {
   page: string;
   className?: string;
+  height?: string;
+  autoPlay?: boolean;
+  showControls?: boolean;
 }
 
-export function PagePromotionalBanners({ page, className = '' }: PagePromotionalBannersProps) {
-  const { data: banners = [], isLoading } = usePromotionalBanners(page);
-
-  if (isLoading) {
-    return (
-      <div className={`animate-pulse ${className}`}>
-        <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-      </div>
-    );
-  }
-
-  if (banners.length === 0) {
-    return null;
-  }
-
-  // Show only the first active banner
-  const activeBanner = banners[0];
-  
-  if (!activeBanner) {
-    return null;
-  }
-
+export function PagePromotionalBanners({ 
+  page, 
+  className = '', 
+  height = 'h-64 sm:h-80',
+  autoPlay = true,
+  showControls = true
+}: PagePromotionalBannersProps) {
   return (
     <div className={className}>
-      <PromotionalLaunchBanner
-        key={activeBanner.id}
-        variant={activeBanner.variant}
-        title={activeBanner.title}
-        description={activeBanner.description}
-        videoUrl={activeBanner.videoUrl}
-        socialMediaLinks={activeBanner.socialMediaLinks}
-        showVideo={!!activeBanner.videoUrl}
+      <BannerCarousel 
+        page={page}
+        height={height}
+        autoPlay={autoPlay}
+        showControls={showControls}
       />
     </div>
   );

@@ -10,12 +10,17 @@ export async function initializeDatabase() {
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         description TEXT,
+        image_url TEXT,
         video_url TEXT,
-        video_title TEXT,
+        deal_id INTEGER REFERENCES deals(id),
         social_media_links JSON DEFAULT '{}',
-        variant TEXT NOT NULL DEFAULT 'hero',
+        variant TEXT NOT NULL DEFAULT 'carousel',
+        priority INTEGER DEFAULT 0,
+        start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        end_date TIMESTAMP,
         is_active BOOLEAN DEFAULT true,
         display_pages JSON DEFAULT '[]',
+        auto_slide_delay INTEGER DEFAULT 5000,
         view_count INTEGER DEFAULT 0,
         click_count INTEGER DEFAULT 0,
         social_click_count INTEGER DEFAULT 0,
@@ -258,41 +263,87 @@ export async function initializeDatabase() {
       }
     ]).onConflictDoNothing();
 
-    // Migrate promotional banners from videos array back to single video_url
+    // Add new carousel columns to existing promotional_banners table
     await db.execute(sql`
-      -- Add video_url column if it doesn't exist
       ALTER TABLE promotional_banners 
-      ADD COLUMN IF NOT EXISTS video_url TEXT
+      ADD COLUMN IF NOT EXISTS image_url TEXT,
+      ADD COLUMN IF NOT EXISTS deal_id INTEGER REFERENCES deals(id),
+      ADD COLUMN IF NOT EXISTS priority INTEGER DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS end_date TIMESTAMP,
+      ADD COLUMN IF NOT EXISTS auto_slide_delay INTEGER DEFAULT 5000
     `);
 
-    // Migrate videos array back to single video_url (take first video)
+    // Update variant to carousel for existing banners
     await db.execute(sql`
       UPDATE promotional_banners 
-      SET video_url = CASE 
-        WHEN videos IS NOT NULL AND jsonb_array_length(videos) > 0 THEN 
-          videos->0->>'url'
-        ELSE NULL
-      END
-      WHERE video_url IS NULL
+      SET variant = 'carousel'
+      WHERE variant IN ('hero', 'compact', 'video')
     `);
 
-    // Drop videos column if it exists
+    // Drop videos column if it exists (from previous migration)
     await db.execute(sql`
       ALTER TABLE promotional_banners 
-      DROP COLUMN IF EXISTS videos
+      DROP COLUMN IF EXISTS videos,
+      DROP COLUMN IF EXISTS video_title
     `);
 
-    // Initialize promotional banners with sample data
+    // Clear existing promotional banners and insert new carousel banners
+    await db.execute(sql`DELETE FROM promotional_banners WHERE id > 0`);
+    
+    // Initialize promotional banners with carousel sample data
     await db.execute(sql`
-      INSERT INTO promotional_banners (title, description, video_url, social_media_links, variant, is_active, display_pages, created_by)
-      VALUES (
-        'Welcome to Instoredealz!',
-        'Discover amazing deals from local businesses. Watch our introduction video and connect with us on social media for updates.',
-        'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1',
-        '{"facebook": "https://facebook.com/instoredealz", "instagram": "https://instagram.com/instoredealz", "twitter": "https://twitter.com/instoredealz", "website": "https://instoredealz.com", "whatsapp": "+91 9876543210"}'::jsonb,
-        'hero',
+      INSERT INTO promotional_banners (
+        title, description, image_url, video_url, deal_id, social_media_links, 
+        variant, priority, start_date, end_date, auto_slide_delay, is_active, display_pages, created_by
+      )
+      VALUES 
+      (
+        'Summer Electronics Sale',
+        'Up to 70% off on electronics - Limited time offer!',
+        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=400&fit=crop',
+        null,
+        (SELECT id FROM deals WHERE category = 'electronics' LIMIT 1),
+        '{"website": "https://instoredealz.com", "whatsapp": "+91 9876543210"}'::jsonb,
+        'carousel',
+        100,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP + INTERVAL '30 days',
+        5000,
         true,
-        '["all"]'::jsonb,
+        '[]'::jsonb,
+        1
+      ),
+      (
+        'Fashion Week Special',
+        'Exclusive fashion deals this week only',
+        null,
+        'https://youtu.be/ScMzIvxBSi4?si=fJCpyJLEEfCjGWOy',
+        (SELECT id FROM deals WHERE category = 'fashion' LIMIT 1),
+        '{"website": "https://instoredealz.com", "whatsapp": "+91 8765432100"}'::jsonb,
+        'carousel',
+        90,
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP + INTERVAL '7 days',
+        6000,
+        true,
+        '[]'::jsonb,
+        1
+      ),
+      (
+        'Restaurant Week',
+        'Best deals on dining experiences near you',
+        'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=400&fit=crop',
+        null,
+        (SELECT id FROM deals WHERE category = 'restaurants' LIMIT 1),
+        '{"website": "https://instoredealz.com", "whatsapp": "+91 9876543210"}'::jsonb,
+        'carousel',
+        80,
+        CURRENT_TIMESTAMP,
+        null,
+        4000,
+        true,
+        '[]'::jsonb,
         1
       )
       ON CONFLICT DO NOTHING

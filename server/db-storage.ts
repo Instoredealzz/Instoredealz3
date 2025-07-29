@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, and, desc, asc, like, count, sql, isNotNull } from "drizzle-orm";
+import { eq, and, desc, asc, like, count, sql, isNotNull, lte, or, isNull, gte } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { IStorage } from "./storage";
 import type {
@@ -964,16 +964,41 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActivePromotionalBanners(): Promise<PromotionalBanner[]> {
+    const now = new Date();
     return await db.select()
       .from(schema.promotionalBanners)
-      .where(eq(schema.promotionalBanners.isActive, true))
-      .orderBy(desc(schema.promotionalBanners.createdAt))
-      .limit(1); // Only return one global banner
+      .where(
+        and(
+          eq(schema.promotionalBanners.isActive, true),
+          lte(schema.promotionalBanners.startDate, now),
+          or(
+            isNull(schema.promotionalBanners.endDate),
+            gte(schema.promotionalBanners.endDate, now)
+          )
+        )
+      )
+      .orderBy(desc(schema.promotionalBanners.priority), desc(schema.promotionalBanners.createdAt));
   }
 
   async getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]> {
-    // Return the same global banner for all pages
-    return await this.getActivePromotionalBanners();
+    const now = new Date();
+    return await db.select()
+      .from(schema.promotionalBanners)
+      .where(
+        and(
+          eq(schema.promotionalBanners.isActive, true),
+          lte(schema.promotionalBanners.startDate, now),
+          or(
+            isNull(schema.promotionalBanners.endDate),
+            gte(schema.promotionalBanners.endDate, now)
+          ),
+          or(
+            sql`jsonb_array_length(${schema.promotionalBanners.displayPages}) = 0`,
+            sql`${schema.promotionalBanners.displayPages} ? ${page}`
+          )
+        )
+      )
+      .orderBy(desc(schema.promotionalBanners.priority), desc(schema.promotionalBanners.createdAt));
   }
 
   // Banner Analytics operations

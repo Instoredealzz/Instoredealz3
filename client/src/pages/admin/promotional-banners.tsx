@@ -29,12 +29,15 @@ import { useToast } from '@/hooks/use-toast';
 import { PromotionalLaunchBanner } from '@/components/ui/promotional-launch-banner';
 import { apiRequest } from '@/lib/queryClient';
 import { Link } from 'wouter';
+import { BannerCarousel } from '@/components/ui/banner-carousel';
 
 interface PromotionalBanner {
   id: number;
   title: string;
   description: string;
+  imageUrl?: string;
   videoUrl?: string;
+  dealId?: number;
   socialMediaLinks: {
     facebook?: string;
     instagram?: string;
@@ -42,7 +45,11 @@ interface PromotionalBanner {
     website?: string;
     whatsapp?: string;
   };
-  variant: 'hero' | 'compact' | 'video';
+  variant: 'carousel' | 'hero' | 'compact' | 'video';
+  priority: number;
+  startDate: string;
+  endDate?: string;
+  autoSlideDelay: number;
   isActive: boolean;
   displayPages: string[];
   createdAt: string;

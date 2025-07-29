@@ -763,11 +763,17 @@ export const promotionalBanners = pgTable("promotional_banners", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  videoUrl: text("video_url"), // single video URL
+  imageUrl: text("image_url"), // Banner image URL
+  videoUrl: text("video_url"), // Video URL for video banners
+  dealId: integer("deal_id").references(() => deals.id), // Associated deal for "View Deal" button
   socialMediaLinks: json("social_media_links").default({}), // {facebook, instagram, twitter, website, whatsapp}
-  variant: text("variant").notNull().default("hero"), // hero, compact, video
+  variant: text("variant").notNull().default("carousel"), // carousel, hero, compact, video
+  priority: integer("priority").default(0), // Higher number = higher priority in carousel
+  startDate: timestamp("start_date").defaultNow(), // When banner becomes active
+  endDate: timestamp("end_date"), // When banner expires (null = no expiry)
   isActive: boolean("is_active").default(true),
   displayPages: json("display_pages").default([]), // array of page names
+  autoSlideDelay: integer("auto_slide_delay").default(5000), // Auto-slide delay in milliseconds
   viewCount: integer("view_count").default(0),
   clickCount: integer("click_count").default(0),
   socialClickCount: integer("social_click_count").default(0),
@@ -778,6 +784,7 @@ export const promotionalBanners = pgTable("promotional_banners", {
 
 export const promotionalBannersRelations = relations(promotionalBanners, ({ one }) => ({
   creator: one(users, { fields: [promotionalBanners.createdBy], references: [users.id] }),
+  deal: one(deals, { fields: [promotionalBanners.dealId], references: [deals.id] }),
 }));
 
 export const insertPromotionalBannerSchema = createInsertSchema(promotionalBanners).omit({

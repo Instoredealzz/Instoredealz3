@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { useEffect } from "react";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
-import PromotionalLaunchBanner from "@/components/ui/promotional-launch-banner";
+import { PagePromotionalBanners } from "@/components/ui/page-promotional-banners";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -95,9 +95,9 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Promotional Launch Banner */}
+      {/* Promotional Banner Carousel */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
-        <PromotionalLaunchBanner variant="video" />
+        <PagePromotionalBanners page="pricing" height="h-48 sm:h-64" />
       </div>
 
       {/* Pricing Cards */}
