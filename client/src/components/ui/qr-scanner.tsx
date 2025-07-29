@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { parseQRCodeData } from "@/lib/qr-code";
+import jsQR from 'jsqr';
 import { 
   Scan, 
   Camera, 
@@ -43,7 +44,11 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose, classNa
   const [manualInput, setManualInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [customerData, setCustomerData] = useState<CustomerData | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   const processQRData = async (qrText: string) => {
@@ -122,15 +127,105 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose, classNa
     processQRData(manualInput.trim());
   };
 
-  const handleCameraScan = () => {
-    // For demo purposes, we'll simulate camera scanning
-    // In production, you'd integrate with a camera QR scanning library
-    toast({
-      title: "Camera Access",
-      description: "Camera QR scanning requires additional setup. Please use manual input.",
-      variant: "destructive",
-    });
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
   };
+
+  const startCamera = async () => {
+    try {
+      stopCamera(); // Stop any existing stream
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment', // Prefer back camera on mobile
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
+      });
+
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setIsCameraActive(true);
+        
+        toast({
+          title: "Camera Started",
+          description: "Point your camera at the QR code to scan it.",
+        });
+
+        // Start scanning loop
+        scanQRCode();
+      }
+    } catch (error) {
+      console.error('Camera access error:', error);
+      toast({
+        title: "Camera Access Denied",
+        description: "Please allow camera access or use manual input to scan QR codes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const scanQRCode = () => {
+    if (!isCameraActive || !videoRef.current || !canvasRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      requestAnimationFrame(scanQRCode);
+      return;
+    }
+
+    // Set canvas size to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Get image data from canvas
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Scan for QR codes using jsQR
+    const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+
+    if (qrCode) {
+      stopCamera();
+      processQRData(qrCode.data);
+    } else {
+      // Continue scanning
+      requestAnimationFrame(scanQRCode);
+    }
+  };
+
+  const handleCameraScan = async () => {
+    if (isCameraActive) {
+      stopCamera();
+    } else {
+      await startCamera();
+    }
+  };
+
+  // Cleanup camera when component unmounts or mode changes
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (scanMode !== 'camera') {
+      stopCamera();
+    }
+  }, [scanMode]);
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -188,15 +283,41 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose, classNa
           {/* Camera Scan Mode */}
           {scanMode === 'camera' && (
             <div className="text-center space-y-4">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-8 border-2 border-dashed border-gray-300 dark:border-gray-600">
-                <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  Point camera at customer's QR code
-                </p>
-                <Button onClick={handleCameraScan} disabled={isProcessing}>
-                  {isProcessing ? 'Processing...' : 'Start Camera Scan'}
-                </Button>
-              </div>
+              {isCameraActive ? (
+                <div className="relative">
+                  <video
+                    ref={videoRef}
+                    className="w-full max-w-md mx-auto rounded-lg border-2 border-green-400"
+                    autoPlay
+                    muted
+                    playsInline
+                  />
+                  <canvas
+                    ref={canvasRef}
+                    className="hidden"
+                  />
+                  <div className="absolute top-4 left-4 bg-green-500 text-white px-2 py-1 rounded-full text-sm">
+                    Scanning...
+                  </div>
+                  <Button 
+                    onClick={handleCameraScan} 
+                    variant="destructive"
+                    className="mt-4"
+                  >
+                    Stop Camera
+                  </Button>
+                </div>
+              ) : (
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-8 border-2 border-dashed border-gray-300 dark:border-gray-600">
+                  <Camera className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Point camera at customer's QR code
+                  </p>
+                  <Button onClick={handleCameraScan} disabled={isProcessing}>
+                    {isProcessing ? 'Starting...' : 'Start Camera Scan'}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

@@ -22,6 +22,7 @@ import {
   User,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { generateCustomerClaimQR } from "@/lib/qr-code";
 
 interface MembershipCardData {
   membershipTier: string;
@@ -60,27 +61,51 @@ export default function MembershipCard() {
   const [showQR, setShowQR] = useState(false);
   const [otpCode, setOtpCode] = useState<string>("");
   const [isGeneratingOTP, setIsGeneratingOTP] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
+
+  // Generate QR code when needed
+  const generateQRCode = async () => {
+    if (!user) return;
+    
+    try {
+      const customerData = {
+        userId: user.id,
+        userName: user.name || `User ${user.id}`,
+        email: user.email || '',
+        membershipPlan: user.membershipPlan || 'basic',
+        membershipId: `ISD-${user.id?.toString().padStart(8, '0')}`,
+
+        totalSavings: user.totalSavings || '0'
+      };
+      
+      const qrDataUrl = await generateCustomerClaimQR(customerData);
+      setQrCodeDataUrl(qrDataUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      toast({
+        title: "QR Code Error",
+        description: "Failed to generate QR code. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Generate membership card data
   const { data: cardData, isLoading } = useQuery<MembershipCardData>({
     queryKey: ['/api/membership/card'],
     enabled: isAuthenticated,
-    select: (data) => ({
-      membershipTier: user?.membershipPlan || 'basic',
-      membershipExpiry: user?.membershipExpiry || new Date('2025-12-31').toISOString(),
-      totalSavings: user?.totalSavings || '0',
-      dealsClaimed: user?.dealsClaimed || 0,
-      cardNumber: `ISD-${user?.id?.toString().padStart(8, '0')}`,
-      qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(JSON.stringify({
-        userId: user?.id,
-        membershipTier: user?.membershipPlan,
+    select: (data) => {
+      const baseData = {
+        membershipTier: user?.membershipPlan || 'basic',
+        membershipExpiry: user?.membershipExpiry || new Date('2025-12-31').toISOString(),
+        totalSavings: user?.totalSavings || '0',
+        dealsClaimed: user?.dealsClaimed || 0,
         cardNumber: `ISD-${user?.id?.toString().padStart(8, '0')}`,
-        expiry: user?.membershipExpiry,
-        timestamp: Date.now()
-      }))}`,
-      isActive: true,
-      ...data
-    }),
+        qrCode: qrCodeDataUrl,
+        isActive: true
+      };
+      return { ...baseData, ...data };
+    },
   });
 
   const generateOTP = async () => {
@@ -186,17 +211,9 @@ export default function MembershipCard() {
                   <div className="flex items-center space-x-4">
                     {/* Profile Image */}
                     <div className="flex-shrink-0">
-                      {user.profileImage ? (
-                        <img
-                          src={user.profileImage}
-                          alt={user.name}
-                          className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
-                          <User className="w-8 h-8 text-white/60" />
-                        </div>
-                      )}
+                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+                        <User className="w-8 h-8 text-white/60" />
+                      </div>
                     </div>
                     
                     {/* Member Name */}
@@ -275,11 +292,17 @@ export default function MembershipCard() {
                   {showQR ? (
                     <div className="space-y-4">
                       <div className="bg-card p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
-                        <img
-                          src={cardData?.qrCode}
-                          alt="Membership QR Code"
-                          className="w-48 h-48 mx-auto"
-                        />
+                        {qrCodeDataUrl ? (
+                          <img
+                            src={qrCodeDataUrl}
+                            alt="Membership QR Code"
+                            className="w-48 h-48 mx-auto"
+                          />
+                        ) : (
+                          <div className="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100 rounded">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                          </div>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         Show this QR code to vendors for instant deal verification
@@ -300,7 +323,12 @@ export default function MembershipCard() {
                         <p className="text-muted-foreground">QR Code Hidden for Security</p>
                       </div>
                       <Button 
-                        onClick={() => setShowQR(true)} 
+                        onClick={async () => {
+                          setShowQR(true);
+                          if (!qrCodeDataUrl) {
+                            await generateQRCode();
+                          }
+                        }} 
                         className="w-full"
                       >
                         <Eye className="w-4 h-4 mr-2" />
