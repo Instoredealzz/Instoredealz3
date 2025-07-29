@@ -63,19 +63,59 @@ export default function MembershipCard() {
   const [isGeneratingOTP, setIsGeneratingOTP] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
 
-  // Generate QR code when needed
+  // Generate QR code with comprehensive analytics data
   const generateQRCode = async () => {
     if (!user) return;
     
     try {
+      // Fetch user's complete analytics data for QR code
+      const userStatsResponse = await fetch('/api/users/me/stats');
+      const userStats = userStatsResponse.ok ? await userStatsResponse.json() : {};
+      
+      // Comprehensive customer data for analytics-driven QR code
       const customerData = {
+        // Core Identity
         userId: user.id,
         userName: user.name || `User ${user.id}`,
         email: user.email || '',
+        
+        // Membership Analytics
         membershipPlan: user.membershipPlan || 'basic',
-        membershipId: `ISD-${user.id?.toString().padStart(8, '0')}`,
-
-        totalSavings: user.totalSavings || '0'
+        membershipId: `ISD-${user.id.toString().padStart(8, '0')}`,
+        membershipStatus: 'active',
+        membershipSince: user.createdAt || new Date().toISOString(),
+        
+        // Financial Analytics
+        totalSavings: user.totalSavings || '0',
+        totalDealsRedeemed: userStats.totalDealsRedeemed || 0,
+        averageSavingsPerTransaction: userStats.averageSavingsPerTransaction || 0,
+        totalTransactions: userStats.totalTransactions || 0,
+        
+        // Location Analytics
+        city: user.city || 'Mumbai',
+        state: user.state || 'Maharashtra',
+        pincode: user.pincode || '400001',
+        
+        // Engagement Analytics
+        preferredCategories: userStats.preferredCategories || ['restaurants', 'electronics'],
+        lastActivity: new Date().toISOString(),
+        loyaltyScore: Math.min(Math.floor(parseFloat(user.totalSavings || '0') / 100), 100),
+        
+        // Security & Verification
+        securityToken: `ST-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        qrGeneratedAt: new Date().toISOString(),
+        qrExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        verificationMethod: 'qr_code_analytics',
+        
+        // Platform Analytics Context
+        platformVersion: '2.0',
+        analyticsVersion: 'v1.0',
+        dataCompleteness: 100,
+        
+        // Business Intelligence Data
+        deviceInfo: navigator.userAgent,
+        timestamp: Date.now(),
+        sessionId: `session_${Date.now()}_${user.id}`
       };
       
       const qrDataUrl = await generateCustomerClaimQR(customerData);

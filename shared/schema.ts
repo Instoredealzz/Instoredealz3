@@ -430,6 +430,153 @@ export const notificationPreferences = pgTable("notification_preferences", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// POS Inventory Management System
+export const inventory = pgTable("inventory", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  productCode: text("product_code").notNull().unique(),
+  productName: text("product_name").notNull(),
+  category: text("category").notNull(),
+  subCategory: text("sub_category"),
+  brand: text("brand"),
+  description: text("description"),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
+  stockQuantity: integer("stock_quantity").default(0),
+  minStockLevel: integer("min_stock_level").default(10),
+  maxStockLevel: integer("max_stock_level").default(1000),
+  reorderLevel: integer("reorder_level").default(20),
+  supplier: text("supplier"),
+  barcode: text("barcode"),
+  imageUrl: text("image_url"),
+  isActive: boolean("is_active").default(true),
+  trackInventory: boolean("track_inventory").default(true),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Stock Movement Tracking
+export const stockMovements = pgTable("stock_movements", {
+  id: serial("id").primaryKey(),
+  inventoryId: integer("inventory_id").references(() => inventory.id).notNull(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  movementType: text("movement_type").notNull(), // 'IN', 'OUT', 'ADJUSTMENT', 'TRANSFER'
+  quantity: integer("quantity").notNull(),
+  previousStock: integer("previous_stock").notNull(),
+  newStock: integer("new_stock").notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  reason: text("reason"),
+  reference: text("reference"), // Order ID, Transfer ID, etc.
+  notes: text("notes"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// POS Billing System
+export const posBills = pgTable("pos_bills", {
+  id: serial("id").primaryKey(),
+  billNumber: text("bill_number").notNull().unique(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  customerId: integer("customer_id").references(() => users.id),
+  customerName: text("customer_name"),
+  customerPhone: text("customer_phone"),
+  customerEmail: text("customer_email"),
+  billType: text("bill_type").default("SALE"), // 'SALE', 'RETURN', 'EXCHANGE'
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0"),
+  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
+  paidAmount: decimal("paid_amount", { precision: 12, scale: 2 }).default("0"),
+  balanceAmount: decimal("balance_amount", { precision: 12, scale: 2 }).default("0"),
+  paymentMethod: text("payment_method"), // 'CASH', 'CARD', 'UPI', 'WALLET', 'MIXED'
+  paymentStatus: text("payment_status").default("PENDING"), // 'PENDING', 'PAID', 'PARTIAL', 'REFUNDED'
+  notes: text("notes"),
+  dealClaimId: integer("deal_claim_id").references(() => dealClaims.id),
+  gdsTransactionId: text("gds_transaction_id"), // Global Distribution System reference
+  isVoided: boolean("is_voided").default(false),
+  voidedBy: integer("voided_by").references(() => users.id),
+  voidReason: text("void_reason"),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Bill Items (Line Items)
+export const billItems = pgTable("bill_items", {
+  id: serial("id").primaryKey(),
+  billId: integer("bill_id").references(() => posBills.id).notNull(),
+  inventoryId: integer("inventory_id").references(() => inventory.id),
+  productCode: text("product_code").notNull(),
+  productName: text("product_name").notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 3 }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }).default("0"),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0"),
+  taxPercent: decimal("tax_percent", { precision: 5, scale: 2 }).default("0"),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
+  lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
+  isDiscountFromDeal: boolean("is_discount_from_deal").default(false),
+  dealId: integer("deal_id").references(() => deals.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Global Distribution System Integration
+export const gdsConnections = pgTable("gds_connections", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  gdsProvider: text("gds_provider").notNull(), // 'AMADEUS', 'SABRE', 'TRAVELPORT', 'CUSTOM'
+  connectionName: text("connection_name").notNull(),
+  apiEndpoint: text("api_endpoint"),
+  apiKey: text("api_key"),
+  secretKey: text("secret_key"),
+  configuration: json("configuration"), // Provider-specific configuration
+  isActive: boolean("is_active").default(true),
+  isTestMode: boolean("is_test_mode").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// GDS Transactions
+export const gdsTransactions = pgTable("gds_transactions", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  gdsConnectionId: integer("gds_connection_id").references(() => gdsConnections.id).notNull(),
+  transactionId: text("transaction_id").notNull().unique(),
+  transactionType: text("transaction_type").notNull(), // 'BOOKING', 'CANCELLATION', 'MODIFICATION', 'PRICING'
+  externalReference: text("external_reference"), // GDS booking reference
+  customerData: json("customer_data"),
+  bookingData: json("booking_data"),
+  pricingData: json("pricing_data"),
+  status: text("status").default("PENDING"), // 'PENDING', 'CONFIRMED', 'CANCELLED', 'FAILED'
+  totalAmount: decimal("total_amount", { precision: 12, scale: 2 }),
+  commission: decimal("commission", { precision: 10, scale: 2 }),
+  billId: integer("bill_id").references(() => posBills.id),
+  dealId: integer("deal_id").references(() => deals.id),
+  responseData: json("response_data"),
+  errorData: json("error_data"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// POS Terminals/Stations
+export const posTerminals = pgTable("pos_terminals", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  terminalId: text("terminal_id").notNull().unique(),
+  terminalName: text("terminal_name").notNull(),
+  location: text("location"),
+  ipAddress: text("ip_address"),
+  macAddress: text("mac_address"),
+  isActive: boolean("is_active").default(true),
+  currentUserId: integer("current_user_id").references(() => users.id),
+  lastActiveAt: timestamp("last_active_at"),
+  configuration: json("configuration"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   vendor: one(vendors, { fields: [users.id], references: [vendors.userId] }),
@@ -456,6 +603,11 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   deals: many(deals),
   reviews: many(customerReviews),
   vendorRating: one(vendorRatings, { fields: [vendors.id], references: [vendorRatings.vendorId] }),
+  inventory: many(inventory),
+  bills: many(posBills),
+  gdsConnections: many(gdsConnections),
+  posTerminals: many(posTerminals),
+  stockMovements: many(stockMovements),
 }));
 
 export const dealsRelations = relations(deals, ({ one, many }) => ({
@@ -678,6 +830,47 @@ export const insertNotificationPreferencesSchema = createInsertSchema(notificati
   updatedAt: true,
 });
 
+// POS System Schemas
+export const insertInventorySchema = createInsertSchema(inventory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStockMovementSchema = createInsertSchema(stockMovements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPosBillSchema = createInsertSchema(posBills).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBillItemSchema = createInsertSchema(billItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertGdsConnectionSchema = createInsertSchema(gdsConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGdsTransactionSchema = createInsertSchema(gdsTransactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPosTerminalSchema = createInsertSchema(posTerminals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -719,6 +912,22 @@ export type MembershipNotification = typeof membershipNotifications.$inferSelect
 export type InsertMembershipNotification = z.infer<typeof insertMembershipNotificationSchema>;
 export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
 export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+
+// POS System Types
+export type Inventory = typeof inventory.$inferSelect;
+export type InsertInventory = z.infer<typeof insertInventorySchema>;
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type InsertStockMovement = z.infer<typeof insertStockMovementSchema>;
+export type PosBill = typeof posBills.$inferSelect;
+export type InsertPosBill = z.infer<typeof insertPosBillSchema>;
+export type BillItem = typeof billItems.$inferSelect;
+export type InsertBillItem = z.infer<typeof insertBillItemSchema>;
+export type GdsConnection = typeof gdsConnections.$inferSelect;
+export type InsertGdsConnection = z.infer<typeof insertGdsConnectionSchema>;
+export type GdsTransaction = typeof gdsTransactions.$inferSelect;
+export type InsertGdsTransaction = z.infer<typeof insertGdsTransactionSchema>;
+export type PosTerminal = typeof posTerminals.$inferSelect;
+export type InsertPosTerminal = z.infer<typeof insertPosTerminalSchema>;
 
 // Auth schemas
 export const loginSchema = z.object({
@@ -819,6 +1028,107 @@ export const bannerAnalytics = pgTable("banner_analytics", {
 export const bannerAnalyticsRelations = relations(bannerAnalytics, ({ one }) => ({
   banner: one(promotionalBanners, { fields: [bannerAnalytics.bannerId], references: [promotionalBanners.id] }),
   user: one(users, { fields: [bannerAnalytics.userId], references: [users.id] }),
+}));
+
+// POS System Relations
+export const inventoryRelations = relations(inventory, ({ one, many }) => ({
+  vendor: one(vendors, {
+    fields: [inventory.vendorId],
+    references: [vendors.id],
+  }),
+  stockMovements: many(stockMovements),
+  billItems: many(billItems),
+}));
+
+export const stockMovementsRelations = relations(stockMovements, ({ one }) => ({
+  inventory: one(inventory, {
+    fields: [stockMovements.inventoryId],
+    references: [inventory.id],
+  }),
+  vendor: one(vendors, {
+    fields: [stockMovements.vendorId],
+    references: [vendors.id],
+  }),
+  createdBy: one(users, {
+    fields: [stockMovements.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const posBillsRelations = relations(posBills, ({ one, many }) => ({
+  vendor: one(vendors, {
+    fields: [posBills.vendorId],
+    references: [vendors.id],
+  }),
+  customer: one(users, {
+    fields: [posBills.customerId],
+    references: [users.id],
+    relationName: "billCustomer",
+  }),
+  createdBy: one(users, {
+    fields: [posBills.createdBy],
+    references: [users.id],
+    relationName: "billCreator",
+  }),
+  dealClaim: one(dealClaims, {
+    fields: [posBills.dealClaimId],
+    references: [dealClaims.id],
+  }),
+  items: many(billItems),
+  gdsTransaction: one(gdsTransactions),
+}));
+
+export const billItemsRelations = relations(billItems, ({ one }) => ({
+  bill: one(posBills, {
+    fields: [billItems.billId],
+    references: [posBills.id],
+  }),
+  inventory: one(inventory, {
+    fields: [billItems.inventoryId],
+    references: [inventory.id],
+  }),
+  deal: one(deals, {
+    fields: [billItems.dealId],
+    references: [deals.id],
+  }),
+}));
+
+export const gdsConnectionsRelations = relations(gdsConnections, ({ one, many }) => ({
+  vendor: one(vendors, {
+    fields: [gdsConnections.vendorId],
+    references: [vendors.id],
+  }),
+  transactions: many(gdsTransactions),
+}));
+
+export const gdsTransactionsRelations = relations(gdsTransactions, ({ one }) => ({
+  vendor: one(vendors, {
+    fields: [gdsTransactions.vendorId],
+    references: [vendors.id],
+  }),
+  gdsConnection: one(gdsConnections, {
+    fields: [gdsTransactions.gdsConnectionId],
+    references: [gdsConnections.id],
+  }),
+  bill: one(posBills, {
+    fields: [gdsTransactions.billId],
+    references: [posBills.id],
+  }),
+  deal: one(deals, {
+    fields: [gdsTransactions.dealId],
+    references: [deals.id],
+  }),
+}));
+
+export const posTerminalsRelations = relations(posTerminals, ({ one }) => ({
+  vendor: one(vendors, {
+    fields: [posTerminals.vendorId],
+    references: [vendors.id],
+  }),
+  currentUser: one(users, {
+    fields: [posTerminals.currentUserId],
+    references: [users.id],
+  }),
 }));
 
 export const insertBannerAnalyticsSchema = createInsertSchema(bannerAnalytics).omit({

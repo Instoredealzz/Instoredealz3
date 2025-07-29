@@ -38,6 +38,7 @@ import VendorDashboard from "@/pages/vendor/dashboard";
 import VendorDeals from "@/pages/vendor/deals";
 import VendorAnalytics from "@/pages/vendor/analytics";
 import PosDashboard from "@/pages/vendor/pos-dashboard";
+import EnhancedPosDashboard from "@/pages/vendor/enhanced-pos-dashboard";
 import PosTransactions from "@/pages/vendor/pos-transactions";
 import VendorProfile from "@/pages/vendor/profile";
 import VendorProcess from "@/pages/vendor/VendorProcess";
@@ -167,6 +168,7 @@ function Router() {
   const [matchVendorAnalytics] = useRoute("/vendor/analytics");
   const [matchVendorLocationAnalytics] = useRoute("/vendor/location-analytics");
   const [matchVendorPos] = useRoute("/vendor/pos");
+  const [matchVendorEnhancedPos] = useRoute("/vendor/pos/enhanced");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
   const [matchVendorProfile] = useRoute("/vendor/profile");
 
@@ -348,6 +350,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorLocationAnalytics />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorEnhancedPos) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <EnhancedPosDashboard />
       </RoleProtectedRoute>
     );
   }
