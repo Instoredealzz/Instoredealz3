@@ -73,6 +73,87 @@ The application follows a monorepo structure with clear separation between clien
 ### Admin Operations
 1. Multi-level admin system (Admin, Super Admin)
 2. User management, vendor approval, deal moderation
+
+## API Endpoints Documentation
+
+### 📍 **Main API File Location:**
+**`server/routes.ts`** - Contains all API endpoints
+
+### 🔐 **Authentication APIs**
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/login` - User login  
+- `GET /api/auth/me` - Get current user info
+- `POST /api/auth/logout` - User logout
+
+### 👤 **User Management APIs**
+- `GET /api/users` - Get all users (admin only)
+- `PUT /api/users/profile` - Update user profile
+- `GET /api/users/claims` - Get user's deal claims
+- `DELETE /api/users/:id` - Delete user (admin only)
+
+### 🏪 **Vendor APIs**
+- `POST /api/vendors/register` - Register new vendor
+- `GET /api/vendors/me` - Get current vendor profile
+- `PUT /api/vendors/profile` - Update vendor profile
+- `GET /api/vendors/deals` - Get vendor's deals
+- `GET /api/vendors` - Get all vendors (admin only)
+- `PUT /api/vendors/:id/approve` - Approve vendor (admin only)
+
+### 🏷️ **Deal Management APIs**
+- `GET /api/deals` - Get all active deals
+- `POST /api/deals` - Create new deal (vendor only)
+- `GET /api/deals/:id` - Get specific deal
+- `PUT /api/deals/:id` - Update deal (vendor only)
+- `DELETE /api/deals/:id` - Delete deal (vendor only)
+- `POST /api/deals/:id/claim` - Claim a deal
+- `PUT /api/deals/:id/approve` - Approve deal (admin only)
+- `PUT /api/deals/:id/reject` - Reject deal (admin only)
+
+### 🎯 **Categories & Location APIs**
+- `GET /api/categories` - Get all deal categories
+- `GET /api/cities` - Get supported cities
+
+### 💝 **Wishlist APIs**
+- `GET /api/wishlist` - Get user's wishlist
+- `POST /api/wishlist` - Add deal to wishlist
+- `DELETE /api/wishlist/:dealId` - Remove from wishlist
+
+### 📢 **Promotional Banner APIs**
+- `GET /api/promotional-banners/active/:placement` - Get active banners
+- `GET /api/promotional-banners` - Get all banners (admin only)
+- `POST /api/promotional-banners` - Create banner (admin only)
+- `PUT /api/promotional-banners/:id` - Update banner (admin only)
+- `DELETE /api/promotional-banners/:id` - Delete banner (admin only)
+
+### 🆘 **Help & Support APIs**
+- `GET /api/help-tickets` - Get help tickets
+- `POST /api/help-tickets` - Create help ticket
+- `PUT /api/help-tickets/:id` - Update ticket status (admin only)
+
+### 📊 **Analytics & Reports APIs (Admin)**
+- `GET /api/analytics` - Get platform analytics
+- `GET /api/admin/deal-distribution` - Deal category distribution
+- `POST /api/admin/reports/users/email` - Email user reports
+- `POST /api/admin/reports/vendors/email` - Email vendor reports
+- `POST /api/admin/reports/deals/email` - Email deal reports
+- `POST /api/admin/reports/analytics/email` - Email analytics reports
+
+### 🔧 **System Admin APIs**
+- `GET /api/superadmin/logs` - Get system logs (superadmin only)
+
+### 🎨 **Deal Alerts & Concierge APIs**
+- `POST /api/deal-alerts` - Create custom deal alert
+- `GET /api/deal-alerts` - Get user's deal alerts
+- `POST /api/deal-concierge` - Create deal concierge request
+- `GET /api/deal-concierge` - Get concierge requests
+
+### 🖼️ **Image Processing APIs**
+- Image upload and processing endpoints (integrated with deal creation)
+
+### 📧 **Email Integration**
+- Automated emails for user registration, vendor approval, deal notifications
+
+**Note:** All APIs use JWT authentication and role-based access control with roles: `customer`, `vendor`, `admin`, `superadmin`. Protected endpoints require appropriate authentication and authorization middleware.
 3. System analytics and reporting
 4. Audit logging for administrative actions
 
@@ -142,6 +223,16 @@ Preferred communication style: Simple, everyday language.
 - **Vendor Access Restriction**: Implemented role-based access control to prevent vendors from viewing deal details through promotional banner "View Deal" buttons - restricted to customers only
 - **Enhanced QR Code Generation**: Implemented comprehensive customer claim QR codes with complete customer data encoding for POS integration
 - **Customer Membership QR Codes**: QR codes now include userId, userName, email, membershipPlan, phone, totalSavings, and security tokens for verification
+
+### July 29, 2025 - Square Logo Design & Enhanced Dark Mode Typography
+- **Square Logo Implementation**: Transformed Instoredealz logo from circular to modern square design with rounded corners for better brand consistency
+- **Animated Gradient Border**: Added dynamic gradient border animation with blue-to-purple-to-gold transitions for enhanced visual appeal
+- **Enhanced Logo Effects**: Implemented hover effects with subtle scaling and shadow transitions for interactive feedback
+- **Dark Mode Typography Fixes**: Comprehensive text visibility improvements across all pages, especially vendor profile sections
+- **Font Color Optimization**: Fixed all hardcoded text colors to ensure proper contrast in both light and dark themes
+- **Form Element Styling**: Enhanced input fields, labels, and form elements with proper dark mode color schemes
+- **Logo Container Classes**: Added responsive sizing classes and accessibility focus states for better user experience
+- **Vendor Profile Visibility**: Fixed specific text visibility issues in business stats, account details, and form fields
 - **POS System QR Scanner**: Created complete QR scanner component with camera, upload, and manual input options for vendor POS systems
 - **Customer Verification Interface**: Added customer verification section to POS dashboard with QR code scanning and walk-in customer options
 - **Security Token Validation**: QR codes include timestamp and security tokens to prevent forgery and ensure 24-hour validity
