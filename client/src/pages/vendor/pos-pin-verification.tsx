@@ -325,10 +325,10 @@ export default function POSPinVerification() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/vendor/pos">
+          <Link href="/vendor">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to POS
+              Back to Home
             </Button>
           </Link>
           <div>
@@ -725,17 +725,37 @@ export default function POSPinVerification() {
       <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Scan Customer QR Code</DialogTitle>
+            <DialogTitle>Scan Customer Membership QR Code</DialogTitle>
             <DialogDescription>
-              Scan the customer's QR code to automatically fill the verification PIN
+              Scan the customer's membership QR code to view their details. You'll still need to manually enter the deal PIN for verification.
             </DialogDescription>
           </DialogHeader>
           
           <MobileQRScanner
             onScanSuccess={(data) => {
-              setPinInput(data.slice(-6)); // Get last 6 characters as PIN
-              setShowQRScanner(false);
-              handlePinVerification();
+              try {
+                // Try to parse as JSON (membership QR code format)
+                const qrData = JSON.parse(data);
+                if (qrData.type === 'customer_claim' || qrData.type === 'membership_verification') {
+                  // Fill customer name from QR data
+                  setCustomerName(qrData.userName || qrData.name || '');
+                  setShowQRScanner(false);
+                  toast({
+                    title: "Customer QR Scanned",
+                    description: `Customer: ${qrData.userName || qrData.name} (${qrData.membershipPlan})`,
+                  });
+                } else {
+                  throw new Error('Invalid QR code format');
+                }
+              } catch (error) {
+                // Fallback: treat as plain text
+                setCustomerName(data);
+                setShowQRScanner(false);
+                toast({
+                  title: "QR Scanned",
+                  description: "Customer information extracted from QR code",
+                });
+              }
             }}
             onScanError={(error) => {
               toast({
