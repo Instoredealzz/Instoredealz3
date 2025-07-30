@@ -453,39 +453,39 @@ export default function POSPinVerification() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                       {posState.recentTransactions.length}
                     </div>
-                    <div className="text-sm text-blue-700">Transactions Today</div>
+                    <div className="text-sm text-blue-700 dark:text-blue-300">Transactions Today</div>
                   </div>
                   
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                       ₹{posState.recentTransactions.reduce((sum, t) => sum + t.discountAmount, 0).toFixed(0)}
                     </div>
-                    <div className="text-sm text-green-700">Total Savings</div>
+                    <div className="text-sm text-green-700 dark:text-green-300">Total Savings</div>
                   </div>
                   
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                       {Array.isArray(deals) ? deals.filter((d: Deal) => d.isActive).length : 0}
                     </div>
-                    <div className="text-sm text-purple-700">Active Deals</div>
+                    <div className="text-sm text-purple-700 dark:text-purple-300">Active Deals</div>
                   </div>
                   
-                  <div className="text-center p-3 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
+                  <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                       {posState.activeSession ? 'ONLINE' : 'OFFLINE'}
                     </div>
-                    <div className="text-sm text-orange-700">Terminal Status</div>
+                    <div className="text-sm text-orange-700 dark:text-orange-300">Terminal Status</div>
                   </div>
                 </div>
 
                 {posState.activeSession && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-gray-600">Session Started:</div>
-                    <div className="font-medium">
+                  <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Session Started:</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
                       {new Date(posState.activeSession.startedAt).toLocaleString()}
                     </div>
                   </div>
@@ -523,12 +523,12 @@ export default function POSPinVerification() {
                 {filteredDeals.map((deal: Deal) => (
                   <div 
                     key={deal.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50"
                   >
                     <div className="flex-1">
-                      <div className="font-medium">{deal.title}</div>
-                      <div className="text-sm text-gray-600">{deal.category}</div>
-                      <div className="text-sm text-green-600 font-medium">
+                      <div className="font-medium text-gray-900 dark:text-gray-100">{deal.title}</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{deal.category}</div>
+                      <div className="text-sm text-green-600 dark:text-green-400 font-medium">
                         {deal.discountPercentage}% OFF
                       </div>
                     </div>
@@ -537,7 +537,7 @@ export default function POSPinVerification() {
                       <Badge variant="outline" className="font-mono text-lg">
                         {deal.verificationPin}
                       </Badge>
-                      <div className="text-sm text-gray-500 mt-1">
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         ₹{deal.originalPrice} → ₹{deal.discountedPrice}
                       </div>
                     </div>
@@ -559,28 +559,28 @@ export default function POSPinVerification() {
             <CardContent>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {posState.recentTransactions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     No transactions yet
                   </div>
                 ) : (
                   posState.recentTransactions.map((transaction) => (
                     <div 
                       key={transaction.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
                     >
                       <div className="flex-1">
-                        <div className="font-medium">{transaction.dealTitle}</div>
-                        <div className="text-sm text-gray-600">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">{transaction.dealTitle}</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
                           Customer: {transaction.customerName}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
                           {new Date(transaction.verifiedAt).toLocaleString()}
                         </div>
                       </div>
                       
                       <div className="text-right">
-                        <div className="font-medium">₹{transaction.finalAmount}</div>
-                        <div className="text-sm text-green-600">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">₹{transaction.finalAmount}</div>
+                        <div className="text-sm text-green-600 dark:text-green-400">
                           Saved: ₹{transaction.discountAmount}
                         </div>
                         <Badge 
@@ -607,10 +607,10 @@ export default function POSPinVerification() {
                 <CardTitle className="text-lg">Daily Performance</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-blue-600">
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                   {posState.recentTransactions.length}
                 </div>
-                <div className="text-sm text-gray-600">PIN Verifications</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">PIN Verifications</div>
               </CardContent>
             </Card>
             
@@ -619,10 +619,10 @@ export default function POSPinVerification() {
                 <CardTitle className="text-lg">Total Savings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-green-600">
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                   ₹{posState.recentTransactions.reduce((sum, t) => sum + t.discountAmount, 0).toFixed(0)}
                 </div>
-                <div className="text-sm text-gray-600">Customer Savings</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Customer Savings</div>
               </CardContent>
             </Card>
             
@@ -631,13 +631,13 @@ export default function POSPinVerification() {
                 <CardTitle className="text-lg">Success Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold text-purple-600">
+                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                   {posState.recentTransactions.length > 0 
                     ? Math.round((posState.recentTransactions.filter(t => t.status === 'verified').length / posState.recentTransactions.length) * 100)
                     : 0
                   }%
                 </div>
-                <div className="text-sm text-gray-600">Verification Rate</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Verification Rate</div>
               </CardContent>
             </Card>
           </div>
@@ -677,15 +677,15 @@ export default function POSPinVerification() {
             </div>
 
             {billAmount && selectedDeal && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <div className="text-sm text-green-700">Calculation Summary:</div>
-                <div className="font-medium">
+              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <div className="text-sm text-green-700 dark:text-green-300">Calculation Summary:</div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
                   Bill Amount: ₹{parseFloat(billAmount).toFixed(2)}
                 </div>
-                <div className="font-medium text-green-600">
+                <div className="font-medium text-green-600 dark:text-green-400">
                   Discount ({selectedDeal.discountPercentage}%): -₹{((parseFloat(billAmount) * selectedDeal.discountPercentage) / 100).toFixed(2)}
                 </div>
-                <div className="font-bold text-lg">
+                <div className="font-bold text-lg text-gray-900 dark:text-gray-100">
                   Final Amount: ₹{(parseFloat(billAmount) - ((parseFloat(billAmount) * selectedDeal.discountPercentage) / 100)).toFixed(2)}
                 </div>
               </div>
