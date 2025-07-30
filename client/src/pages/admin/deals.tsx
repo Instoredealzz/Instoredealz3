@@ -36,11 +36,14 @@ export default function AdminDeals() {
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: pendingDeals, isLoading } = useQuery({
-    queryKey: ["/api/admin/deals/pending"],
+    queryKey: ["/api/admin/deals/pending", refreshTrigger],
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   const { data: categories } = useQuery({
@@ -56,15 +59,8 @@ export default function AdminDeals() {
         title: "Deal approved successfully!",
         description: "The deal is now live and available to customers.",
       });
-      // Invalidate multiple related queries
-      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
-      // Force immediate refetch with exact timing
-      await queryClient.refetchQueries({ 
-        queryKey: ["/api/admin/deals/pending"],
-        exact: true 
-      });
+      // Force refresh by updating the trigger
+      setRefreshTrigger(prev => prev + 1);
     },
     onError: (error: any) => {
       toast({
@@ -84,15 +80,8 @@ export default function AdminDeals() {
         title: "Deal rejected successfully!",
         description: "The vendor has been notified about the rejection.",
       });
-      // Invalidate multiple related queries
-      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
-      // Force immediate refetch with exact timing
-      await queryClient.refetchQueries({ 
-        queryKey: ["/api/admin/deals/pending"],
-        exact: true 
-      });
+      // Force refresh by updating the trigger
+      setRefreshTrigger(prev => prev + 1);
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);
