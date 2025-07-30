@@ -363,7 +363,7 @@ function Router() {
   if (matchVendorPos) {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
-        <PosDashboard />
+        <EnhancedPosDashboard />
       </RoleProtectedRoute>
     );
   }
