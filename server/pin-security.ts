@@ -7,8 +7,8 @@ import crypto from 'crypto';
  */
 
 const SALT_ROUNDS = 12;
-const PIN_LENGTH = 4; // Keep 4 digits for backward compatibility
-const MIN_PIN_COMPLEXITY = 2; // Minimum number of unique digits for 4-digit PIN
+const PIN_LENGTH = 6; // 6-character alphanumeric codes
+const MIN_PIN_COMPLEXITY = 3; // Minimum number of unique characters for 6-character PIN
 
 // Rate limiting configuration
 const MAX_ATTEMPTS_PER_HOUR = 5;
@@ -43,38 +43,39 @@ export interface PinValidationResult {
  * Validates PIN format and complexity
  */
 export function validatePinFormat(pin: string): PinValidationResult {
-  const cleanPin = String(pin || '').trim();
+  const cleanPin = String(pin || '').trim().toUpperCase();
   
   // Check length
   if (cleanPin.length !== PIN_LENGTH) {
     return {
       isValid: false,
-      message: `PIN must be exactly ${PIN_LENGTH} digits`
+      message: `PIN must be exactly ${PIN_LENGTH} characters`
     };
   }
   
-  // Check if numeric
-  if (!/^\d+$/.test(cleanPin)) {
+  // Check if alphanumeric
+  if (!/^[A-Z0-9]+$/.test(cleanPin)) {
     return {
       isValid: false,
-      message: "PIN must contain only numbers"
+      message: "PIN must contain only letters (A-Z) and numbers (0-9)"
     };
   }
   
-  // Check complexity (minimum unique digits)
-  const uniqueDigits = new Set(cleanPin.split('')).size;
-  if (uniqueDigits < MIN_PIN_COMPLEXITY) {
+  // Check complexity (minimum unique characters)
+  const uniqueChars = new Set(cleanPin.split('')).size;
+  if (uniqueChars < MIN_PIN_COMPLEXITY) {
     return {
       isValid: false,
-      message: `PIN must contain at least ${MIN_PIN_COMPLEXITY} different digits`
+      message: `PIN must contain at least ${MIN_PIN_COMPLEXITY} different characters`
     };
   }
   
   // Check for common weak patterns
   const weakPatterns = [
-    /(\d)\1{2,}/, // Repeated digits (111, 222, 1111, etc.)
-    /1234|4321/, // Sequential patterns for 4 digits
-    /0123|3210/, // Sequential with zero
+    /(.)\1{2,}/, // Repeated characters (AAA, 111, BBB, etc.)
+    /123456|654321/, // Sequential patterns for 6 characters
+    /ABCDEF|FEDCBA/, // Alphabetical sequences
+    /000000|111111|222222|333333|444444|555555|666666|777777|888888|999999|AAAAAA|BBBBBB/, // All same character
   ];
   
   for (const pattern of weakPatterns) {
@@ -181,17 +182,18 @@ export function generateSecurePin(): string {
   let pin: string;
   let attempts = 0;
   const maxAttempts = 100;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   
   do {
-    // Generate 4 random digits
+    // Generate 6 random alphanumeric characters
     pin = Array.from({ length: PIN_LENGTH }, () => 
-      Math.floor(Math.random() * 10)
+      chars.charAt(Math.floor(Math.random() * chars.length))
     ).join('');
     
     attempts++;
     if (attempts > maxAttempts) {
       // Fallback to a manually crafted secure PIN if random generation fails
-      pin = '1' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      pin = 'A1B2C3';
       break;
     }
   } while (!validatePinFormat(pin).isValid);
@@ -210,17 +212,27 @@ export function generateRotatingPin(dealId: number): RotatingPinResult {
   const seed = `${dealId}-${currentWindow}`;
   const hash = crypto.createHash('sha256').update(seed).digest('hex');
   
-  // Convert first 8 characters of hash to a number and generate PIN
-  const hashNum = parseInt(hash.substring(0, 8), 16);
-  let pin = String(hashNum % 10000).padStart(4, '0');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let pin = '';
+  
+  // Generate 6-character alphanumeric PIN from hash
+  for (let i = 0; i < PIN_LENGTH; i++) {
+    const hashIndex = i * 2;
+    const charCode = parseInt(hash.substr(hashIndex, 2), 16);
+    pin += chars[charCode % chars.length];
+  }
   
   // Ensure PIN meets complexity requirements
   let attempts = 0;
   while (!validatePinFormat(pin).isValid && attempts < 10) {
     const offset = attempts + 1;
     const offsetHash = crypto.createHash('sha256').update(seed + offset).digest('hex');
-    const offsetNum = parseInt(offsetHash.substring(0, 8), 16);
-    pin = String(offsetNum % 10000).padStart(4, '0');
+    pin = '';
+    for (let i = 0; i < PIN_LENGTH; i++) {
+      const hashIndex = i * 2;
+      const charCode = parseInt(offsetHash.substr(hashIndex, 2), 16);
+      pin += chars[charCode % chars.length];
+    }
     attempts++;
   }
   
@@ -239,10 +251,11 @@ export function generateRotatingPin(dealId: number): RotatingPinResult {
  * Verifies if a PIN is valid for the current or previous rotation window
  */
 export function verifyRotatingPin(dealId: number, inputPin: string): boolean {
+  const cleanInput = String(inputPin || '').trim().toUpperCase();
   const currentResult = generateRotatingPin(dealId);
   
   // Check current window
-  if (currentResult.currentPin === inputPin) {
+  if (currentResult.currentPin === cleanInput) {
     return true;
   }
   
@@ -250,20 +263,32 @@ export function verifyRotatingPin(dealId: number, inputPin: string): boolean {
   const previousWindow = Math.floor(Date.now() / ROTATION_WINDOW_MS) - 1;
   const previousSeed = `${dealId}-${previousWindow}`;
   const previousHash = crypto.createHash('sha256').update(previousSeed).digest('hex');
-  const previousHashNum = parseInt(previousHash.substring(0, 8), 16);
-  let previousPin = String(previousHashNum % 10000).padStart(4, '0');
+  
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let previousPin = '';
+  
+  // Generate previous 6-character alphanumeric PIN from hash
+  for (let i = 0; i < PIN_LENGTH; i++) {
+    const hashIndex = i * 2;
+    const charCode = parseInt(previousHash.substr(hashIndex, 2), 16);
+    previousPin += chars[charCode % chars.length];
+  }
   
   // Ensure previous PIN meets complexity requirements
   let attempts = 0;
   while (!validatePinFormat(previousPin).isValid && attempts < 10) {
     const offset = attempts + 1;
     const offsetHash = crypto.createHash('sha256').update(previousSeed + offset).digest('hex');
-    const offsetNum = parseInt(offsetHash.substring(0, 8), 16);
-    previousPin = String(offsetNum % 10000).padStart(4, '0');
+    previousPin = '';
+    for (let i = 0; i < PIN_LENGTH; i++) {
+      const hashIndex = i * 2;
+      const charCode = parseInt(offsetHash.substr(hashIndex, 2), 16);
+      previousPin += chars[charCode % chars.length];
+    }
     attempts++;
   }
   
-  return previousPin === inputPin;
+  return previousPin === cleanInput;
 }
 
 /**
