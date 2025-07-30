@@ -129,22 +129,33 @@ export default function POSPinVerification() {
   // Fetch vendor deals
   const { data: deals = [], isLoading: dealsLoading } = useQuery<Deal[]>({
     queryKey: ['/api/deals/vendor'],
-    queryFn: () => apiRequest('/api/deals/vendor')
+    queryFn: async () => {
+      const response = await apiRequest('/api/deals/vendor');
+      return response as Deal[];
+    }
   });
 
   // Fetch active POS session
-  const { data: activeSession } = useQuery<PosSession>({
+  const { data: activeSession } = useQuery<PosSession | null>({
     queryKey: ['/api/pos/sessions/active', terminalId],
-    queryFn: () => apiRequest(`/api/pos/sessions/active?terminalId=${terminalId}`)
+    queryFn: async () => {
+      try {
+        const response = await apiRequest(`/api/pos/sessions/active?terminalId=${terminalId}`);
+        return response as PosSession;
+      } catch {
+        return null;
+      }
+    }
   });
 
   // Start POS Session
   const startSessionMutation = useMutation<PosSession, Error, void>({
     mutationFn: async () => {
-      return apiRequest('/api/pos/sessions', {
+      const response = await apiRequest('/api/pos/sessions', {
         method: 'POST',
         body: { terminalId }
       });
+      return response as PosSession;
     },
     onSuccess: (session) => {
       setPosState(prev => ({ ...prev, activeSession: session }));
@@ -160,9 +171,10 @@ export default function POSPinVerification() {
   // End POS Session
   const endSessionMutation = useMutation<PosSession, Error, number>({
     mutationFn: async (sessionId: number) => {
-      return apiRequest(`/api/pos/sessions/${sessionId}/end`, {
+      const response = await apiRequest(`/api/pos/sessions/${sessionId}/end`, {
         method: 'POST'
       });
+      return response as PosSession;
     },
     onSuccess: () => {
       setPosState(prev => ({ ...prev, activeSession: null, currentTransaction: null }));
@@ -178,10 +190,11 @@ export default function POSPinVerification() {
   // PIN Verification Mutation
   const verifyPinMutation = useMutation<{ valid: boolean; dealId: number }, Error, { dealId: number; pin: string }>({
     mutationFn: async ({ dealId, pin }: { dealId: number; pin: string }) => {
-      return apiRequest(`/api/deals/${dealId}/verify-pin`, {
+      const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, {
         method: 'POST',
         body: { pin }
       });
+      return response as { valid: boolean; dealId: number };
     },
     onSuccess: (data, variables) => {
       const deal = deals.find((d: Deal) => d.id === variables.dealId);
@@ -208,10 +221,11 @@ export default function POSPinVerification() {
   // Process Transaction Mutation
   const processTransactionMutation = useMutation<PinVerificationTransaction, Error, any>({
     mutationFn: async (transactionData: any) => {
-      return apiRequest('/api/pos/transactions', {
+      const response = await apiRequest('/api/pos/transactions', {
         method: 'POST',
         body: transactionData
       });
+      return response as PinVerificationTransaction;
     },
     onSuccess: (transaction) => {
       setPosState(prev => ({
