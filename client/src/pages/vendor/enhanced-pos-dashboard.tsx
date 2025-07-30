@@ -247,21 +247,18 @@ export default function EnhancedPOSDashboard() {
 
   const handleOpenInventoryDialog = () => {
     console.log('Opening inventory dialog, current state:', showAddInventory);
-    alert('Inventory button clicked! Check console for logs.');
     setShowAddInventory(true);
     console.log('After setting state:', true);
   };
 
   const handleOpenBillDialog = () => {
     console.log('Opening bill dialog, current state:', showCreateBill);
-    alert('Bill button clicked! Check console for logs.');
     setShowCreateBill(true);
     console.log('After setting state:', true);
   };
 
   const handleOpenGDSDialog = () => {
     console.log('Opening GDS dialog, current state:', showAddGDS);
-    alert('GDS button clicked! Check console for logs.');
     setShowAddGDS(true);
     console.log('After setting state:', true);
   };
@@ -281,6 +278,9 @@ export default function EnhancedPOSDashboard() {
           <Button onClick={() => alert('Test button works!')}>
             Test Button
           </Button>
+          <div className="text-xs text-muted-foreground">
+            Dialog States: Inv:{showAddInventory.toString()} | Bill:{showCreateBill.toString()} | GDS:{showAddGDS.toString()}
+          </div>
         </div>
       </div>
 
@@ -590,7 +590,7 @@ export default function EnhancedPOSDashboard() {
 
       {/* Add Inventory Dialog */}
       <Dialog open={showAddInventory} onOpenChange={setShowAddInventory}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Add New Product</DialogTitle>
             <DialogDescription>Add a new item to your inventory</DialogDescription>
@@ -679,7 +679,7 @@ export default function EnhancedPOSDashboard() {
 
       {/* Create Bill Dialog */}
       <Dialog open={showCreateBill} onOpenChange={setShowCreateBill}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Create New Bill</DialogTitle>
             <DialogDescription>Generate a bill for customer transaction</DialogDescription>
@@ -735,7 +735,7 @@ export default function EnhancedPOSDashboard() {
 
       {/* Add GDS Connection Dialog */}
       <Dialog open={showAddGDS} onOpenChange={setShowAddGDS}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Add GDS Connection</DialogTitle>
             <DialogDescription>Connect to a Global Distribution System</DialogDescription>

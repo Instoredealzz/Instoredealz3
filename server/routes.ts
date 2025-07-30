@@ -6488,10 +6488,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get vendor inventory
   app.get('/api/pos/inventory', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
-      const vendorId = req.user!.vendorId;
-      if (!vendorId) {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
         return res.status(403).json({ error: 'Vendor access required' });
       }
+      const vendorId = vendor.id;
 
       // Mock inventory data - ready for database integration
       const mockInventory = [
@@ -6527,10 +6528,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add inventory item
   app.post('/api/pos/inventory', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
-      const vendorId = req.user!.vendorId;
-      if (!vendorId) {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
         return res.status(403).json({ error: 'Vendor access required' });
       }
+      const vendorId = vendor.id;
 
       const inventoryData = { 
         ...req.body, 
@@ -6554,10 +6556,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new bill
   app.post('/api/pos/bills', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
-      const vendorId = req.user!.vendorId;
-      if (!vendorId) {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
         return res.status(403).json({ error: 'Vendor access required' });
       }
+      const vendorId = vendor.id;
 
       const billData = {
         id: Date.now(),
@@ -6668,7 +6671,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // POS Analytics and Reports
   app.get('/api/pos/analytics', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
-      const vendorId = req.user!.vendorId;
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(403).json({ error: 'Vendor access required' });
+      }
+      const vendorId = vendor.id;
       const { type = 'overview' } = req.query;
       
       // Mock analytics data - ready for database integration
