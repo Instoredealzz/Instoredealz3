@@ -147,6 +147,67 @@ export default function PosDashboard() {
       description: "Inventory item added successfully",
     });
   };
+
+  // Add GDS booking handler
+  const handleAddGDS = () => {
+    if (!newGDSBooking.passenger || !newGDSBooking.route || !newGDSBooking.date || newGDSBooking.amount <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields with valid values",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newBooking = {
+      id: Date.now(),
+      pnr: `${newGDSBooking.type.substring(0, 2).toUpperCase()}${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      status: 'Confirmed',
+      ...newGDSBooking
+    };
+
+    setGdsBookings(prev => [...prev, newBooking]);
+    setShowAddGDS(false);
+    setNewGDSBooking({ type: 'Flight', passenger: '', route: '', date: '', amount: 0 });
+    
+    toast({
+      title: "Success",
+      description: "GDS booking created successfully",
+    });
+  };
+
+  // Create bill handler
+  const handleCreateBill = () => {
+    if (!newBill.customer || newBill.amount <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields with valid values",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const gstAmount = newBill.gst || (newBill.amount * 0.18); // Default 18% GST if not specified
+    const newInvoice = {
+      id: Date.now(),
+      billNo: `INV-${String(bills.length + 1).padStart(3, '0')}`,
+      customer: newBill.customer,
+      amount: newBill.amount,
+      gst: gstAmount,
+      total: newBill.amount + gstAmount,
+      status: 'Pending',
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    setBills(prev => [...prev, newInvoice]);
+    setShowCreateBill(false);
+    setNewBill({ customer: '', amount: 0, gst: 0 });
+    
+    toast({
+      title: "Success",
+      description: "Invoice created successfully",
+    });
+  };
   const [gdsBookings, setGdsBookings] = useState([
     { id: 1, type: 'Flight', pnr: 'AI2024', passenger: 'John Doe', route: 'DEL-BOM', date: '2025-08-15', status: 'Confirmed', amount: 12500 },
     { id: 2, type: 'Hotel', pnr: 'TAJ001', passenger: 'Jane Smith', route: 'Mumbai Taj', date: '2025-08-20', status: 'Pending', amount: 8500 },
@@ -157,6 +218,26 @@ export default function PosDashboard() {
     { id: 2, billNo: 'INV-002', customer: 'Priya Sharma', amount: 15000, gst: 2700, total: 17700, status: 'Pending', date: '2025-07-29' },
     { id: 3, billNo: 'INV-003', customer: 'Amit Kumar', amount: 35000, gst: 6300, total: 41300, status: 'Overdue', date: '2025-07-26' }
   ]);
+
+  // Dialog states
+  const [showAddGDS, setShowAddGDS] = useState(false);
+  const [showCreateBill, setShowCreateBill] = useState(false);
+
+  // New GDS booking form state
+  const [newGDSBooking, setNewGDSBooking] = useState({
+    type: 'Flight',
+    passenger: '',
+    route: '',
+    date: '',
+    amount: 0
+  });
+
+  // New bill form state
+  const [newBill, setNewBill] = useState({
+    customer: '',
+    amount: 0,
+    gst: 0
+  });
 
   // Fetch available deals for POS
   const { data: deals = [], isLoading: dealsLoading } = useQuery({
@@ -973,7 +1054,7 @@ export default function PosDashboard() {
               <h2 className="text-2xl font-bold">GDS Booking System</h2>
               <p className="text-muted-foreground">Global Distribution System for travel bookings</p>
             </div>
-            <Button>
+            <Button onClick={() => setShowAddGDS(true)}>
               <Plus className="h-4 w-4 mr-2" />
               New Booking
             </Button>
@@ -1102,7 +1183,7 @@ export default function PosDashboard() {
               <h2 className="text-2xl font-bold">Billing & Invoicing</h2>
               <p className="text-muted-foreground">Manage invoices, payments, and financial records</p>
             </div>
-            <Button>
+            <Button onClick={() => setShowCreateBill(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Invoice
             </Button>
@@ -1279,6 +1360,123 @@ export default function PosDashboard() {
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowAddInventory(false)}>Cancel</Button>
               <Button onClick={handleAddInventory}>Add Item</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add GDS Booking Dialog */}
+      <Dialog open={showAddGDS} onOpenChange={setShowAddGDS}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Booking</DialogTitle>
+            <DialogDescription>Add a new GDS travel booking</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bookingType">Booking Type</Label>
+              <select
+                id="bookingType"
+                value={newGDSBooking.type}
+                onChange={(e) => setNewGDSBooking({...newGDSBooking, type: e.target.value})}
+                className="w-full mt-1 p-2 border rounded-md"
+              >
+                <option value="Flight">Flight</option>
+                <option value="Hotel">Hotel</option>
+                <option value="Train">Train</option>
+                <option value="Bus">Bus</option>
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="passengerName">Passenger Name</Label>
+              <Input
+                id="passengerName"
+                value={newGDSBooking.passenger}
+                onChange={(e) => setNewGDSBooking({...newGDSBooking, passenger: e.target.value})}
+                placeholder="e.g., John Doe"
+              />
+            </div>
+            <div>
+              <Label htmlFor="route">Route/Destination</Label>
+              <Input
+                id="route"
+                value={newGDSBooking.route}
+                onChange={(e) => setNewGDSBooking({...newGDSBooking, route: e.target.value})}
+                placeholder="e.g., DEL-BOM or Mumbai Taj"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="travelDate">Travel Date</Label>
+                <Input
+                  id="travelDate"
+                  type="date"
+                  value={newGDSBooking.date}
+                  onChange={(e) => setNewGDSBooking({...newGDSBooking, date: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="bookingAmount">Amount (₹)</Label>
+                <Input
+                  id="bookingAmount"
+                  type="number"
+                  value={newGDSBooking.amount}
+                  onChange={(e) => setNewGDSBooking({...newGDSBooking, amount: parseInt(e.target.value) || 0})}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAddGDS(false)}>Cancel</Button>
+              <Button onClick={handleAddGDS}>Create Booking</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Invoice Dialog */}
+      <Dialog open={showCreateBill} onOpenChange={setShowCreateBill}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Invoice</DialogTitle>
+            <DialogDescription>Generate a new invoice for billing</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="customerName">Customer Name</Label>
+              <Input
+                id="customerName"
+                value={newBill.customer}
+                onChange={(e) => setNewBill({...newBill, customer: e.target.value})}
+                placeholder="e.g., Raj Patel"
+              />
+            </div>
+            <div>
+              <Label htmlFor="billAmount">Amount (₹)</Label>
+              <Input
+                id="billAmount"
+                type="number"
+                value={newBill.amount}
+                onChange={(e) => setNewBill({...newBill, amount: parseInt(e.target.value) || 0})}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <Label htmlFor="gstAmount">GST Amount (₹)</Label>
+              <Input
+                id="gstAmount"
+                type="number"
+                value={newBill.gst}
+                onChange={(e) => setNewBill({...newBill, gst: parseInt(e.target.value) || 0})}
+                placeholder="Auto-calculated at 18% if left empty"
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Total: ₹{(newBill.amount + (newBill.gst || newBill.amount * 0.18)).toLocaleString()}
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateBill(false)}>Cancel</Button>
+              <Button onClick={handleCreateBill}>Create Invoice</Button>
             </div>
           </div>
         </DialogContent>
