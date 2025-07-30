@@ -56,7 +56,12 @@ export default function AdminDeals() {
         title: "Deal approved successfully!",
         description: "The deal is now live and available to customers.",
       });
+      // Invalidate multiple related queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      // Force refetch to ensure UI updates immediately
+      queryClient.refetchQueries({ queryKey: ["/api/admin/deals/pending"] });
     },
     onError: (error: any) => {
       toast({
@@ -76,7 +81,12 @@ export default function AdminDeals() {
         title: "Deal rejected successfully!",
         description: "The vendor has been notified about the rejection.",
       });
+      // Invalidate multiple related queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      // Force refetch to ensure UI updates immediately
+      queryClient.refetchQueries({ queryKey: ["/api/admin/deals/pending"] });
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);
