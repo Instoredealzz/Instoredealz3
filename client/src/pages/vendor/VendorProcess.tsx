@@ -580,6 +580,12 @@ const VendorProcess = () => {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full justify-start">
+                    <Link to="/vendor/manual-verification">
+                      <Smartphone className="h-4 w-4 mr-2" />
+                      Manual Verification
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full justify-start">
                     <Link to="/vendor/analytics">
                       <TrendingUp className="h-4 w-4 mr-2" />
                       Analytics Dashboard

@@ -5865,6 +5865,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return code;
   }
 
+  // Generate QR code data for manual verification
+  function generateQRData(claimCode: string, dealId: number, customerId: number): string {
+    const qrData = {
+      type: 'instoredealz_claim',
+      claimCode,
+      dealId,
+      customerId,
+      timestamp: Date.now()
+    };
+    return JSON.stringify(qrData);
+  }
+
   // Customer claims deal and gets unique claim code
   app.post('/api/deals/:id/claim-with-code', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
@@ -5984,18 +5996,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('System log creation failed:', logError.message);
       }
 
+      // Generate QR code data for manual verification
+      const qrCodeData = generateQRData(claimCode, dealId, userId);
+      
       res.json({
         success: true,
         claimId: claim.id,
         claimCode: claimCode,
         dealTitle: deal.title,
         discountPercentage: deal.discountPercentage,
-        vendorId: deal.vendorId, // Include vendor ID for POS verification
-        customerId: userId, // Include customer ID for vendor reference
-        customerName: user.name, // Include customer name for vendor display
+        vendorId: deal.vendorId,
+        customerId: userId,
+        customerName: user.name,
+        customerPhone: user.phone,
         expiresAt: expiresAt.toISOString(),
-        instructions: `Show this code at the store: ${claimCode}`,
-        message: "Deal claimed successfully! Show your claim code at the store to redeem."
+        qrCodeData: qrCodeData, // For QR code generation on frontend
+        // Multiple verification methods for vendors without POS
+        verificationMethods: {
+          claimCode: {
+            code: claimCode,
+            instructions: `Show this code at the store: ${claimCode}`,
+            usage: "Tell the vendor your claim code"
+          },
+          phoneVerification: {
+            phone: user.phone,
+            instructions: `Provide your phone number: ${user.phone}`,
+            usage: "Vendor can verify using your registered phone number"
+          },
+          manualLookup: {
+            customerName: user.name,
+            customerId: userId,
+            instructions: `Customer: ${user.name} (ID: ${userId})`,
+            usage: "Vendor can manually search by customer name or ID"
+          },
+          qrCode: {
+            data: qrCodeData,
+            instructions: "Show QR code to vendor for scanning",
+            usage: "Works with any QR code scanner app"
+          }
+        },
+        instructions: `Multiple ways to redeem at store:
+1. Show claim code: ${claimCode}
+2. Provide phone number: ${user.phone}
+3. Tell vendor your name: ${user.name}
+4. Show QR code (if available)`,
+        message: "Deal claimed successfully! Multiple verification methods available for redemption."
       });
 
     } catch (error) {
@@ -6195,6 +6240,428 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       Logger.error('Error completing claim transaction', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to complete transaction' 
+      });
+    }
+  });
+
+  // ===============================
+  // MANUAL VERIFICATION FOR VENDORS WITHOUT POS
+  // ===============================
+
+  // Manual verification by phone number
+  app.post('/api/manual/verify-by-phone', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { phoneNumber } = req.body;
+
+      if (!phoneNumber) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Phone number is required" 
+        });
+      }
+
+      // Get vendor info
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Vendor not found" 
+        });
+      }
+
+      // Find customer by phone
+      const customer = await storage.getUserByPhone(phoneNumber);
+      if (!customer) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Customer not found with this phone number" 
+        });
+      }
+
+      // Get active claims for this customer and vendor's deals
+      const allClaims = await storage.getAllDealClaims();
+      const vendorDeals = await storage.getDealsByVendor(vendor.id);
+      const vendorDealIds = vendorDeals.map(d => d.id);
+      
+      const customerClaims = allClaims.filter(claim => 
+        claim.userId === customer.id && 
+        vendorDealIds.includes(claim.dealId) &&
+        !claim.vendorVerified &&
+        (!claim.codeExpiresAt || new Date() < new Date(claim.codeExpiresAt))
+      );
+
+      if (customerClaims.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "No active claims found for this customer at your store" 
+        });
+      }
+
+      // Get deal details for each claim
+      const claimsWithDeals = await Promise.all(
+        customerClaims.map(async (claim) => {
+          const deal = await storage.getDeal(claim.dealId);
+          return {
+            claimId: claim.id,
+            claimCode: claim.claimCode,
+            claimedAt: claim.claimedAt,
+            expiresAt: claim.codeExpiresAt,
+            deal: {
+              id: deal?.id,
+              title: deal?.title,
+              discountPercentage: deal?.discountPercentage,
+              originalPrice: deal?.originalPrice,
+              discountedPrice: deal?.discountedPrice
+            }
+          };
+        })
+      );
+
+      res.json({
+        success: true,
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          membershipPlan: customer.membershipPlan
+        },
+        activeClaims: claimsWithDeals,
+        message: `Found ${claimsWithDeals.length} active claim(s) for ${customer.name}`
+      });
+
+    } catch (error) {
+      Logger.error('Error in phone verification', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to verify by phone number' 
+      });
+    }
+  });
+
+  // Manual verification by customer name
+  app.post('/api/manual/verify-by-name', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { customerName } = req.body;
+
+      if (!customerName) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Customer name is required" 
+        });
+      }
+
+      // Get vendor info
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Vendor not found" 
+        });
+      }
+
+      // Search for customers by name (case-insensitive partial match)
+      const allUsers = await storage.getAllUsers();
+      const matchingCustomers = allUsers.filter(user => 
+        user.name.toLowerCase().includes(customerName.toLowerCase()) &&
+        user.role === 'customer'
+      );
+
+      if (matchingCustomers.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "No customers found matching this name" 
+        });
+      }
+
+      // Get active claims for matching customers and vendor's deals
+      const allClaims = await storage.getAllDealClaims();
+      const vendorDeals = await storage.getDealsByVendor(vendor.id);
+      const vendorDealIds = vendorDeals.map(d => d.id);
+      
+      const customersWithClaims = await Promise.all(
+        matchingCustomers.map(async (customer) => {
+          const customerClaims = allClaims.filter(claim => 
+            claim.userId === customer.id && 
+            vendorDealIds.includes(claim.dealId) &&
+            !claim.vendorVerified &&
+            (!claim.codeExpiresAt || new Date() < new Date(claim.codeExpiresAt))
+          );
+
+          if (customerClaims.length > 0) {
+            const claimsWithDeals = await Promise.all(
+              customerClaims.map(async (claim) => {
+                const deal = await storage.getDeal(claim.dealId);
+                return {
+                  claimId: claim.id,
+                  claimCode: claim.claimCode,
+                  claimedAt: claim.claimedAt,
+                  expiresAt: claim.codeExpiresAt,
+                  deal: {
+                    id: deal?.id,
+                    title: deal?.title,
+                    discountPercentage: deal?.discountPercentage,
+                    originalPrice: deal?.originalPrice,
+                    discountedPrice: deal?.discountedPrice
+                  }
+                };
+              })
+            );
+
+            return {
+              customer: {
+                id: customer.id,
+                name: customer.name,
+                phone: customer.phone,
+                membershipPlan: customer.membershipPlan
+              },
+              activeClaims: claimsWithDeals
+            };
+          }
+          return null;
+        })
+      );
+
+      const validCustomers = customersWithClaims.filter(c => c !== null);
+
+      if (validCustomers.length === 0) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "No active claims found for customers matching this name" 
+        });
+      }
+
+      res.json({
+        success: true,
+        matchingCustomers: validCustomers,
+        message: `Found ${validCustomers.length} customer(s) with active claims`
+      });
+
+    } catch (error) {
+      Logger.error('Error in name verification', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to verify by customer name' 
+      });
+    }
+  });
+
+  // QR code verification (scan QR code data)
+  app.post('/api/manual/verify-qr', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { qrData } = req.body;
+
+      if (!qrData) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "QR code data is required" 
+        });
+      }
+
+      let parsedData;
+      try {
+        // Handle case where qrData might be already parsed or needs cleaning
+        if (typeof qrData === 'string') {
+          parsedData = JSON.parse(qrData);
+        } else {
+          parsedData = qrData;
+        }
+      } catch (e) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Invalid QR code format" 
+        });
+      }
+
+      if (parsedData.type !== 'instoredealz_claim') {
+        return res.status(400).json({ 
+          success: false, 
+          error: "This is not a valid Instoredealz claim QR code" 
+        });
+      }
+
+      // Get vendor info
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Vendor not found" 
+        });
+      }
+
+      // Find claim by code from QR data
+      const allClaims = await storage.getAllDealClaims();
+      const claim = allClaims.find(c => c.claimCode === parsedData.claimCode);
+
+      if (!claim) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Invalid claim code in QR data" 
+        });
+      }
+
+      // Verify deal belongs to this vendor
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal || deal.vendorId !== vendor.id) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "This claim code is not for your deals" 
+        });
+      }
+
+      // Check if already used or expired
+      if (claim.vendorVerified) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "This claim code has already been used" 
+        });
+      }
+
+      if (claim.codeExpiresAt && new Date() > new Date(claim.codeExpiresAt)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "This claim code has expired" 
+        });
+      }
+
+      // Get customer details
+      const customer = await storage.getUser(claim.userId);
+      if (!customer) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Customer not found" 
+        });
+      }
+
+      res.json({
+        success: true,
+        verified: true,
+        claim: {
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          claimedAt: claim.claimedAt,
+          expiresAt: claim.codeExpiresAt
+        },
+        customer: {
+          id: customer.id,
+          name: customer.name,
+          phone: customer.phone,
+          membershipPlan: customer.membershipPlan
+        },
+        deal: {
+          id: deal.id,
+          title: deal.title,
+          discountPercentage: deal.discountPercentage,
+          originalPrice: deal.originalPrice,
+          discountedPrice: deal.discountedPrice
+        },
+        message: "QR code verified successfully"
+      });
+
+    } catch (error) {
+      Logger.error('Error in QR verification', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to verify QR code' 
+      });
+    }
+  });
+
+  // Manual completion for non-POS vendors
+  app.post('/api/manual/complete-transaction', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimId, billAmount, actualDiscount, notes } = req.body;
+
+      if (!claimId || !billAmount || actualDiscount === undefined) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Claim ID, bill amount, and actual discount are required" 
+        });
+      }
+
+      // Get vendor info
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Vendor not found" 
+        });
+      }
+
+      // Find and verify claim
+      const allClaims = await storage.getAllDealClaims();
+      const claim = allClaims.find(c => c.id === claimId);
+
+      if (!claim) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Claim not found" 
+        });
+      }
+
+      if (claim.vendorVerified) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "This transaction has already been completed" 
+        });
+      }
+
+      // Verify deal belongs to this vendor
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal || deal.vendorId !== vendor.id) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "Unauthorized access to this claim" 
+        });
+      }
+
+      // Update claim as verified and completed
+      await storage.updateDealClaim(claim.id, {
+        status: "used",
+        vendorVerified: true,
+        verifiedAt: new Date(),
+        usedAt: new Date(),
+        billAmount: billAmount.toString(),
+        actualSavings: actualDiscount.toString(),
+        savingsAmount: actualDiscount.toString(),
+        verificationMethod: "manual", // Mark as manual verification
+        verificationNotes: notes || "Manual verification by vendor"
+      });
+
+      // Update user's total savings
+      const customer = await storage.getUser(claim.userId);
+      if (customer) {
+        const newTotalSavings = parseFloat(customer.totalSavings || '0') + parseFloat(actualDiscount);
+        await storage.updateUserProfile(claim.userId, {
+          totalSavings: newTotalSavings.toString(),
+          dealsClaimed: (customer.dealsClaimed || 0) + 1
+        });
+      }
+
+      // Increment deal redemption count
+      await storage.incrementDealRedemptions(claim.dealId);
+
+      res.json({
+        success: true,
+        message: "Transaction completed successfully using manual verification",
+        transaction: {
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          billAmount,
+          actualDiscount,
+          verificationMethod: "manual",
+          completedAt: new Date().toISOString()
+        },
+        customer: {
+          name: customer?.name,
+          totalSavings: customer ? parseFloat(customer.totalSavings || '0') + parseFloat(actualDiscount) : actualDiscount
+        }
+      });
+
+    } catch (error) {
+      Logger.error('Error completing manual transaction', error);
       res.status(500).json({ 
         success: false, 
         error: 'Failed to complete transaction' 

@@ -46,6 +46,7 @@ import VendorProcess from "@/pages/vendor/VendorProcess";
 import VendorOnboarding from "@/pages/vendor/VendorOnboarding";
 import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
 import VendorLocationAnalytics from "@/pages/vendor/location-analytics";
+import ManualVerification from "@/pages/vendor/ManualVerification";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -173,6 +174,7 @@ function Router() {
   const [matchVendorEnhancedPos] = useRoute("/vendor/pos/enhanced");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
   const [matchVendorProfile] = useRoute("/vendor/profile");
+  const [matchVendorManualVerification] = useRoute("/vendor/manual-verification");
 
   // Admin routes
   const [matchAdmin] = useRoute("/admin");
@@ -387,6 +389,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorProfile />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorManualVerification) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <ManualVerification />
       </RoleProtectedRoute>
     );
   }
