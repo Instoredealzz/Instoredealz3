@@ -115,8 +115,9 @@ export default function EnhancedPOSDashboard() {
     queryKey: ['/api/pos/inventory'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('/api/pos/inventory');
-        return Array.isArray(response) ? response : [];
+        const response = await apiRequest('/api/pos/inventory', { method: 'GET' });
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching inventory:', error);
         return [];
@@ -129,8 +130,9 @@ export default function EnhancedPOSDashboard() {
     queryKey: ['/api/pos/bills'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('/api/pos/bills');
-        return Array.isArray(response) ? response : [];
+        const response = await apiRequest('/api/pos/bills', { method: 'GET' });
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching bills:', error);
         return [];
@@ -143,8 +145,9 @@ export default function EnhancedPOSDashboard() {
     queryKey: ['/api/pos/gds/connections'],
     queryFn: async () => {
       try {
-        const response = await apiRequest('/api/pos/gds/connections');
-        return Array.isArray(response) ? response : [];
+        const response = await apiRequest('/api/pos/gds/connections', { method: 'GET' });
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
       } catch (error) {
         console.error('Error fetching GDS connections:', error);
         return [];
@@ -157,8 +160,9 @@ export default function EnhancedPOSDashboard() {
     queryKey: ['/api/pos/analytics', activeTab],
     queryFn: async () => {
       try {
-        const response = await apiRequest(`/api/pos/analytics?type=${activeTab}`);
-        return response || {};
+        const response = await apiRequest(`/api/pos/analytics?type=${activeTab}`, { method: 'GET' });
+        const data = await response.json();
+        return data || {};
       } catch (error) {
         console.error('Error fetching analytics:', error);
         return {};
@@ -169,10 +173,11 @@ export default function EnhancedPOSDashboard() {
   // Add inventory item mutation
   const addInventoryMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/pos/inventory', {
+      const response = await apiRequest('/api/pos/inventory', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: data
       });
+      return await response.json();
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Inventory item added successfully" });
@@ -188,10 +193,11 @@ export default function EnhancedPOSDashboard() {
   // Create bill mutation
   const createBillMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/pos/bills', {
+      const response = await apiRequest('/api/pos/bills', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: data
       });
+      return await response.json();
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Bill created successfully" });
@@ -207,10 +213,11 @@ export default function EnhancedPOSDashboard() {
   // Add GDS connection mutation
   const addGDSMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest('/api/pos/gds/connections', {
+      const response = await apiRequest('/api/pos/gds/connections', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: data
       });
+      return await response.json();
     },
     onSuccess: () => {
       toast({ title: "Success", description: "GDS connection added successfully" });
