@@ -40,46 +40,60 @@ export default function AdminDeals() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all deals with custom cache-busting fetch
+  // Fetch all deals with guaranteed fresh data
   const { data: allDeals, isLoading: allDealsLoading, refetch: refetchAllDeals } = useQuery({
-    queryKey: ["/api/admin/deals", refreshTrigger],
+    queryKey: ["/api/admin/deals", refreshTrigger, Date.now()],
     queryFn: async () => {
+      console.log('Fetching all deals with fresh query...', refreshTrigger);
       const timestamp = Date.now();
-      const response = await fetch(`/api/admin/deals?_timestamp=${timestamp}`, {
+      const response = await fetch(`/api/admin/deals?_t=${timestamp}&_r=${refreshTrigger}`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
+          'Expires': '0',
         },
+        cache: 'no-store',
       });
       if (!response.ok) throw new Error('Failed to fetch deals');
-      return response.json();
+      const data = await response.json();
+      console.log('All deals response:', data.length, 'deals');
+      return data;
     },
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0, // React Query v5 uses gcTime instead of cacheTime
     refetchOnMount: 'always',
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: false,
   });
 
-  // Fetch pending deals with custom cache-busting fetch
+  // Fetch pending deals with guaranteed fresh data
   const { data: pendingDeals, isLoading: pendingDealsLoading, refetch } = useQuery({
-    queryKey: ["/api/admin/deals/pending", refreshTrigger],
+    queryKey: ["/api/admin/deals/pending", refreshTrigger, Date.now()],
     queryFn: async () => {
+      console.log('Fetching pending deals with fresh query...', refreshTrigger);
       const timestamp = Date.now();
-      const response = await fetch(`/api/admin/deals/pending?_timestamp=${timestamp}`, {
+      const response = await fetch(`/api/admin/deals/pending?_t=${timestamp}&_r=${refreshTrigger}`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
+          'Expires': '0',
         },
+        cache: 'no-store',
       });
       if (!response.ok) throw new Error('Failed to fetch pending deals');
-      return response.json();
+      const data = await response.json();
+      console.log('Pending deals response:', data.length, 'deals');
+      return data;
     },
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0, // React Query v5 uses gcTime instead of cacheTime
     refetchOnMount: 'always',
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    refetchInterval: false,
   });
 
   const isLoading = allDealsLoading || pendingDealsLoading;
@@ -98,15 +112,18 @@ export default function AdminDeals() {
         description: "The deal is now live and available to customers.",
       });
       
-      // Aggressive cache clearing and refresh
-      queryClient.removeQueries({ queryKey: ["/api/admin/deals"] });
-      queryClient.removeQueries({ queryKey: ["/api/admin/deals/pending"] });
+      // Completely remove all cached data and force immediate refresh
+      queryClient.clear(); // Clear entire cache
       setRefreshTrigger(prev => prev + 1);
       
-      // Add delay to ensure backend has processed the change
+      // Force immediate refetch without delay
+      await Promise.all([refetch(), refetchAllDeals()]);
+      
+      // Double-check with another refresh after 1 second
       setTimeout(async () => {
+        setRefreshTrigger(prev => prev + 1);
         await Promise.all([refetch(), refetchAllDeals()]);
-      }, 500);
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -126,18 +143,21 @@ export default function AdminDeals() {
         title: "Deal rejected successfully!",
         description: "The vendor has been notified about the rejection.",
       });
-      // Aggressive cache clearing and refresh
-      queryClient.removeQueries({ queryKey: ["/api/admin/deals"] });
-      queryClient.removeQueries({ queryKey: ["/api/admin/deals/pending"] });
+      // Completely remove all cached data and force immediate refresh
+      queryClient.clear(); // Clear entire cache
       setRefreshTrigger(prev => prev + 1);
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);
       
-      // Add delay to ensure backend has processed the change
+      // Force immediate refetch without delay
+      await Promise.all([refetch(), refetchAllDeals()]);
+      
+      // Double-check with another refresh after 1 second
       setTimeout(async () => {
+        setRefreshTrigger(prev => prev + 1);
         await Promise.all([refetch(), refetchAllDeals()]);
-      }, 500);
+      }, 1000);
     },
     onError: (error: any) => {
       toast({
