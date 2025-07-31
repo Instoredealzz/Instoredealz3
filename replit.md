@@ -263,10 +263,12 @@ Preferred communication style: Simple, everyday language.
 - **Logo Container Classes**: Added responsive sizing classes and accessibility focus states for better user experience
 - **Vendor Profile Visibility**: Fixed specific text visibility issues in business stats, account details, and form fields
 
-### July 31, 2025 - Comprehensive Mobile Number & Email Uniqueness Validation System
+### July 31, 2025 - Enhanced Username Validation with Symbol Support & Comprehensive Validation System
+- **Enhanced Username Flexibility**: Updated username validation to allow symbols (@, #, $, %, &, *, +, =, ?, !) in addition to letters, numbers, dots, underscores, and hyphens
+- **Expanded Character Support**: Changed regex from `/^[a-zA-Z0-9._-]+$/` to `/^[a-zA-Z0-9._@#$%&*+=?!-]+$/` for broader username options
 - **Enforced 10-Digit Mobile Numbers**: All forms now require exactly 10 digits for mobile numbers using regex pattern `/^[0-9]{10}$/`
 - **Universal Email Uniqueness**: Email addresses must be unique across all user registrations with proper error messages
-- **Username Uniqueness**: Usernames must be unique with alphanumeric validation (letters, numbers, dots, underscores, hyphens only)
+- **Username Uniqueness**: Usernames must be unique with enhanced validation supporting symbols and special characters
 - **Mobile Number Uniqueness**: Phone numbers must be unique across all users with validation in signup, profile updates, and vendor registration
 - **Backend API Validation**: Comprehensive uniqueness checks implemented in all registration and update endpoints
 - **Schema Updates**: Updated all form validation schemas across signup, vendor registration, profile updates, and onboarding forms

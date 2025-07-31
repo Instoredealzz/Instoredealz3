@@ -938,7 +938,7 @@ export const loginSchema = z.object({
 export const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-zA-Z0-9._-]+$/, "Username can only contain letters, numbers, dots, underscores, and hyphens"),
+  username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-zA-Z0-9._@#$%&*+=?!-]+$/, "Username can contain letters, numbers, and symbols"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   phone: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
   city: z.string().optional(),
