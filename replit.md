@@ -263,6 +263,17 @@ Preferred communication style: Simple, everyday language.
 - **Logo Container Classes**: Added responsive sizing classes and accessibility focus states for better user experience
 - **Vendor Profile Visibility**: Fixed specific text visibility issues in business stats, account details, and form fields
 
+### July 31, 2025 - Critical Vendor Registration Data Flow Fix
+- **Fixed Duplicate User Creation Bug**: Resolved critical issue where vendor registration was creating duplicate user accounts instead of linking to existing vendor users
+- **Corrected Data Flow**: Vendor registrations now properly populate Vendor Management section instead of appearing incorrectly in User Management
+- **Authentication Required**: Modified `/api/vendors/register` endpoint to require authentication and use existing logged-in vendor user instead of creating new user account
+- **Eliminated Data Duplication**: Vendors who sign up and complete business registration now appear only once in the system under proper vendor management
+- **Clean Separation**: User Management displays customers and system users, Vendor Management displays business vendors as intended
+- **Fixed Registration Flow**: 
+  1. User signs up with "vendor" role → creates user record in users table
+  2. User completes vendor business registration → creates vendor record in vendors table linked to existing user
+  3. Vendor appears in Vendor Management for approval, not User Management
+
 ### July 29, 2025 - Complete API System Fixes & 95% Success Rate Achievement
 - **Admin System Resolution**: Fixed all admin endpoints to use proper `/api/admin/` URL patterns achieving 100% admin functionality
 - **Vendor Registration Fixed**: Made vendor registration public endpoint removing authentication requirement (201 status success)

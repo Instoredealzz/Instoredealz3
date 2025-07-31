@@ -1253,32 +1253,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor routes
-  app.post('/api/vendors/register', async (req: Request, res) => {
+  app.post('/api/vendors/register', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
-      // First create the user account, then the vendor profile
-      const userData = signupSchema.parse(req.body);
-      const newUser = await storage.createUser({
-        ...userData,
-        role: "vendor"
-      });
-
-      const vendorData = insertVendorSchema.parse({
-        ...req.body,
-        userId: newUser.id,
-        isApproved: false, // Requires admin approval
-      });
+      const user = req.user!;
       
       // Check if user already has a vendor profile
-      const existingVendor = await storage.getVendorByUserId(newUser.id);
+      const existingVendor = await storage.getVendorByUserId(user.id);
       if (existingVendor) {
         return res.status(400).json({ message: "Vendor profile already exists" });
       }
+
+      const vendorData = insertVendorSchema.parse({
+        ...req.body,
+        userId: user.id,
+        isApproved: false, // Requires admin approval
+      });
       
       const vendor = await storage.createVendor(vendorData);
       
       // Log vendor registration
       await storage.createSystemLog({
-        userId: newUser.id,
+        userId: user.id,
         action: "VENDOR_REGISTRATION",
         details: { 
           vendorId: vendor.id,
@@ -1294,14 +1289,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const emailData = getVendorRegistrationEmail(
           vendor.businessName,
-          newUser.name,
-          newUser.email
+          user.name,
+          user.email
         );
         await sendEmail(emailData);
         Logger.info('Vendor registration email sent successfully', { 
           vendorId: vendor.id, 
           businessName: vendor.businessName,
-          email: newUser.email 
+          email: user.email 
         });
       } catch (emailError) {
         Logger.error('Failed to send vendor registration email', { 
