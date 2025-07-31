@@ -41,21 +41,8 @@ export default function AdminDeals() {
   const queryClient = useQueryClient();
 
   // Fetch all deals
-  const { data: allDeals, isLoading: allDealsLoading } = useQuery({
+  const { data: allDeals, isLoading: allDealsLoading, refetch: refetchAllDeals } = useQuery({
     queryKey: ["/api/admin/deals", refreshTrigger],
-    queryFn: async () => {
-      const timestamp = Date.now();
-      const response = await fetch(`/api/admin/deals?_=${timestamp}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Cache-Control': 'no-cache',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch all deals');
-      }
-      return response.json();
-    },
     staleTime: 0,
     cacheTime: 0,
     refetchOnMount: 'always',
@@ -65,20 +52,6 @@ export default function AdminDeals() {
   // Fetch pending deals
   const { data: pendingDeals, isLoading: pendingDealsLoading, refetch } = useQuery({
     queryKey: ["/api/admin/deals/pending", refreshTrigger],
-    queryFn: async () => {
-      // Force fresh request with cache-busting parameter
-      const timestamp = Date.now();
-      const response = await fetch(`/api/admin/deals/pending?_=${timestamp}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Cache-Control': 'no-cache',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch pending deals');
-      }
-      return response.json();
-    },
     staleTime: 0,
     cacheTime: 0,
     refetchOnMount: 'always',
@@ -102,7 +75,9 @@ export default function AdminDeals() {
       });
       // Force immediate refresh by both updating trigger and calling refetch
       setRefreshTrigger(prev => prev + 1);
-      await refetch();
+      await Promise.all([refetch(), refetchAllDeals()]);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
     },
     onError: (error: any) => {
       toast({
@@ -124,7 +99,9 @@ export default function AdminDeals() {
       });
       // Force immediate refresh by both updating trigger and calling refetch
       setRefreshTrigger(prev => prev + 1);
-      await refetch();
+      await Promise.all([refetch(), refetchAllDeals()]);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);
