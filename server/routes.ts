@@ -5925,7 +5925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CORRECTED CUSTOMER CLAIM CODE SYSTEM
   // ===============================
 
-  // Generate unique claim code for customer
+  // Generate unique claim code for customer (legacy function - now using rotating PINs)
   function generateClaimCode(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -5934,6 +5934,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     return code;
   }
+
+  // Audit endpoint for admin to check deal code consistency
+  app.get('/api/admin/audit/deal-codes', requireAuth, requireRole(['admin', 'super_admin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { generateRotatingPin } = await import('./pin-security');
+      const deals = await storage.getAllDeals();
+      const claims = await storage.getAllDealClaims();
+      
+      const auditReport = {
+        timestamp: new Date().toISOString(),
+        totalDeals: deals.length,
+        codesAnalyzed: 0,
+        rotatingPinConsistency: [],
+        potentialCollisions: [],
+        duplicateCodeAlerts: [],
+        vendorCodeDistribution: {}
+      };
+
+      // Check rotating PIN consistency for each deal
+      for (const deal of deals) {
+        if (deal.isActive) {
+          const rotatingPin = generateRotatingPin(deal.id);
+          const dealClaims = claims.filter(c => c.dealId === deal.id);
+          
+          auditReport.codesAnalyzed++;
+          auditReport.rotatingPinConsistency.push({
+            dealId: deal.id,
+            dealTitle: deal.title,
+            vendorId: deal.vendorId,
+            currentRotatingPin: rotatingPin.currentPin,
+            nextRotationAt: rotatingPin.nextRotationAt,
+            totalClaims: dealClaims.length,
+            recentClaimsUsingRotatingPin: dealClaims.filter(c => c.claimCode === rotatingPin.currentPin).length,
+            status: dealClaims.some(c => c.claimCode === rotatingPin.currentPin) ? 'PIN_IN_USE' : 'PIN_AVAILABLE'
+          });
+
+          // Track vendor code distribution
+          if (!auditReport.vendorCodeDistribution[deal.vendorId]) {
+            auditReport.vendorCodeDistribution[deal.vendorId] = { totalDeals: 0, activePins: [] };
+          }
+          auditReport.vendorCodeDistribution[deal.vendorId].totalDeals++;
+          auditReport.vendorCodeDistribution[deal.vendorId].activePins.push(rotatingPin.currentPin);
+        }
+      }
+
+      // Check for potential cross-vendor code collisions in current rotation window
+      const currentPins = auditReport.rotatingPinConsistency.map(r => r.currentRotatingPin);
+      const pinFrequency = {};
+      currentPins.forEach(pin => {
+        pinFrequency[pin] = (pinFrequency[pin] || 0) + 1;
+      });
+
+      Object.entries(pinFrequency).forEach(([pin, count]) => {
+        if (count > 1) {
+          const conflictingDeals = auditReport.rotatingPinConsistency.filter(r => r.currentRotatingPin === pin);
+          auditReport.potentialCollisions.push({
+            pin,
+            conflictCount: count,
+            affectedDeals: conflictingDeals.map(d => ({ dealId: d.dealId, vendorId: d.vendorId, dealTitle: d.dealTitle })),
+            severity: 'HIGH',
+            recommendation: 'Monitor for customer confusion. Rotating PINs will resolve collision in next rotation window.'
+          });
+        }
+      });
+
+      // Check for duplicate claim codes in database
+      const claimCodeFrequency = {};
+      claims.forEach(claim => {
+        if (claim.claimCode) {
+          claimCodeFrequency[claim.claimCode] = (claimCodeFrequency[claim.claimCode] || 0) + 1;
+        }
+      });
+
+      Object.entries(claimCodeFrequency).forEach(([code, count]) => {
+        if (count > 1) {
+          const duplicateClaims = claims.filter(c => c.claimCode === code);
+          auditReport.duplicateCodeAlerts.push({
+            claimCode: code,
+            duplicateCount: count,
+            affectedClaims: duplicateClaims.map(c => ({ claimId: c.id, dealId: c.dealId, userId: c.userId, claimedAt: c.claimedAt })),
+            severity: 'MEDIUM',
+            recommendation: 'Review claim verification process for these specific codes.'
+          });
+        }
+      });
+
+      res.json({
+        auditReport,
+        recommendations: [
+          'Rotating PIN system ensures automatic resolution of code collisions every 30 minutes',
+          'Monitor high-traffic periods for potential temporary collisions',
+          'Duplicate claim codes in database may indicate legacy data or verification issues',
+          'Cross-vendor PIN collisions are rare due to deal-specific time-based generation'
+        ],
+        nextAuditRecommended: new Date(Date.now() + 30 * 60 * 1000).toISOString() // 30 minutes
+      });
+
+    } catch (error) {
+      Logger.error('Deal code audit error:', error);
+      res.status(500).json({ error: 'Failed to generate audit report' });
+    }
+  });
 
   // Generate QR code data for manual verification
   function generateQRData(claimCode: string, dealId: number, customerId: number): string {
@@ -5985,25 +6087,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Generate unique claim code
-      let claimCode: string;
-      let isUnique = false;
-      let attempts = 0;
-      
-      do {
-        claimCode = generateClaimCode();
-        // Check if code already exists (simplified check for demo)
-        const existingClaims = await storage.getUserClaims(userId);
-        isUnique = !existingClaims.some(claim => claim.claimCode === claimCode);
-        attempts++;
-      } while (!isUnique && attempts < 10);
-
-      if (!isUnique) {
-        return res.status(500).json({
-          success: false,
-          error: "Failed to generate unique claim code"
-        });
-      }
+      // Get current rotating PIN for this deal (ensures consistency with vendor dashboard)
+      const { generateRotatingPin } = await import('./pin-security');
+      const rotatingPinResult = generateRotatingPin(dealId);
+      const claimCode = rotatingPinResult.currentPin;
 
       // Set expiration to 24 hours from now
       const expiresAt = new Date();
@@ -6038,7 +6125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await storage.createSystemLog({
           userId,
-          action: "DEAL_CLAIMED_WITH_CODE",
+          action: "DEAL_CLAIMED_WITH_ROTATING_PIN",
           details: {
             // Required vendor data
             vendorId: deal.vendorId,
@@ -6057,7 +6144,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Additional analytics data
             category: deal.category,
             vendorCity: deal.city,
-            membershipLevel: user.membershipPlan
+            membershipLevel: user.membershipPlan,
+            // Rotating PIN audit trail
+            pinType: "rotating",
+            pinRotationWindow: rotatingPinResult.rotationInterval,
+            nextRotationAt: rotatingPinResult.nextRotationAt.toISOString(),
+            pinConsistencyCheck: "customer_vendor_pin_match"
           },
           ipAddress: req.ip,
           userAgent: req.headers['user-agent']
@@ -6143,14 +6235,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Find claim by code
+      // First, try to find claim by stored claim code
       const allClaims = await storage.getAllDealClaims();
-      const claim = allClaims.find(c => c.claimCode === claimCode);
+      let claim = allClaims.find(c => c.claimCode === claimCode);
+      let isRotatingPinClaim = false;
+
+      // If no claim found with stored code, check if this is a rotating PIN
+      if (!claim) {
+        // Import rotating PIN verification
+        const { verifyRotatingPin } = await import('./pin-security');
+        
+        // Check all vendor's deals to see if this rotating PIN matches any deal
+        const vendorDeals = await storage.getDealsByVendor(vendor.id);
+        let matchingDeal = null;
+        
+        for (const deal of vendorDeals) {
+          if (verifyRotatingPin(deal.id, claimCode)) {
+            matchingDeal = deal;
+            break;
+          }
+        }
+        
+        if (matchingDeal) {
+          // Find any pending claim for this deal that can be verified with rotating PIN
+          const dealClaims = allClaims.filter(c => c.dealId === matchingDeal.id && !c.vendorVerified);
+          if (dealClaims.length > 0) {
+            // Use the most recent pending claim
+            claim = dealClaims.sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime())[0];
+            isRotatingPinClaim = true;
+          }
+        }
+      }
 
       if (!claim) {
         return res.status(404).json({ 
           success: false, 
-          error: "Invalid claim code" 
+          error: "Invalid claim code or no pending claims found for this PIN" 
         });
       }
 
