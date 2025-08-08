@@ -35,7 +35,13 @@ interface DealCardProps {
   };
   requiredMembership: string;
   distance?: number;
-
+  userClaims?: Array<{
+    id: number;
+    claimCode?: string;
+    status: string;
+    vendorVerified?: boolean;
+    claimedAt?: string;
+  }>;
   terms?: string;
   isActive?: boolean;
   isFavorite?: boolean;
@@ -61,7 +67,7 @@ export default function DealCard({
   vendor,
   requiredMembership,
   distance,
-
+  userClaims = [],
   terms,
   isActive = true,
   isFavorite = false,
@@ -258,7 +264,33 @@ export default function DealCard({
             </div>
           )}
 
-
+          {/* Claim Codes - Show when user has claimed this deal */}
+          {userClaims.length > 0 && (
+            <div className="space-y-2">
+              <div className="text-xs font-medium text-green-600 dark:text-green-400">
+                Your Claim Code{userClaims.length > 1 ? 's' : ''}:
+              </div>
+              {userClaims.slice(0, 2).map((claim, index) => (
+                <div key={claim.id} className={`bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded p-2 ${
+                  index === 0 ? 'ring-2 ring-green-300 dark:ring-green-700' : ''
+                }`}>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-800 dark:text-green-300 tracking-wider">
+                      {claim.claimCode || 'Loading...'}
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      {claim.vendorVerified ? '✅ Verified' : 'Show at store'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {userClaims.length > 2 && (
+                <div className="text-xs text-blue-500 dark:text-blue-400 text-center">
+                  +{userClaims.length - 2} more codes
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Validity and Redemptions */}
           <div className="space-y-2">
