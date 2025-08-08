@@ -208,15 +208,15 @@ export default function DealDetail({ params }: DealDetailProps) {
         variant: "default",
       });
       
-      // Refresh user claims to update UI - but keep the local state
+      // Refresh user claims to update UI
       setTimeout(async () => {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["/api/users/claims"] }),
           queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}`] }),
           queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}/secure`] })
         ]);
-        // Clear local claim code after claims are refreshed to avoid duplication
-        setTimeout(() => setClaimCode(''), 100);
+        // Refetch to ensure we get the latest claims
+        refetchClaims();
       }, 500);
     },
     onError: (error: any) => {
@@ -565,8 +565,8 @@ export default function DealDetail({ params }: DealDetailProps) {
                           </div>
                         )}
 
-                        {/* Show message if newly claimed but codes not loaded yet */}
-                        {claimCode && userClaims_forDeal.length === 0 && (
+                        {/* Show message if newly claimed - always show when claimCode exists */}
+                        {claimCode && (
                           <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-green-200 dark:border-green-800">
                             <div className="text-center">
                               <div className="text-sm text-green-600 dark:text-green-400 font-medium mb-2">
