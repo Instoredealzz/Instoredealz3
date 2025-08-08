@@ -456,31 +456,7 @@ export default function DealDetail({ params }: DealDetailProps) {
                       Login to Claim Deal
                     </Button>
                   ) : canAccessDeal() ? (
-                    !hasClaimedDeal ? (
-                      <Button
-                        onClick={handleClaimDeal}
-                        disabled={isExpired || !!isFullyRedeemed || !deal?.isActive || claimDealMutation.isPending}
-                        className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                        size="lg"
-                      >
-                        {claimDealMutation.isPending ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Claiming...
-                          </>
-                        ) : isExpired ? (
-                          "Deal Expired"
-                        ) : isFullyRedeemed ? (
-                          "Fully Redeemed"
-                        ) : (
-                          <>
-                            <Shield className="w-4 h-4 mr-2" />
-                            Claim Deal
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <div className="space-y-4">
+                    <div className="space-y-4">
                         {/* Always show the claim button since we allow multiple claims */}
                         <Button
                           onClick={() => claimDealMutation.mutate(deal!.id)}
@@ -587,13 +563,14 @@ export default function DealDetail({ params }: DealDetailProps) {
                           </div>
                         )}
                         
+
+                        
                         {userClaim?.status === 'claimed' && !userClaim?.vendorVerified && (
                           <div className="text-center text-sm text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 rounded-lg py-2">
                             📍 Visit the store with your claim code to complete redemption
                           </div>
                         )}
                       </div>
-                    )
                   ) : (
                     <Button
                       onClick={() => setLocation('/customer/upgrade')}
