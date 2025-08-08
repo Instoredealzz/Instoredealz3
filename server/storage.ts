@@ -247,6 +247,8 @@ export class MemStorage implements IStorage {
   private dealConciergeRequests: Map<number, DealConciergeRequest> = new Map();
   private alertNotifications: Map<number, AlertNotification> = new Map();
   private pinAttempts: Map<number, PinAttempt> = new Map();
+  private promotionalBanners: Map<number, PromotionalBanner> = new Map();
+  private bannerAnalytics: Map<number, BannerAnalytics> = new Map();
 
   private currentUserId = 1;
   private currentVendorId = 1;
@@ -263,6 +265,8 @@ export class MemStorage implements IStorage {
   private currentDealRatingId = 1;
   private currentVendorRatingId = 1;
   private currentPinAttemptId = 1;
+  private currentPromotionalBannerId = 1;
+  private currentBannerAnalyticsId = 1;
 
   constructor() {
     this.initializeWithSampleData();
@@ -439,6 +443,7 @@ export class MemStorage implements IStorage {
     this.generateTestUsers().forEach(u => this.users.set(u.id, u));
     this.generateTestDeals().forEach(d => this.deals.set(d.id, d));
     this.generateTestClaims();
+    this.generateTestBanners();
   }
 
   private generateTestVendors(): Vendor[] {
