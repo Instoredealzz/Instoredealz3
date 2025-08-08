@@ -82,13 +82,6 @@ export default function CustomerDeals() {
     enabled: !!user,
   });
 
-  // Fetch user claims to show claim codes on deal cards
-  const { data: userClaims = [] } = useQuery<any[]>({
-    queryKey: ["/api/users/claims"],
-    enabled: !!user,
-    staleTime: 0,
-  });
-
   const addToWishlistMutation = useMutation({
     mutationFn: async (dealId: number) => {
       return apiRequest('/api/wishlist', 'POST', { dealId });
@@ -344,13 +337,11 @@ export default function CustomerDeals() {
           <div className="deal-grid">
             {sortedDeals.map((deal: any) => {
               const isInWishlist = wishlist?.some((item: any) => item.dealId === deal.id);
-              const dealClaims = userClaims.filter((claim: any) => claim.dealId === deal.id);
               return (
                 <div key={deal.id} id={`deal-${deal.id}`}>
                   <DealCard
                     {...deal}
                     isFavorite={isInWishlist}
-                    userClaims={dealClaims}
                     onClaim={() => handleClaimDeal(deal)}
                     onToggleFavorite={() => handleToggleFavorite(deal.id)}
                     onView={() => {
