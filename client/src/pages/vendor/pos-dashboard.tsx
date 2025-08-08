@@ -351,7 +351,7 @@ export default function PosDashboard() {
       });
     },
     onSuccess: (data, variables) => {
-      if (data.valid) {
+      if (data.success && data.valid) {
         const dealsArray = Array.isArray(deals) ? deals : [];
         const foundDeal = dealsArray.find(d => d.id === variables.dealId);
         if (foundDeal) {
@@ -364,11 +364,19 @@ export default function PosDashboard() {
         });
       } else {
         toast({
-          title: "Invalid PIN",
-          description: "Please check the PIN and try again",
+          title: "PIN Verification Failed",
+          description: data.error || "Please check the PIN and try again",
           variant: "destructive",
         });
       }
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || 'Failed to verify PIN. Please try again.';
+      toast({
+        title: "Verification Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     },
   });
 

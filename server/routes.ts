@@ -10,6 +10,7 @@ let storage: any = new MemStorage();
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail } from "./email";
+import { verifyRotatingPin, verifyPin } from "./pin-security";
 import jwt from "jsonwebtoken";
 
 // Configure axios defaults
@@ -4136,15 +4137,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const isValid = deal.verificationPin === pin.toString();
+      // Check if deal is active and approved
+      if (!deal.isActive || !deal.isApproved) {
+        return res.status(400).json({
+          success: false,
+          error: "This deal is not currently available"
+        });
+      }
+
+      // Check if deal has expired
+      if (new Date() > new Date(deal.validUntil)) {
+        return res.status(400).json({
+          success: false,
+          error: "This deal has expired"
+        });
+      }
+
+      // Check if the deal has an active verification PIN
+      if (!deal.verificationPin) {
+        return res.status(400).json({
+          success: false,
+          error: "No active deal found with the verification code"
+        });
+      }
+
+      // Verify PIN using multiple methods: rotating PIN, secure hashing, and legacy fallback
+      let pinVerificationResult;
+      let isRotatingPin = false;
+      
+      // First, try rotating PIN verification
+      if (verifyRotatingPin(dealId, pin)) {
+        pinVerificationResult = {
+          isValid: true,
+          message: "Rotating PIN verified successfully"
+        };
+        isRotatingPin = true;
+      } else if (deal.pinSalt) {
+        // New secure PIN verification
+        pinVerificationResult = await verifyPin(
+          pin, 
+          deal.verificationPin, 
+          deal.pinSalt, 
+          deal.pinExpiresAt || undefined
+        );
+      } else {
+        // Legacy plain text PIN verification (temporary)
+        const cleanPin = String(pin || '').trim();
+        const storedPin = String(deal.verificationPin || '').trim();
+        pinVerificationResult = {
+          isValid: cleanPin === storedPin,
+          message: cleanPin === storedPin ? "PIN verified successfully" : "Invalid PIN"
+        };
+      }
+
+      // Check if PIN has expired
+      if (!pinVerificationResult.isValid && deal.pinExpiresAt && new Date() > new Date(deal.pinExpiresAt)) {
+        return res.status(400).json({
+          success: false,
+          error: "PIN has expired. Please generate a new one."
+        });
+      }
+
+      if (!pinVerificationResult.isValid) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid PIN. Please check the verification code and try again."
+        });
+      }
       
       res.json({ 
         success: true, 
-        data: { 
-          valid: isValid,
-          dealTitle: isValid ? deal.title : null,
-          dealId: dealId
-        } 
+        valid: true,
+        dealTitle: deal.title,
+        dealId: dealId,
+        message: pinVerificationResult.message
       });
     } catch (error) {
       Logger.error('Error verifying PIN', error);
