@@ -4107,6 +4107,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const deals = await storage.getDealsByVendor(vendor.id);
       const activeDeals = deals.filter(deal => deal.isActive && deal.isApproved);
       
+      Logger.debug('POS Deals Debug', {
+        vendorId: vendor.id,
+        totalDeals: deals.length,
+        activeApprovedDeals: activeDeals.length,
+        dealsInfo: activeDeals.map(d => ({
+          id: d.id,
+          title: d.title,
+          hasPin: !!d.verificationPin,
+          pin: d.verificationPin,
+          isActive: d.isActive,
+          isApproved: d.isApproved
+        }))
+      });
+      
       res.json({ success: true, data: activeDeals });
     } catch (error) {
       Logger.error('Error fetching POS deals', error);
@@ -4118,7 +4132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Verify deal PIN (for offline verification)
-  app.post('/api/pos/verify-pin', async (req: AuthenticatedRequest, res) => {
+  app.post('/api/pos/verify-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
       const { dealId, pin } = req.body;
 
@@ -4129,11 +4143,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Get vendor information
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Vendor not found" 
+        });
+      }
+
       const deal = await storage.getDeal(dealId);
       if (!deal) {
         return res.status(404).json({ 
           success: false, 
           error: "Deal not found" 
+        });
+      }
+
+      // Check if the deal belongs to this vendor
+      if (deal.vendorId !== vendor.id) {
+        return res.status(403).json({
+          success: false,
+          error: "No active deal found with the verification code"
         });
       }
 
