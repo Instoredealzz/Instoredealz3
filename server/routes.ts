@@ -1006,14 +1006,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use existing pending claim or create new one (allow multiple claims)
       let currentClaim = pendingClaim;
       if (!currentClaim) {
+        // Generate a unique claim code for the new claim
+        const { generateSecurePin } = await import('./pin-security');
+        const claimCode = generateSecurePin();
+        
+        // Set expiration to 24 hours from now
+        const codeExpiresAt = new Date();
+        codeExpiresAt.setHours(codeExpiresAt.getHours() + 24);
+        
         currentClaim = await storage.claimDeal({
           dealId,
           userId,
           status: "pending",
-          savingsAmount: "0"
+          savingsAmount: "0",
+          claimCode,
+          codeExpiresAt
         });
         Logger.debug("Auto-created new claim for PIN verification", {
           claimId: currentClaim.id,
+          claimCode,
           dealId,
           userId
         });
