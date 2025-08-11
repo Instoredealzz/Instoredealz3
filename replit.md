@@ -6,6 +6,11 @@ Instoredealz is a full-stack deal discovery platform designed to connect custome
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (August 2025)
+- **Fixed duplicate vendor registration forms**: Consolidated multiple registration prompts into a single VendorRegistrationStatus component across dashboard, profile, and deal creation pages
+- **Verified complete vendor workflow**: Registration → Admin Approval → Deal Creation → Deal Approval → Customer Visibility
+- **Database workflow confirmed**: All data properly flows from vendor registration through admin approval to customer-facing deals
+
 ## System Architecture
 
 ### UI/UX Decisions
