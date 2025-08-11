@@ -34,31 +34,39 @@ export default function AdminVendors() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: vendors, isLoading } = useQuery({
+  const { data: vendors, isLoading, refetch: refetchVendors } = useQuery({
     queryKey: ["/api/admin/vendors"],
     staleTime: 0,
     cacheTime: 0,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 
-  const { data: pendingVendors } = useQuery({
+  const { data: pendingVendors, refetch: refetchPendingVendors } = useQuery({
     queryKey: ["/api/admin/vendors/pending"],
     staleTime: 0,
     cacheTime: 0,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 
   const approveVendorMutation = useMutation({
     mutationFn: async (vendorId: number) => {
       return apiRequest(`/api/admin/vendors/${vendorId}/approve`, 'POST');
     },
-    onSuccess: () => {
+    onSuccess: async (data, vendorId) => {
       toast({
         title: "Vendor approved successfully!",
         description: "The vendor can now start creating deals.",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors/pending"] });
+      
+      // Force refresh both queries to ensure UI updates immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors/pending"] }),
+        refetchVendors(),
+        refetchPendingVendors()
+      ]);
     },
     onError: (error: any) => {
       toast({
@@ -372,14 +380,20 @@ export default function AdminVendors() {
                               </DialogContent>
                             </Dialog>
                             
-                            {!vendor.isApproved && (
+                            {!vendor.isApproved && vendor.status !== 'approved' ? (
                               <Button
                                 size="sm"
                                 onClick={() => approveVendorMutation.mutate(vendor.id)}
                                 disabled={approveVendorMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700 text-white"
                               >
                                 {approveVendorMutation.isPending ? "Approving..." : "Approve"}
                               </Button>
+                            ) : (
+                              <Badge className="bg-green-100 text-green-800 border-green-200">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Approved
+                              </Badge>
                             )}
                           </div>
                         </TableCell>
