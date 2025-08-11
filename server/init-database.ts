@@ -66,6 +66,9 @@ export async function initializeDatabase() {
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    // Fix demo user role if it exists
+    await db.execute(sql`UPDATE users SET role = 'customer' WHERE email = 'demo@demo.com'`);
+    
     // Insert demo users
     await db.insert(users).values([
       {

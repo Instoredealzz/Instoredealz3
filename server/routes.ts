@@ -533,6 +533,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   app.get('/api/auth/me', requireAuth, async (req: AuthenticatedRequest, res) => {
     const user = await storage.getUser(req.user!.id);
     if (!user) {
