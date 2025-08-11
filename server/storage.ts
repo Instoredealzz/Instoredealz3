@@ -370,9 +370,10 @@ export class MemStorage implements IStorage {
       isActive: true,
     };
 
-    // Create demo customer
+    // Create demo customer - reserve a high ID to avoid conflicts
+    const demoUserId = 1000; // Use a high ID that won't conflict with generated users
     const demoUser: User = {
-      id: this.currentUserId++,
+      id: demoUserId,
       name: "Demo Customer",
       username: "demo",
       email: "demo@demo.com",
@@ -410,16 +411,20 @@ export class MemStorage implements IStorage {
       isActive: true,
     };
 
-    // Save users
+    // Save users - ensure demo customer has a unique ID that won't conflict
     [adminUser, superAdminUser, customerBasic, customerPremium, customerUltimate, demoUser, vendorUser].forEach(user => {
       this.users.set(user.id, user);
+      console.log(`Initialized user: ${user.name} (ID: ${user.id}, Role: ${user.role}, Email: ${user.email})`);
     });
+    
+    // Update current user ID to avoid conflicts with reserved demo user ID
+    this.currentUserId = Math.max(this.currentUserId, 1001);
 
     // Create sample vendor
     const vendor: Vendor = {
       id: this.currentVendorId++,
       userId: vendorUser.id,
-      businessName: "TrendyFashion Store",
+      businessName: "Test Business Store",
       gstNumber: "27ABCDE1234F1Z5",
       panNumber: "ABCDE1234F",
       logoUrl: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=200&h=200&fit=crop",
@@ -440,7 +445,8 @@ export class MemStorage implements IStorage {
 
     // Generate comprehensive test data
     this.generateTestVendors().forEach(v => this.vendors.set(v.id, v));
-    this.generateTestUsers().forEach(u => this.users.set(u.id, u));
+    // Note: generateTestVendors already adds vendor users to this.users, 
+    // so we don't generate additional test users to avoid ID conflicts
     this.generateTestDeals().forEach(d => this.deals.set(d.id, d));
     this.generateTestClaims();
     this.generateTestBanners();
@@ -453,9 +459,11 @@ export class MemStorage implements IStorage {
 
     for (let i = 0; i < 10; i++) {
       const cityIndex = i % cities.length;
+      // Create user first to get proper ID
+      const vendorUserId = this.currentUserId++;
       const vendor: Vendor = {
         id: this.currentVendorId++,
-        userId: this.currentUserId++,
+        userId: vendorUserId,
         businessName: `Business ${i + 1}`,
         gstNumber: `27ABCDE123${i}F1Z5`,
         panNumber: `ABCDE123${i}F`,
@@ -474,9 +482,9 @@ export class MemStorage implements IStorage {
       };
       vendors.push(vendor);
       
-      // Create corresponding user for each vendor
+      // Create corresponding user for each vendor - with debug logging
       const vendorUser: User = {
-        id: vendor.userId,
+        id: vendorUserId,
         name: `Vendor ${i + 1}`,
         username: `vendor_${i + 1}`,
         email: `vendor${i + 1}@example.com`,
@@ -493,6 +501,7 @@ export class MemStorage implements IStorage {
         createdAt: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
         isActive: true,
       };
+      console.log(`Generated test vendor user: ${vendorUser.name} (ID: ${vendorUser.id}, Role: ${vendorUser.role}, Email: ${vendorUser.email})`);
       this.users.set(vendorUser.id, vendorUser);
     }
 
