@@ -40,59 +40,49 @@ export default function AdminDeals() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch all deals with guaranteed fresh data
+  // Fetch all deals with optimized caching
   const { data: allDeals, isLoading: allDealsLoading, refetch: refetchAllDeals } = useQuery({
-    queryKey: ["/api/admin/deals", refreshTrigger, Date.now()],
+    queryKey: ["/api/admin/deals", refreshTrigger],
     queryFn: async () => {
-      console.log('Fetching all deals with fresh query...', refreshTrigger);
-      const timestamp = Date.now();
-      const response = await fetch(`/api/admin/deals?_t=${timestamp}&_r=${refreshTrigger}`, {
+      console.log('Fetching all deals...', refreshTrigger);
+      const response = await fetch(`/api/admin/deals`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'Expires': '0',
         },
-        cache: 'no-store',
       });
       if (!response.ok) throw new Error('Failed to fetch deals');
       const data = await response.json();
       console.log('All deals response:', data.length, 'deals');
       return data;
     },
-    staleTime: 0,
-    gcTime: 0, // React Query v5 uses gcTime instead of cacheTime
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 30000, // Data is fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Cache data for 5 minutes
+    refetchOnMount: false, // Don't refetch on component mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchInterval: false,
   });
 
-  // Fetch pending deals with guaranteed fresh data
+  // Fetch pending deals with optimized caching
   const { data: pendingDeals, isLoading: pendingDealsLoading, refetch } = useQuery({
-    queryKey: ["/api/admin/deals/pending", refreshTrigger, Date.now()],
+    queryKey: ["/api/admin/deals/pending", refreshTrigger],
     queryFn: async () => {
-      console.log('Fetching pending deals with fresh query...', refreshTrigger);
-      const timestamp = Date.now();
-      const response = await fetch(`/api/admin/deals/pending?_t=${timestamp}&_r=${refreshTrigger}`, {
+      console.log('Fetching pending deals...', refreshTrigger);
+      const response = await fetch(`/api/admin/deals/pending`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'Expires': '0',
         },
-        cache: 'no-store',
       });
       if (!response.ok) throw new Error('Failed to fetch pending deals');
       const data = await response.json();
       console.log('Pending deals response:', data.length, 'deals');
       return data;
     },
-    staleTime: 0,
-    gcTime: 0, // React Query v5 uses gcTime instead of cacheTime
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 30000, // Data is fresh for 30 seconds
+    gcTime: 5 * 60 * 1000, // Cache data for 5 minutes
+    refetchOnMount: false, // Don't refetch on component mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
     refetchInterval: false,
   });
 
@@ -112,18 +102,12 @@ export default function AdminDeals() {
         description: "The deal is now live and available to customers.",
       });
       
-      // Completely remove all cached data and force immediate refresh
-      queryClient.clear(); // Clear entire cache
+      // Invalidate and refetch only the relevant queries
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      
+      // Increment refresh trigger to force fresh data
       setRefreshTrigger(prev => prev + 1);
-      
-      // Force immediate refetch without delay
-      await Promise.all([refetch(), refetchAllDeals()]);
-      
-      // Double-check with another refresh after 1 second
-      setTimeout(async () => {
-        setRefreshTrigger(prev => prev + 1);
-        await Promise.all([refetch(), refetchAllDeals()]);
-      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -143,21 +127,18 @@ export default function AdminDeals() {
         title: "Deal rejected successfully!",
         description: "The vendor has been notified about the rejection.",
       });
-      // Completely remove all cached data and force immediate refresh
-      queryClient.clear(); // Clear entire cache
+      
+      // Invalidate and refetch only the relevant queries
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      
+      // Increment refresh trigger to force fresh data
       setRefreshTrigger(prev => prev + 1);
+      
+      // Reset form state
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);
-      
-      // Force immediate refetch without delay
-      await Promise.all([refetch(), refetchAllDeals()]);
-      
-      // Double-check with another refresh after 1 second
-      setTimeout(async () => {
-        setRefreshTrigger(prev => prev + 1);
-        await Promise.all([refetch(), refetchAllDeals()]);
-      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -375,16 +356,31 @@ export default function AdminDeals() {
                 </SelectContent>
               </Select>
 
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("pending");
-                  setCategoryFilter("all");
-                }}
-              >
-                Clear Filters
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("pending");
+                    setCategoryFilter("all");
+                  }}
+                >
+                  Clear Filters
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRefreshTrigger(prev => prev + 1);
+                    toast({
+                      title: "Data refreshed",
+                      description: "Deal information has been updated.",
+                    });
+                  }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Loading..." : "Refresh"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
