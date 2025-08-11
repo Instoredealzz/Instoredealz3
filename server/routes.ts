@@ -1465,15 +1465,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Deal not found" });
       }
 
-      // Return static database PIN (consistent 6-digit PIN)
+      // Import PIN security utilities
+      const { generateRotatingPin } = await import('./pin-security');
+      
+      // Generate current rotating PIN for this deal
+      const rotatingPinResult = generateRotatingPin(dealId);
+      
       const response = {
         dealId,
         dealTitle: deal.title,
-        currentPin: deal.verificationPin,
-        isActive: true,
-        pinType: "static",
-        message: "Current PIN for your deal verification.",
-        usage: "Share this PIN with customers for deal verification."
+        currentPin: rotatingPinResult.currentPin,
+        nextRotationAt: rotatingPinResult.nextRotationAt,
+        rotationInterval: rotatingPinResult.rotationInterval,
+        isActive: rotatingPinResult.isActive,
+        pinType: "rotating",
+        message: "Current rotating PIN for your deal verification.",
+        usage: "Share this PIN with customers for deal verification. PIN automatically rotates for security."
       };
 
       res.json(response);
