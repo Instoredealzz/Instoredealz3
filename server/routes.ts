@@ -6237,16 +6237,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if user has already claimed this deal - if yes, reuse the same claim code
+      // Check if user has already claimed this deal - if yes, reuse the existing claim
       const existingClaims = await storage.getUserClaims(userId);
       const existingClaimForDeal = existingClaims.find(claim => claim.dealId === dealId);
       
+      let claim;
       let claimCode: string;
+      let expiresAt: Date;
       
       if (existingClaimForDeal && existingClaimForDeal.claimCode) {
-        // Reuse existing claim code for this customer-deal combination
+        // Reuse existing claim - do not create a new one
+        claim = existingClaimForDeal;
         claimCode = existingClaimForDeal.claimCode;
-        console.log(`[CLAIM CODE] Reusing existing claim code ${claimCode} for user ${userId} on deal ${dealId}`);
+        expiresAt = existingClaimForDeal.codeExpiresAt ? new Date(existingClaimForDeal.codeExpiresAt) : new Date();
+        console.log(`[CLAIM CODE] Reusing existing claim ${claim.id} with claim code ${claimCode} for user ${userId} on deal ${dealId}`);
       } else {
         // Generate a new simple static claim code (6-character alphanumeric)
         const generateSimpleClaimCode = (): string => {
@@ -6258,12 +6262,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return code;
         };
         claimCode = generateSimpleClaimCode();
-        console.log(`[CLAIM CODE] Generated new claim code ${claimCode} for user ${userId} on deal ${dealId}`);
-      }
+        
+        // Set expiration to 24 hours from now
+        expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+        
+        // Calculate maximum possible discount
+        const estimatedSavings = "0"; // Will be updated when bill amount is provided
 
-      // Set expiration to 24 hours from now
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
+        // Create new claim with code and complete vendor data
+        claim = await storage.claimDeal({
+          dealId,
+          userId,
+          status: "claimed",
+          savingsAmount: estimatedSavings,
+          claimCode,
+          codeExpiresAt: expiresAt,
+          vendorVerified: false,
+          claimedAt: new Date() // Ensure claimedAt is set
+        });
+        
+        console.log(`[CLAIM CODE] Generated new claim ${claim.id} with claim code ${claimCode} for user ${userId} on deal ${dealId}`);
+      }
 
       // Get user and vendor information for complete tracking
       const user = await storage.getUser(userId);
@@ -6276,19 +6296,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate maximum possible discount
       const maxDiscount = deal.discountPercentage || 0;
-      const estimatedSavings = "0"; // Will be updated when bill amount is provided
-
-      // Create claim with code and complete vendor data
-      const claim = await storage.claimDeal({
-        dealId,
-        userId,
-        status: "claimed",
-        savingsAmount: estimatedSavings,
-        claimCode,
-        codeExpiresAt: expiresAt,
-        vendorVerified: false,
-        claimedAt: new Date() // Ensure claimedAt is set
-      });
 
       // Log comprehensive claim creation for admin analytics
       try {
