@@ -55,7 +55,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           { label: "My Deals", href: "/vendor/deals", icon: Store },
           { label: "Create Deal", href: "/vendor/create-deal", icon: PlusCircle },
           { label: "Analytics", href: "/vendor/analytics", icon: BarChart3 },
-          { label: "POS System", href: "/vendor/pos", icon: CreditCard },
+          { label: "POS Dashboard", href: "/vendor/pos-dashboard", icon: CreditCard },
           { label: "Profile", href: "/vendor/profile", icon: User },
           { label: "Help", href: "/help", icon: HelpCircle },
         ];
