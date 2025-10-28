@@ -6237,16 +6237,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Generate a simple static claim code (6-character alphanumeric)
-      const generateSimpleClaimCode = (): string => {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars: I, O, 1, 0
-        let code = '';
-        for (let i = 0; i < 6; i++) {
-          code += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return code;
-      };
-      const claimCode = generateSimpleClaimCode();
+      // Check if user has already claimed this deal - if yes, reuse the same claim code
+      const existingClaims = await storage.getUserClaims(userId);
+      const existingClaimForDeal = existingClaims.find(claim => claim.dealId === dealId);
+      
+      let claimCode: string;
+      
+      if (existingClaimForDeal && existingClaimForDeal.claimCode) {
+        // Reuse existing claim code for this customer-deal combination
+        claimCode = existingClaimForDeal.claimCode;
+        console.log(`[CLAIM CODE] Reusing existing claim code ${claimCode} for user ${userId} on deal ${dealId}`);
+      } else {
+        // Generate a new simple static claim code (6-character alphanumeric)
+        const generateSimpleClaimCode = (): string => {
+          const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars: I, O, 1, 0
+          let code = '';
+          for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return code;
+        };
+        claimCode = generateSimpleClaimCode();
+        console.log(`[CLAIM CODE] Generated new claim code ${claimCode} for user ${userId} on deal ${dealId}`);
+      }
 
       // Set expiration to 24 hours from now
       const expiresAt = new Date();

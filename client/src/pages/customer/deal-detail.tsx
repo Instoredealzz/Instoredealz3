@@ -183,10 +183,10 @@ export default function DealDetail({ params }: DealDetailProps) {
     refetchOnMount: true,
   });
 
-  // Check if current deal has been claimed - Only allow ONE claim per deal
+  // Check if current deal has been claimed - Allow multiple claims with same code
   const userClaims_forDeal = userClaims.filter(claim => claim.dealId === Number(id));
   const userClaim = userClaims_forDeal.sort((a, b) => b.id - a.id)[0]; // Get most recent claim
-  const hasClaimedDeal = userClaims_forDeal.length > 0; // Only allow one claim per customer per deal
+  const hasClaimedDeal = false; // Allow multiple claims - same code will be reused
 
   // New claim deal with code mutation (corrected system)
   const claimDealMutation = useMutation({
