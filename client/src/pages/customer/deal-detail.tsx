@@ -183,10 +183,10 @@ export default function DealDetail({ params }: DealDetailProps) {
     refetchOnMount: true,
   });
 
-  // Check if current deal has been claimed - Allow multiple claims
+  // Check if current deal has been claimed - Only allow ONE claim per deal
   const userClaims_forDeal = userClaims.filter(claim => claim.dealId === Number(id));
   const userClaim = userClaims_forDeal.sort((a, b) => b.id - a.id)[0]; // Get most recent claim
-  const hasClaimedDeal = false; // Allow multiple claims per customer
+  const hasClaimedDeal = userClaims_forDeal.length > 0; // Only allow one claim per customer per deal
 
   // New claim deal with code mutation (corrected system)
   const claimDealMutation = useMutation({
@@ -457,97 +457,64 @@ export default function DealDetail({ params }: DealDetailProps) {
                     </Button>
                   ) : canAccessDeal() ? (
                     <div className="space-y-4">
-                        {/* Always show the claim button since we allow multiple claims */}
-                        <Button
-                          onClick={() => claimDealMutation.mutate(deal!.id)}
-                          disabled={isExpired || !!isFullyRedeemed || !deal?.isActive || claimDealMutation.isPending}
-                          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-                          size="lg"
-                        >
-                          {claimDealMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Claiming...
-                            </>
-                          ) : isExpired ? (
-                            "Deal Expired"
-                          ) : isFullyRedeemed ? (
-                            "Fully Redeemed"
-                          ) : (
-                            <>
-                              <Shield className="w-4 h-4 mr-2" />
-                              {userClaims_forDeal.length > 0 ? 'Claim Again' : 'Claim Deal'}
-                            </>
-                          )}
-                        </Button>
-                        
-                        {userClaims_forDeal.length > 0 && (
+                        {/* Show claim button only if deal hasn't been claimed yet */}
+                        {!hasClaimedDeal ? (
+                          <Button
+                            onClick={() => claimDealMutation.mutate(deal!.id)}
+                            disabled={isExpired || !!isFullyRedeemed || !deal?.isActive || claimDealMutation.isPending}
+                            className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                            size="lg"
+                          >
+                            {claimDealMutation.isPending ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Claiming...
+                              </>
+                            ) : isExpired ? (
+                              "Deal Expired"
+                            ) : isFullyRedeemed ? (
+                              "Fully Redeemed"
+                            ) : (
+                              <>
+                                <Shield className="w-4 h-4 mr-2" />
+                                Claim Deal
+                              </>
+                            )}
+                          </Button>
+                        ) : (
                           <div className="text-center text-sm text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 rounded-lg py-2">
-                            ✅ You have claimed this deal {userClaims_forDeal.length} time{userClaims_forDeal.length > 1 ? 's' : ''}
+                            ✅ You have already claimed this deal
                           </div>
                         )}
                         
-                        {/* Show claim codes - Display all claim codes for this deal */}
-                        {userClaims_forDeal.length > 0 && (
+                        {/* Show claim code - Display only the most recent claim code */}
+                        {userClaim && userClaim.claimCode && (
                           <div className="space-y-3">
-                            <div className="text-center text-sm text-blue-600 dark:text-blue-400 font-semibold">
-                              Your Claim Codes ({userClaims_forDeal.length} total)
+                            <div className="text-center text-sm text-green-600 dark:text-green-400 font-semibold">
+                              Your Claim Code
                             </div>
                             
-                            {/* Display all claim codes in reverse chronological order */}
-                            {userClaims_forDeal.map((claim, index) => (
-                              <div key={claim.id} className={`rounded-lg p-4 border ${
-                                index === 0 
-                                  ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800' 
-                                  : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800'
-                              }`}>
-                                <div className="text-center">
-                                  <div className={`text-sm font-medium mb-2 ${
-                                    index === 0 
-                                      ? 'text-green-600 dark:text-green-400' 
-                                      : 'text-blue-600 dark:text-blue-400'
-                                  }`}>
-                                    {index === 0 ? '✨ Latest Claim Code' : `Claim Code #${userClaims_forDeal.length - index}`}
-                                  </div>
-                                  {claim.claimCode && (
-                                    <>
-                                      <div className={`text-3xl font-mono font-bold tracking-widest mb-2 ${
-                                        index === 0 
-                                          ? 'text-green-800 dark:text-green-300' 
-                                          : 'text-blue-800 dark:text-blue-300'
-                                      }`} style={{ letterSpacing: '0.3em', fontFamily: '"Courier New", Courier, monospace' }}>
-                                        {claim.claimCode}
-                                      </div>
-                                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                                        Note: Uses digits (1, 0) not letters (I, l, O) or symbols (!, |)
-                                      </div>
-                                    </>
-                                  )}
-                                  <div className={`text-sm ${
-                                    index === 0 
-                                      ? 'text-green-600 dark:text-green-400' 
-                                      : 'text-blue-600 dark:text-blue-400'
-                                  }`}>
-                                    {claim.vendorVerified ? '✅ Verified at store' : 'Show this code at the store'}
-                                  </div>
-                                  {claim.claimedAt && (
-                                    <div className={`text-xs mt-1 ${
-                                      index === 0 
-                                        ? 'text-green-500 dark:text-green-400' 
-                                        : 'text-blue-500 dark:text-blue-400'
-                                    }`}>
-                                      Claimed: {new Date(claim.claimedAt).toLocaleString()}
-                                    </div>
-                                  )}
+                            <div className="rounded-lg p-4 border bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
+                              <div className="text-center">
+                                <div className="text-sm font-medium mb-2 text-green-600 dark:text-green-400">
+                                  ✨ Claim Code
                                 </div>
+                                <div className="text-3xl font-mono font-bold tracking-widest mb-2 text-green-800 dark:text-green-300" style={{ letterSpacing: '0.3em', fontFamily: '"Courier New", Courier, monospace' }}>
+                                  {userClaim.claimCode}
+                                </div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                  Note: Uses digits (1, 0) not letters (I, l, O) or symbols (!, |)
+                                </div>
+                                <div className="text-sm text-green-600 dark:text-green-400">
+                                  {userClaim.vendorVerified ? '✅ Verified at store' : 'Show this code at the store'}
+                                </div>
+                                {userClaim.claimedAt && (
+                                  <div className="text-xs mt-1 text-green-500 dark:text-green-400">
+                                    Claimed: {new Date(userClaim.claimedAt).toLocaleString()}
+                                  </div>
+                                )}
                               </div>
-                            ))}
-                            
-                            {userClaims_forDeal.length > 1 && (
-                              <div className="text-xs text-blue-500 dark:text-blue-400 text-center">
-                                💡 You can use any of these codes for store redemption
-                              </div>
-                            )}
+                            </div>
                           </div>
                         )}
 
