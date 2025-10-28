@@ -125,6 +125,35 @@ export async function initializeDatabase() {
 
     // No automatic deals creation - deals must be created by vendors manually
 
+    // Create sample deal claims for testing POS verification
+    // Only create if there are deals in the database
+    await db.execute(sql`
+      INSERT INTO deal_claims (
+        user_id, deal_id, status, claim_code, claimed_at, code_expires_at,
+        vendor_verified, savings_amount
+      )
+      SELECT 
+        (SELECT id FROM users WHERE role = 'customer' LIMIT 1),
+        d.id,
+        'active',
+        CONCAT(
+          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
+          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
+          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
+          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
+          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
+          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1)
+        ),
+        CURRENT_TIMESTAMP,
+        CURRENT_TIMESTAMP + INTERVAL '24 hours',
+        false,
+        '0'
+      FROM deals d
+      WHERE d.is_active = true
+      LIMIT 3
+      ON CONFLICT DO NOTHING
+    `);
+
     // Add new carousel columns to existing promotional_banners table
     await db.execute(sql`
       ALTER TABLE promotional_banners 
