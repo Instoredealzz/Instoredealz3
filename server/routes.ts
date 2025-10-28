@@ -1460,7 +1460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get current static PIN for a specific deal
+  // Get active claims for a specific deal (replaces rotating PIN functionality)
   app.get('/api/vendors/deals/:id/current-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
       const dealId = parseInt(req.params.id);
@@ -1476,28 +1476,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Deal not found" });
       }
 
-      // Import PIN security utilities
-      const { generateRotatingPin } = await import('./pin-security');
-      
-      // Generate current rotating PIN for this deal
-      const rotatingPinResult = generateRotatingPin(dealId);
+      // Get active claims for this deal
+      const allClaims = await storage.getAllDealClaims();
+      const activeClaims = allClaims.filter(c => 
+        c.dealId === dealId && 
+        !c.vendorVerified &&
+        (!c.codeExpiresAt || new Date() < new Date(c.codeExpiresAt))
+      );
       
       const response = {
         dealId,
         dealTitle: deal.title,
-        currentPin: rotatingPinResult.currentPin,
-        nextRotationAt: rotatingPinResult.nextRotationAt,
-        rotationInterval: rotatingPinResult.rotationInterval,
-        isActive: rotatingPinResult.isActive,
-        pinType: "rotating",
-        message: "Current rotating PIN for your deal verification.",
-        usage: "Share this PIN with customers for deal verification. PIN automatically rotates for security."
+        activeClaims: activeClaims.length,
+        pinType: "static",
+        message: "Static claim codes - customers receive unique codes when they claim deals",
+        usage: "Customers will show you their unique claim codes. Enter the code in your POS system to verify."
       };
 
       res.json(response);
     } catch (error) {
-      Logger.error("Current PIN retrieval error:", error);
-      res.status(500).json({ message: "Failed to retrieve current PIN" });
+      Logger.error("Deal info retrieval error:", error);
+      res.status(500).json({ message: "Failed to retrieve deal information" });
     }
   });
 
@@ -6037,7 +6036,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return code;
   }
 
-  // Admin endpoint to get current PIN for any deal (for debugging/support)
+  // Admin endpoint to get deal claim statistics (replaces rotating PIN)
   app.get('/api/admin/deals/:id/current-pin', requireAuth, requireRole(['admin', 'super_admin']), async (req: AuthenticatedRequest, res) => {
     try {
       const dealId = parseInt(req.params.id);
@@ -6048,33 +6047,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Deal not found" });
       }
 
-      // Import PIN security utilities
-      const { generateRotatingPin } = await import('./pin-security');
-      
-      // Generate current rotating PIN for this deal
-      const rotatingPinResult = generateRotatingPin(dealId);
-      
       // Get vendor information for context
       const vendor = await storage.getVendor(deal.vendorId);
+      
+      // Get active claims for this deal
+      const allClaims = await storage.getAllDealClaims();
+      const activeClaims = allClaims.filter(c => 
+        c.dealId === dealId && 
+        !c.vendorVerified &&
+        (!c.codeExpiresAt || new Date() < new Date(c.codeExpiresAt))
+      );
       
       const response = {
         dealId,
         dealTitle: deal.title,
         vendorId: deal.vendorId,
         vendorName: vendor?.businessName || 'Unknown Vendor',
-        currentPin: rotatingPinResult.currentPin,
-        nextRotationAt: rotatingPinResult.nextRotationAt,
-        rotationInterval: rotatingPinResult.rotationInterval,
-        isActive: rotatingPinResult.isActive,
-        pinType: "rotating",
-        message: "Current rotating PIN for deal (Admin view)",
-        adminNote: "This PIN matches what the vendor sees for deal verification."
+        activeClaims: activeClaims.length,
+        totalClaims: allClaims.filter(c => c.dealId === dealId).length,
+        pinType: "static",
+        message: "Static claim codes - rotating PIN feature disabled",
+        adminNote: "Customers receive unique claim codes when they claim deals. Vendors verify these codes in their POS system."
       };
 
       res.json(response);
     } catch (error) {
-      Logger.error("Admin current PIN retrieval error:", error);
-      res.status(500).json({ message: "Failed to retrieve current PIN" });
+      Logger.error("Admin deal info retrieval error:", error);
+      res.status(500).json({ message: "Failed to retrieve deal information" });
     }
   });
 
@@ -6230,10 +6229,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get current rotating PIN for this deal (ensures consistency with vendor dashboard)
-      const { generateRotatingPin } = await import('./pin-security');
-      const rotatingPinResult = generateRotatingPin(dealId);
-      const claimCode = rotatingPinResult.currentPin;
+      // Generate a simple static claim code (6-character alphanumeric)
+      const generateSimpleClaimCode = (): string => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars: I, O, 1, 0
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+      const claimCode = generateSimpleClaimCode();
 
       // Set expiration to 24 hours from now
       const expiresAt = new Date();
@@ -6268,7 +6273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         await storage.createSystemLog({
           userId,
-          action: "DEAL_CLAIMED_WITH_ROTATING_PIN",
+          action: "DEAL_CLAIMED_WITH_CODE",
           details: {
             // Required vendor data
             vendorId: deal.vendorId,
@@ -6288,11 +6293,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: deal.category,
             vendorCity: deal.city,
             membershipLevel: user.membershipPlan,
-            // Rotating PIN audit trail
-            pinType: "rotating",
-            pinRotationWindow: rotatingPinResult.rotationInterval,
-            nextRotationAt: rotatingPinResult.nextRotationAt.toISOString(),
-            pinConsistencyCheck: "customer_vendor_pin_match"
+            // Static claim code (no rotation)
+            pinType: "static",
+            pinConsistencyCheck: "simple_claim_code"
           },
           ipAddress: req.ip,
           userAgent: req.headers['user-agent']
@@ -6378,42 +6381,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // First, try to find claim by stored claim code
+      // Find claim by stored claim code - simple exact match only
       const allClaims = await storage.getAllDealClaims();
-      let claim = allClaims.find(c => c.claimCode === claimCode);
-      let isRotatingPinClaim = false;
-
-      // If no claim found with stored code, check if this is a rotating PIN
-      if (!claim) {
-        // Import rotating PIN verification
-        const { verifyRotatingPin } = await import('./pin-security');
-        
-        // Check all vendor's deals to see if this rotating PIN matches any deal
-        const vendorDeals = await storage.getDealsByVendor(vendor.id);
-        let matchingDeal = null;
-        
-        for (const deal of vendorDeals) {
-          if (verifyRotatingPin(deal.id, claimCode)) {
-            matchingDeal = deal;
-            break;
-          }
-        }
-        
-        if (matchingDeal) {
-          // Find any pending claim for this deal that can be verified with rotating PIN
-          const dealClaims = allClaims.filter(c => c.dealId === matchingDeal.id && !c.vendorVerified);
-          if (dealClaims.length > 0) {
-            // Use the most recent pending claim
-            claim = dealClaims.sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime())[0];
-            isRotatingPinClaim = true;
-          }
-        }
-      }
+      const claim = allClaims.find(c => c.claimCode === claimCode);
 
       if (!claim) {
         return res.status(404).json({ 
           success: false, 
-          error: "Invalid claim code or no pending claims found for this PIN" 
+          error: "Invalid claim code. Please check the code and try again." 
+        });
+      }
+      
+      // Verify the claim belongs to this vendor
+      const claimDeal = await storage.getDeal(claim.dealId);
+      if (!claimDeal || claimDeal.vendorId !== vendor.id) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "This claim code is not for your store" 
         });
       }
 

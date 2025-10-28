@@ -13,7 +13,8 @@ import {
   Clock, 
   Shield, 
   Copy,
-  CheckCircle
+  CheckCircle,
+  Users
 } from "lucide-react";
 
 interface RotatingPinDisplayProps {
@@ -151,9 +152,9 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Current PIN
+          Deal Information
           <Badge variant="secondary" className="ml-auto">
-            Auto-Rotating
+            Static Codes
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -185,73 +186,44 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
             </div>
           </div>
         )}
-        {/* Enhanced Countdown Timer Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Next rotation in:</span>
-            </div>
-            <Badge variant="outline" className="bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-700">
-              <Clock className="h-3 w-3 mr-1" />
-              Auto-Rotating
-            </Badge>
-          </div>
-          
-          <div className="text-center">
-            <div className="font-mono text-3xl font-bold text-blue-700 dark:text-blue-300 mb-3 tracking-wider">
-              {timeLeft || "Loading..."}
+        {/* Deal Claims Information */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <span className="text-lg font-semibold text-blue-900 dark:text-blue-100">Active Claims</span>
             </div>
             
-            {/* Progress Bar */}
-            <div className="mb-3">
-              <Progress 
-                value={progressValue} 
-                className="h-2 bg-blue-100 dark:bg-blue-900" 
-              />
-              <div className="flex justify-between text-xs text-blue-600 dark:text-blue-400 mt-1">
-                <span>Time Elapsed</span>
-                <span>{Math.round(progressValue)}%</span>
-                <span>Next Rotation</span>
-              </div>
+            <div className="font-mono text-5xl font-bold text-blue-700 dark:text-blue-300 mb-3">
+              {pinData?.activeClaims || 0}
             </div>
             
-            <div className="text-xs text-blue-600 dark:text-blue-400">
-              PIN changes every {pinData?.rotationInterval || 30} minutes for enhanced security
+            <div className="text-sm text-blue-600 dark:text-blue-400">
+              {pinData?.activeClaims === 1 ? 'customer has' : 'customers have'} claimed this deal
             </div>
           </div>
         </div>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium">Current PIN:</span>
-              <div className="font-mono text-2xl font-bold tracking-widest" style={{ letterSpacing: '0.3em', fontFamily: '"Courier New", Courier, monospace' }}>
-                {isLoading ? "Loading..." : showPin ? (pinData?.currentPin || "••••") : "••••"}
-              </div>
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="text-sm space-y-2">
+            <div className="flex items-start gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <p className="text-gray-700 dark:text-gray-300">
+                <strong>Unique Codes:</strong> Each customer receives a unique 6-character claim code when they claim your deal
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPin(!showPin)}
-                title={showPin ? "Hide PIN" : "Show PIN"}
-              >
-                {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyPin}
-                title="Copy PIN"
-                disabled={!pinData?.currentPin}
-              >
-                {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
+            <div className="flex items-start gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <p className="text-gray-700 dark:text-gray-300">
+                <strong>Easy Verification:</strong> Customers show you their code at checkout. Enter it in your POS system to verify
+              </p>
             </div>
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            💡 Tip: PIN uses digits (1, 0) not letters (I, l, O) or symbols (!, |). Click Copy to avoid typos.
+            <div className="flex items-start gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <p className="text-gray-700 dark:text-gray-300">
+                <strong>No Confusion:</strong> Static codes eliminate timing issues and code mismatches
+              </p>
+            </div>
           </div>
         </div>
 
@@ -268,8 +240,8 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
 
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>How it works:</strong> This PIN automatically changes every 30 minutes for enhanced security. 
-            Share the current PIN with customers when they visit your store to claim their deals.
+            <strong>How it works:</strong> When customers claim this deal, they receive a unique claim code. 
+            Ask them to show you the code, then enter it in your POS verification system to complete the transaction.
           </p>
         </div>
       </CardContent>
