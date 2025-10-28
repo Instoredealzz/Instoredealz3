@@ -2224,10 +2224,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Enhanced Customer Data with Complete Analytics
         customer: {
-          // Basic Info
+          // Basic Info (with both old and new property names for compatibility)
+          id: customer.id,
           customerId: customer.id,
+          name: customer.name,
           customerName: customer.name,
+          email: customer.email,
           customerEmail: customer.email,
+          phone: customer.phone || 'N/A',
           customerPhone: customer.phone || 'N/A',
           
           // Membership & Analytics
@@ -2257,9 +2261,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Enhanced Deal Data with Complete Analytics
         deal: {
-          // Basic Deal Info
+          // Basic Deal Info (with both old and new property names for compatibility)
+          id: deal.id,
           dealId: deal.id,
+          title: deal.title,
           dealTitle: deal.title,
+          category: deal.category,
           dealCategory: deal.category,
           subcategory: deal.subcategory || 'General',
           
@@ -2268,6 +2275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           originalPrice: deal.originalPrice,
           discountedPrice: deal.discountedPrice,
           maxPossibleDiscount: maxPossibleDiscount,
+          maxDiscount: maxPossibleDiscount,
           
           // Performance Analytics
           analytics: {
