@@ -967,6 +967,39 @@ export default function VendorDeals() {
                         </div>
                       </div>
                       
+                      {/* Static Verification PIN Section - Always visible for all deals */}
+                      <div className="border-t pt-6">
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                            <Target className="h-4 w-4 text-primary" />
+                            Deal Verification Code
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            This is your deal's verification code. Use it to verify customers or provide to customers for claiming.
+                          </p>
+                        </div>
+                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-2xl font-mono font-bold text-blue-600 dark:text-blue-400 tracking-wider">
+                              {deal.verificationPin}
+                            </span>
+                            <Badge variant="outline" className="text-xs bg-white dark:bg-gray-900">
+                              Static Code
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              Valid until: {new Date(deal.validUntil).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+                              <AlertCircle className="h-3 w-3" />
+                              Code expires with deal on {new Date(deal.validUntil).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
                       {/* Active Claim Codes Section */}
                       {deal.isActive && deal.isApproved && deal.claimCodes && deal.claimCodes.length > 0 && (
                         <div className="border-t pt-6">

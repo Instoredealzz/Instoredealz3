@@ -6229,9 +6229,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         claimCode = generateSimpleClaimCode();
         
-        // Set expiration to 24 hours from now
-        expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 24);
+        // For static claim codes, set expiration to match deal expiry date
+        expiresAt = new Date(deal.validUntil);
         
         // Calculate maximum possible discount
         const estimatedSavings = "0"; // Will be updated when bill amount is provided
