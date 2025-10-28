@@ -530,21 +530,33 @@ export default function VendorDashboard() {
                             </p>
                           </div>
                           <div>
-                            <span className="text-gray-500">PIN Code:</span>
-                            <p className="font-medium text-foreground font-mono bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm">
-                              {deal.verificationPin || 'N/A'}
+                            <span className="text-gray-500">Active Codes:</span>
+                            <p className="font-medium text-foreground">
+                              {deal.activeClaimsCount || 0}
                             </p>
                           </div>
                         </div>
                         
-                        {deal.verificationPin && (
+                        {deal.claimCodes && deal.claimCodes.length > 0 && (
                           <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300">
+                            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 mb-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span className="text-sm font-medium">Verification Code: {deal.verificationPin}</span>
+                              <span className="text-sm font-medium">Active Claim Codes ({deal.activeClaimsCount || 0})</span>
                             </div>
-                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                              Share this 6-character code with customers for deal verification at your store
+                            <div className="flex flex-wrap gap-2">
+                              {deal.claimCodes.filter((claim: any) => !claim.isExpired).slice(0, 3).map((claim: any, idx: number) => (
+                                <div key={idx} className="font-mono text-sm font-bold bg-white dark:bg-gray-800 px-3 py-1 rounded border border-blue-300 dark:border-blue-700">
+                                  {claim.code}
+                                </div>
+                              ))}
+                              {deal.activeClaimsCount > 3 && (
+                                <div className="text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                  +{deal.activeClaimsCount - 3} more
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
+                              Customers show these codes at your store for verification
                             </p>
                           </div>
                         )}
