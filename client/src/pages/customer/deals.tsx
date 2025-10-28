@@ -23,7 +23,7 @@ import {
 
 
 export default function CustomerDeals() {
-  const [selectedCity, setSelectedCity] = useState("Mumbai");
+  const [selectedCity, setSelectedCity] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
@@ -64,7 +64,7 @@ export default function CustomerDeals() {
     queryKey: ["/api/deals", selectedCity, selectedCategory === "all" ? "" : selectedCategory],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedCity) params.append('city', selectedCity);
+      if (selectedCity && selectedCity !== "all") params.append('city', selectedCity);
       if (selectedCategory && selectedCategory !== "all") params.append('category', selectedCategory);
       
       const response = await fetch(`/api/deals?${params.toString()}`);
@@ -257,7 +257,7 @@ export default function CustomerDeals() {
           </h1>
           <div className="flex items-center text-muted-foreground">
             <MapPin className="h-4 w-4 mr-1" />
-            <span>Showing deals in {selectedCity}</span>
+            <span>Showing deals in {selectedCity === "all" ? "All Cities" : selectedCity}</span>
             {selectedCategory && selectedCategory !== "all" && (
               <>
                 <span className="mx-2">•</span>
