@@ -2205,12 +2205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('Comprehensive analytics logging failed:', logError.message);
       }
 
-      // Return enhanced verification response with complete analytics data
+      // Return simplified verification response with essential data
       res.json({
         success: true,
         valid: true,
         verificationTimestamp: currentTime.toISOString(),
-        timeToVerification,
         
         // Core Claim Data
         claim: {
@@ -2218,13 +2217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           claimCode: claim.claimCode,
           status: claim.status,
           claimedAt: claim.claimedAt,
-          expiresAt: claim.codeExpiresAt,
-          timeToVerification: `${timeToVerification} minutes`
+          expiresAt: claim.codeExpiresAt
         },
         
-        // Enhanced Customer Data with Complete Analytics
+        // Essential Customer Data
         customer: {
-          // Basic Info (with both old and new property names for compatibility)
           id: customer.id,
           customerId: customer.id,
           name: customer.name,
@@ -2233,98 +2230,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customerEmail: customer.email,
           phone: customer.phone || 'N/A',
           customerPhone: customer.phone || 'N/A',
-          
-          // Membership & Analytics
-          membershipPlan: customer.membershipPlan,
-          membershipId: `ISD-${customer.id.toString().padStart(8, '0')}`,
-          membershipStatus: 'active',
+          membershipPlan: customer.membershipPlan || 'basic',
           totalLifetimeSavings: customerTotalSavings,
-          totalDealsRedeemed: customerTotalDeals,
-          customerSince: customer.createdAt,
-          
-          // Location Analytics
-          location: {
-            city: customer.city,
-            state: customer.state,
-            pincode: customer.pincode
-          },
-          
-          // Engagement Metrics for Vendor Analytics
-          analytics: {
-            totalClaims: customerClaims.length,
-            verifiedClaims: customerClaims.filter(c => c.vendorVerified).length,
-            averageSavingsPerTransaction: customerTotalDeals > 0 ? Math.round((customerTotalSavings / customerTotalDeals) * 100) / 100 : 0,
-            preferredCategories: [deal.category],
-            lastTransactionDate: customerClaims.length > 0 ? customerClaims[customerClaims.length - 1].claimedAt : null
-          }
+          totalDealsRedeemed: customerTotalDeals
         },
         
-        // Enhanced Deal Data with Complete Analytics
+        // Essential Deal Data
         deal: {
-          // Basic Deal Info (with both old and new property names for compatibility)
           id: deal.id,
           dealId: deal.id,
           title: deal.title,
           dealTitle: deal.title,
           category: deal.category,
           dealCategory: deal.category,
-          subcategory: deal.subcategory || 'General',
-          
-          // Financial Data
           discountPercentage: deal.discountPercentage,
-          originalPrice: deal.originalPrice,
-          discountedPrice: deal.discountedPrice,
+          originalPrice: deal.originalPrice ? parseFloat(deal.originalPrice.toString()) : null,
+          discountedPrice: deal.discountedPrice ? parseFloat(deal.discountedPrice.toString()) : null,
           maxPossibleDiscount: maxPossibleDiscount,
-          maxDiscount: maxPossibleDiscount,
-          
-          // Performance Analytics
-          analytics: {
-            totalViews: deal.viewCount || 0,
-            totalClaims: dealClaims.length,
-            totalRedemptions: dealClaims.filter(c => c.vendorVerified).length,
-            conversionRate: Math.round(dealConversionRate * 100) / 100,
-            redemptionRate: Math.round(dealRedemptionRate * 100) / 100,
-            averageVerificationTime: timeToVerification
-          },
-          
-          // Location Data
-          location: {
-            city: deal.city,
-            state: deal.state,
-            area: deal.area || 'Central'
-          }
+          maxDiscount: maxPossibleDiscount
         },
         
-        // Enhanced Vendor Data with Complete Analytics
+        // Essential Vendor Data
         vendor: {
-          // Basic Vendor Info
           vendorId: vendor.id,
           vendorName: vendor.businessName,
-          contactPerson: vendor.contactName,
-          
-          // Business Analytics
-          analytics: {
-            totalDeals: vendorDeals.length,
-            activeDeals: vendorDeals.filter(d => d.isActive && d.isApproved).length,
-            totalRedemptions: vendorTotalRedemptions,
-            totalRevenue: Math.round(vendorTotalRevenue * 100) / 100,
-            averageTransactionValue: Math.round(vendorAverageTransactionValue * 100) / 100,
-            averageRating: vendor.averageRating || 4.5,
-            verificationSuccessRate: vendorClaims.length > 0 ? Math.round((vendorClaims.filter(c => c.vendorVerified).length / vendorClaims.length) * 100) : 0
-          }
+          totalRedemptions: vendorTotalRedemptions,
+          totalRevenue: Math.round(vendorTotalRevenue * 100) / 100
         },
         
-        // Platform Analytics Data
-        platformAnalytics: {
-          estimatedCommission: Math.round(estimatedPlatformCommission * 100) / 100,
-          verificationMethod: 'claim_code',
-          categoryImpact: deal.category,
-          regionImpact: `${deal.city}, ${deal.state}`,
-          expectedPlatformRevenue: Math.round(estimatedPlatformCommission * 100) / 100,
-          transactionTimestamp: currentTime.toISOString()
-        },
-        
-        message: "Claim code verified successfully with complete analytics data populated. Ready for transaction processing."
+        message: "Claim code verified successfully. Ready for transaction processing."
       });
 
     } catch (error) {
