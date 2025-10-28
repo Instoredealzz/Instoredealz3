@@ -222,31 +222,36 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">Current PIN:</span>
-            <div className="font-mono text-xl font-bold tracking-wider">
-              {isLoading ? "Loading..." : showPin ? (pinData?.currentPin || "••••") : "••••"}
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">Current PIN:</span>
+              <div className="font-mono text-2xl font-bold tracking-widest" style={{ letterSpacing: '0.3em', fontFamily: '"Courier New", Courier, monospace' }}>
+                {isLoading ? "Loading..." : showPin ? (pinData?.currentPin || "••••") : "••••"}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPin(!showPin)}
+                title={showPin ? "Hide PIN" : "Show PIN"}
+              >
+                {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyPin}
+                title="Copy PIN"
+                disabled={!pinData?.currentPin}
+              >
+                {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPin(!showPin)}
-              title={showPin ? "Hide PIN" : "Show PIN"}
-            >
-              {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyPin}
-              title="Copy PIN"
-              disabled={!pinData?.currentPin}
-            >
-              {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </Button>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            💡 Tip: PIN uses digits (1, 0) not letters (I, l, O) or symbols (!, |). Click Copy to avoid typos.
           </div>
         </div>
 

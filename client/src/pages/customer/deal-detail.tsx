@@ -510,13 +510,18 @@ export default function DealDetail({ params }: DealDetailProps) {
                                     {index === 0 ? '✨ Latest Claim Code' : `Claim Code #${userClaims_forDeal.length - index}`}
                                   </div>
                                   {claim.claimCode && (
-                                    <div className={`text-2xl font-bold tracking-wider mb-2 ${
-                                      index === 0 
-                                        ? 'text-green-800 dark:text-green-300' 
-                                        : 'text-blue-800 dark:text-blue-300'
-                                    }`}>
-                                      {claim.claimCode}
-                                    </div>
+                                    <>
+                                      <div className={`text-3xl font-mono font-bold tracking-widest mb-2 ${
+                                        index === 0 
+                                          ? 'text-green-800 dark:text-green-300' 
+                                          : 'text-blue-800 dark:text-blue-300'
+                                      }`} style={{ letterSpacing: '0.3em', fontFamily: '"Courier New", Courier, monospace' }}>
+                                        {claim.claimCode}
+                                      </div>
+                                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                        Note: Uses digits (1, 0) not letters (I, l, O) or symbols (!, |)
+                                      </div>
+                                    </>
                                   )}
                                   <div className={`text-sm ${
                                     index === 0 
