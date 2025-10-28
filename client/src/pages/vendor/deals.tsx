@@ -981,34 +981,46 @@ export default function VendorDeals() {
                             </p>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {deal.claimCodes.slice(0, 6).map((claim: any, index: number) => (
-                              <div 
-                                key={index} 
-                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
-                                data-testid={`claim-code-${index}`}
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-lg font-mono font-bold text-primary">
-                                    {claim.code}
-                                  </span>
-                                  <Badge variant="outline" className="text-xs">
-                                    Active
-                                  </Badge>
-                                </div>
-                                <div className="text-xs text-muted-foreground space-y-1">
-                                  <div className="flex items-center gap-1">
-                                    <Clock className="h-3 w-3" />
-                                    Claimed: {new Date(claim.claimedAt).toLocaleDateString()}
+                            {deal.claimCodes.slice(0, 6).map((claim: any, index: number) => {
+                              const isExpired = claim.isExpired || (claim.expiresAt && new Date(claim.expiresAt) < new Date());
+                              return (
+                                <div 
+                                  key={index} 
+                                  className={`border rounded-lg p-3 ${
+                                    isExpired 
+                                      ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800' 
+                                      : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+                                  }`}
+                                  data-testid={`claim-code-${index}`}
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className={`text-lg font-mono font-bold ${
+                                      isExpired ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+                                    }`}>
+                                      {claim.code}
+                                    </span>
+                                    <Badge 
+                                      variant={isExpired ? "destructive" : "outline"} 
+                                      className="text-xs"
+                                    >
+                                      {isExpired ? 'Expired' : 'Active'}
+                                    </Badge>
                                   </div>
-                                  {claim.expiresAt && (
+                                  <div className="text-xs text-muted-foreground space-y-1">
                                     <div className="flex items-center gap-1">
-                                      <AlertCircle className="h-3 w-3" />
-                                      Expires: {new Date(claim.expiresAt).toLocaleDateString()}
+                                      <Clock className="h-3 w-3" />
+                                      Claimed: {new Date(claim.claimedAt).toLocaleDateString()}
                                     </div>
-                                  )}
+                                    {claim.expiresAt && (
+                                      <div className="flex items-center gap-1">
+                                        <AlertCircle className={`h-3 w-3 ${isExpired ? 'text-red-500' : ''}`} />
+                                        Expires: {new Date(claim.expiresAt).toLocaleDateString()}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                           {deal.claimCodes.length > 6 && (
                             <p className="text-xs text-muted-foreground mt-3 text-center">

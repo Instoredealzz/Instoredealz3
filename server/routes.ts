@@ -1436,23 +1436,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get all claims for this deal (both active and used)
         const dealClaims = allClaims.filter(c => c.dealId === deal.id);
         
-        // Get active (unclaimed/pending) claim codes
-        const activeClaimCodes = dealClaims
-          .filter(c => !c.vendorVerified && (!c.codeExpiresAt || new Date() < new Date(c.codeExpiresAt)))
-          .map(c => ({
-            code: c.claimCode,
-            claimedAt: c.claimedAt,
-            expiresAt: c.codeExpiresAt,
-            customerId: c.userId
-          }));
+        // Get all unverified claim codes (including expired ones)
+        // Show expired codes too so vendors can see all pending claims
+        const allUnverifiedCodes = dealClaims
+          .filter(c => !c.vendorVerified)
+          .map(c => {
+            const isExpired = c.codeExpiresAt && new Date() > new Date(c.codeExpiresAt);
+            return {
+              code: c.claimCode,
+              claimedAt: c.claimedAt,
+              expiresAt: c.codeExpiresAt,
+              customerId: c.userId,
+              isExpired: isExpired
+            };
+          });
+        
+        // Count truly active (non-expired) claims
+        const activeCount = allUnverifiedCodes.filter(c => !c.isExpired).length;
         
         return {
           ...deal,
           locations: locations,
           locationCount: locations.length,
           hasMultipleLocations: locations.length > 1,
-          claimCodes: activeClaimCodes,
-          activeClaimsCount: activeClaimCodes.length,
+          claimCodes: allUnverifiedCodes, // Show all unverified codes
+          activeClaimsCount: activeCount, // Only count non-expired
           totalClaimsCount: dealClaims.length,
           verifiedClaimsCount: dealClaims.filter(c => c.vendorVerified).length
         };
@@ -2227,7 +2235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Return simplified verification response with essential data
-      res.json({
+      const responseData = {
         success: true,
         valid: true,
         verificationTimestamp: currentTime.toISOString(),
@@ -2237,8 +2245,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           claimId: claim.id,
           claimCode: claim.claimCode,
           status: claim.status,
-          claimedAt: claim.claimedAt,
-          expiresAt: claim.codeExpiresAt
+          claimedAt: claim.claimedAt ? claim.claimedAt.toISOString() : null,
+          expiresAt: claim.codeExpiresAt ? claim.codeExpiresAt.toISOString() : null
         },
         
         // Essential Customer Data
@@ -2252,8 +2260,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: customer.phone || 'N/A',
           customerPhone: customer.phone || 'N/A',
           membershipPlan: customer.membershipPlan || 'basic',
-          totalLifetimeSavings: customerTotalSavings,
-          totalDealsRedeemed: customerTotalDeals
+          totalLifetimeSavings: Number(customerTotalSavings) || 0,
+          totalDealsRedeemed: Number(customerTotalDeals) || 0
         },
         
         // Essential Deal Data
@@ -2264,23 +2272,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dealTitle: deal.title,
           category: deal.category,
           dealCategory: deal.category,
-          discountPercentage: deal.discountPercentage,
-          originalPrice: deal.originalPrice ? parseFloat(deal.originalPrice.toString()) : null,
-          discountedPrice: deal.discountedPrice ? parseFloat(deal.discountedPrice.toString()) : null,
-          maxPossibleDiscount: maxPossibleDiscount,
-          maxDiscount: maxPossibleDiscount
+          discountPercentage: Number(deal.discountPercentage) || 0,
+          originalPrice: deal.originalPrice ? Number(deal.originalPrice) : null,
+          discountedPrice: deal.discountedPrice ? Number(deal.discountedPrice) : null,
+          maxPossibleDiscount: Number(maxPossibleDiscount) || 0,
+          maxDiscount: Number(maxPossibleDiscount) || 0
         },
         
         // Essential Vendor Data
         vendor: {
           vendorId: vendor.id,
           vendorName: vendor.businessName,
-          totalRedemptions: vendorTotalRedemptions,
-          totalRevenue: Math.round(vendorTotalRevenue * 100) / 100
+          totalRedemptions: Number(vendorTotalRedemptions) || 0,
+          totalRevenue: Math.round((Number(vendorTotalRevenue) || 0) * 100) / 100
         },
         
         message: "Claim code verified successfully. Ready for transaction processing."
-      });
+      };
+      
+      console.log('[VERIFY] Sending response:', JSON.stringify(responseData).substring(0, 200));
+      res.json(responseData);
 
     } catch (error) {
       console.error('POS verify claim code error:', error);
