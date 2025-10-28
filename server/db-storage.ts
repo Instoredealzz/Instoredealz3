@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, and, desc, asc, like, count, sql, isNotNull, lte, or, isNull, gte } from "drizzle-orm";
+import { eq, and, desc, asc, like, count, sql, isNotNull, lte, or, isNull, gte, gt } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import type { IStorage } from "./storage";
 import type {
@@ -285,8 +285,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveDeals(): Promise<Deal[]> {
+    const now = new Date();
     return await db.select().from(schema.deals)
-      .where(and(eq(schema.deals.isActive, true), eq(schema.deals.isApproved, true)))
+      .where(and(
+        eq(schema.deals.isActive, true), 
+        eq(schema.deals.isApproved, true),
+        gt(schema.deals.validUntil, now)
+      ))
       .orderBy(desc(schema.deals.createdAt));
   }
 
