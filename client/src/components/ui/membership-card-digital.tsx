@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { generateMembershipQR } from "@/lib/qr-code";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -36,6 +36,7 @@ interface MembershipCardProps {
   validUntil: string;
   profileImage?: string;
   userId: number;
+  email?: string;
   className?: string;
   totalSavings?: string;
   dealsClaimed?: number;
@@ -52,6 +53,7 @@ export default function MembershipCardDigital({
   validUntil,
   profileImage,
   userId,
+  email,
   className = "",
   totalSavings = "0",
   dealsClaimed = 0,
@@ -61,9 +63,26 @@ export default function MembershipCardDigital({
   const [isFlipped, setIsFlipped] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrCode, setQrCode] = useState<string>("");
   const { toast } = useToast();
 
-  const qrCode = generateMembershipQR(userId, membershipId);
+  useEffect(() => {
+    const generateQR = async () => {
+      try {
+        const qrDataUrl = await generateMembershipQR(
+          userId,
+          membershipPlan,
+          email,
+          name,
+          membershipId
+        );
+        setQrCode(qrDataUrl);
+      } catch (error) {
+        console.error('Error generating membership QR code:', error);
+      }
+    };
+    generateQR();
+  }, [userId, membershipPlan, email, name, membershipId]);
 
   // Helper functions
   const formatSavings = (savings: string) => {

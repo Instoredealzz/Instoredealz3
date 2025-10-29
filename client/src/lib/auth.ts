@@ -14,6 +14,8 @@ interface User {
   city?: string;
   state?: string;
   membershipExpiry?: string;
+  createdAt?: string;
+  phone?: string;
 }
 
 interface AuthState {

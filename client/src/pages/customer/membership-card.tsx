@@ -97,7 +97,6 @@ export default function MembershipCard() {
         // Location Analytics
         city: user.city || 'Mumbai',
         state: user.state || 'Maharashtra',
-        pincode: user.pincode || '400001',
         
         // Engagement Analytics
         preferredCategories: userStats.preferredCategories || ['restaurants', 'electronics'],
