@@ -66,15 +66,28 @@ export default function DebugData() {
 
       <Alert className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <InfoIcon className="h-4 w-4" />
-        <AlertTitle>Testing Guide</AlertTitle>
-        <AlertDescription className="space-y-2 mt-2">
-          <p>To test the deal claim and verification process:</p>
-          <ol className="list-decimal ml-5 space-y-1">
-            <li>Login as a <strong>customer</strong> account (see below)</li>
-            <li>Browse and claim a deal</li>
-            <li>Use the <strong>verification PIN</strong> shown below for that deal</li>
-            <li>Login as the corresponding <strong>vendor</strong> to verify the claim</li>
-          </ol>
+        <AlertTitle>How the System Works</AlertTitle>
+        <AlertDescription className="space-y-3 mt-2">
+          <div>
+            <p className="font-semibold mb-1">Customer Side (Sees ALL Vendors):</p>
+            <ul className="list-disc ml-5 text-sm">
+              <li>Customers browse deals from <strong>all vendors</strong> on customer pages</li>
+              <li>Can claim any deal, regardless of vendor</li>
+              <li>Gets a claim code (e.g., "XY9Z2K") after claiming</li>
+            </ul>
+          </div>
+          <div>
+            <p className="font-semibold mb-1">Vendor Side (POS Dashboard - Only THEIR Deals):</p>
+            <ul className="list-disc ml-5 text-sm">
+              <li>Each vendor logs into <strong>their own POS dashboard</strong></li>
+              <li>Can <strong>only verify claims</strong> for deals they created</li>
+              <li>System automatically rejects claims from other vendors' deals</li>
+            </ul>
+          </div>
+          <div className="mt-2 p-2 bg-amber-100 dark:bg-amber-900/30 rounded">
+            <p className="text-sm font-semibold">🔑 For Testing:</p>
+            <p className="text-sm">The verification PINs shown below are normally known only to vendors. They're displayed here to help you test the complete claim → verify → complete flow.</p>
+          </div>
         </AlertDescription>
       </Alert>
 

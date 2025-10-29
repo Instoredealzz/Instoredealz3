@@ -15,10 +15,24 @@ Navigate to `/debug-data` to access the **Testing Helper** page that displays:
 
 ## Testing Workflow
 
+### Important: Understanding the Customer-Vendor Flow
+
+**Customer Experience (Sees ALL Vendors):**
+- Customers browse deals from **ALL vendors** on the customer pages
+- A customer can claim any deal regardless of which vendor created it
+- After claiming, customer gets a **claim code** (6-character alphanumeric)
+
+**Vendor Experience (POS Dashboard - Only THEIR Deals):**
+- Each vendor logs into **their own POS dashboard**
+- Vendors can **ONLY verify claims** for deals they created
+- The system automatically filters claims to show only that vendor's deals
+- If a vendor tries to verify a claim from another vendor's deal, it will be rejected
+
 ### Step 1: Access the Debug Page
 1. Navigate to: `http://localhost:5000/debug-data` (or your deployment URL + `/debug-data`)
 2. This page shows all deals grouped by vendor
 3. Each deal displays its **Verification PIN** prominently
+4. **IMPORTANT**: The PIN is shown here only for testing purposes - in real scenarios, only the vendor knows their deal's PIN
 
 ### Step 2: Identify Test Accounts
 The debug page shows:
@@ -26,13 +40,13 @@ The debug page shows:
 **Customer Accounts:**
 - Email addresses of all customer accounts
 - Membership plan levels
-- Use any of these to test claiming deals
+- Use any of these to test claiming deals from **any vendor**
 
 **Vendor Accounts:**
 - Vendor user email addresses
 - Associated business names
 - Vendor IDs and User IDs
-- Use these to test the vendor verification side
+- Each vendor can only verify claims for **their own deals** via their POS dashboard
 
 ### Step 3: Complete Testing Flow
 
@@ -57,14 +71,19 @@ The debug page shows:
 3. If correct, your claim will be verified
 4. Complete the transaction with bill amount
 
-#### As a Vendor (Verify Claims):
+#### As a Vendor (Verify Claims via POS Dashboard):
 1. **Login** as the vendor account that owns the deal
-2. Go to your **Vendor Dashboard** or **POS** page
+   - Example: If customer claimed a deal from "ABC Store" (Vendor ID: 5), login as that vendor
+2. Navigate to your **Vendor POS Dashboard** (`/vendor/pos-dashboard` or `/vendor/pos`)
 3. **Enter the claim code** provided by the customer
+   - The system automatically checks if this claim is for YOUR deals
+   - If the claim is for another vendor's deal, you'll get an error
 4. The system will prompt for **PIN verification**
-5. Customer enters the PIN (from debug page)
-6. System verifies and processes the claim
-7. Enter the **bill amount** to complete the transaction
+5. Customer enters the **verification PIN** (found on `/debug-data` for testing)
+6. System verifies the PIN against the deal's stored PIN
+7. If successful, enter the **bill amount** to complete the transaction
+
+**Key Point:** Each vendor's POS dashboard is isolated - you can ONLY verify claims for deals you created. This ensures vendors don't accidentally process other vendors' deals.
 
 ## Understanding the Data Flow
 
@@ -119,31 +138,81 @@ Deal redemption count increases
 - Use debug page to match vendor → deals → PINs
 - Login as the correct vendor for each deal
 
-## Example Testing Scenario
+## Complete Example Testing Scenario
 
-Let's say you want to test a complete flow:
+Let's walk through a full customer-to-vendor flow:
 
-1. **Check Debug Page** (`/debug-data`)
-   - Found: "Summer Sale - 40%" by "ABC Store" (Vendor ID: 5)
-   - PIN: `A1B2C3`
-   - Vendor email: `vendor@test.com`
+### Scenario Setup
+From `/debug-data`, you see:
+- **Deal**: "Summer Sale - 40%" 
+- **Vendor**: "ABC Store" (Vendor ID: 5)
+- **Vendor Login**: `vendor@abc.com`
+- **Verification PIN**: `A1B2C3`
+- **Customer Account**: `customer@test.com`
 
-2. **As Customer** (`customer@test.com`)
-   - Login → Browse → Find "Summer Sale - 40%"
-   - Click "Claim Deal"
-   - Receive claim code: `XY9Z2K`
+### Step-by-Step Test Flow
 
-3. **At the Store**
-   - Present code `XY9Z2K` to vendor
-   - Vendor asks for PIN
-   - Enter `A1B2C3` (from debug page)
-   - ✅ Verification successful
+#### 1. Customer Claims the Deal
+```
+Action: Login as customer@test.com
+Navigate: Browse deals page (customer sees ALL vendors' deals)
+Find: "Summer Sale - 40%" from ABC Store
+Click: "Claim Deal" button
+Result: Receive claim code → XY9Z2K
+Status: Claim is "pending" (not verified yet)
+```
 
-4. **Complete Transaction**
-   - Bill amount: $100
-   - Discount: 40% = $40 savings
-   - Customer pays: $60
-   - Customer's total savings updated
+#### 2. Customer Visits the Store
+```
+Customer physically goes to ABC Store
+Shows claim code: XY9Z2K
+```
+
+#### 3. Vendor Verifies via POS Dashboard
+```
+Action: Login as vendor@abc.com (ABC Store vendor)
+Navigate: /vendor/pos-dashboard (Vendor's POS Dashboard)
+Enter: Claim code "XY9Z2K" in the POS system
+System: Validates that this claim is for ABC Store's deal ✓
+System: Prompts for verification PIN
+```
+
+#### 4. PIN Verification
+```
+Vendor asks customer: "Please enter your verification PIN"
+Customer enters: A1B2C3 (they found this on /debug-data)
+System: Verifies PIN matches the deal's PIN ✓
+Result: "PIN Verified Successfully!"
+Status: Claim status changes to "verified"
+```
+
+#### 5. Complete Transaction
+```
+Vendor: Enters bill amount: ₹100
+System Calculates:
+  - Original Bill: ₹100
+  - Discount (40%): -₹40
+  - Final Amount: ₹60
+Customer: Pays ₹60
+Result: 
+  - Transaction complete
+  - Customer saves ₹40
+  - Customer's total savings updated
+  - Deal redemption count increases
+Status: Claim status changes to "used"
+```
+
+### What Happens if Wrong Vendor Tries to Verify?
+
+If a different vendor (e.g., "XYZ Store" - Vendor ID: 3) tries to verify claim code `XY9Z2K`:
+```
+Vendor: XYZ Store tries to verify claim code XY9Z2K
+System: Checks claim → Deal belongs to ABC Store (Vendor ID: 5)
+System: Vendor XYZ (Vendor ID: 3) ≠ Deal's Vendor (ID: 5)
+Result: ❌ Error - "This claim code is not for your deals"
+```
+
+**This ensures each vendor can only process their own deals!**
 
 ## Multiple Vendors Scenario
 
