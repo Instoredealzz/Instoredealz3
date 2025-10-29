@@ -6,10 +6,12 @@ Instoredealz is a full-stack deal discovery platform designed to connect custome
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (August 2025)
+## Recent Changes (October 2025)
+- **Fixed critical race condition bug in POS transactions**: Implemented atomic SQL increment operations for redemption counters (dealsClaimed, currentRedemptions, totalRedemptions) to prevent lost updates during concurrent POS transactions
+- **Added atomic increment methods**: Created three new storage methods (incrementUserDealsClaimed, incrementVendorRedemptions, incrementDealRedemptions) using `UPDATE table SET column = COALESCE(column, 0) + 1` for NULL-safe atomic updates
+- **Completed comprehensive end-to-end testing**: Verified complete workflow across all three roles (customer, vendor, admin) from vendor registration through deal redemption
 - **Fixed duplicate vendor registration forms**: Consolidated multiple registration prompts into a single VendorRegistrationStatus component across dashboard, profile, and deal creation pages
-- **Verified complete vendor workflow**: Registration → Admin Approval → Deal Creation → Deal Approval → Customer Visibility
-- **Database workflow confirmed**: All data properly flows from vendor registration through admin approval to customer-facing deals
+- **Database workflow confirmed**: All data properly flows from vendor registration through admin approval to customer-facing deals with correct counter updates
 
 ## System Architecture
 

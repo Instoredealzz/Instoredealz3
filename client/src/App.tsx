@@ -70,6 +70,7 @@ import TestFlows from "@/pages/test-flows";
 import QRTest from "@/pages/qr-test";
 import DealList from "@/components/DealList";
 import SubscriptionButton from "@/components/Subscription";
+import DebugData from "@/pages/DebugData";
 
 import MagicAdminDashboard from "@/components/AdminDashboard";
 import BannerList from "@/components/BannerList";
@@ -138,6 +139,7 @@ function Router() {
   const [matchResponsiveTest] = useRoute("/responsive-test");
   const [matchTest] = useRoute("/test");
   const [matchQRTest] = useRoute("/qr-test");
+  const [matchDebugData] = useRoute("/debug-data");
   const [matchDeals] = useRoute("/deals");
   const [matchDealDetail, dealParams] = useRoute("/deals/:id");
   const [matchBanners] = useRoute("/banners");
@@ -211,6 +213,7 @@ function Router() {
   if (matchResponsiveTest) return <ResponsiveTest />;
   if (matchTest) return <TestFlows />;
   if (matchQRTest) return <QRTest />;
+  if (matchDebugData) return <DebugData />;
   if (matchDeals) return <DealList />;
   if (matchBanners) return <BannerList />;
 
