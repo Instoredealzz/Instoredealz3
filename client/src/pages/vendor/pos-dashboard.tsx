@@ -124,6 +124,8 @@ export default function PosDashboard() {
   const [newInventoryItem, setNewInventoryItem] = useState({
     name: '', sku: '', stock: 0, price: 0, lowStockAlert: 5
   });
+  const [showBillDialog, setShowBillDialog] = useState(false);
+  const [billAmount, setBillAmount] = useState('');
 
   // Add inventory item handler
   const handleAddInventory = () => {
@@ -527,27 +529,73 @@ export default function PosDashboard() {
     });
   };
 
-  const processTransaction = () => {
+  const initiateTransaction = () => {
+    if (!posState.activeSession || posState.selectedDeals.length === 0) return;
+    setShowBillDialog(true);
+  };
+
+  const processTransaction = async () => {
+    if (!billAmount || parseFloat(billAmount) <= 0) {
+      toast({
+        title: "Invalid Bill Amount",
+        description: "Please enter a valid bill amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!posState.activeSession || posState.selectedDeals.length === 0) return;
 
     setIsProcessingTransaction(true);
 
-    // Process each deal as a separate transaction
-    posState.selectedDeals.forEach(item => {
-      const transactionData = {
-        sessionId: posState.activeSession!.id,
-        dealId: item.deal.id,
-        customerId: verifiedCustomer?.userId || posState.currentCustomer?.id || null,
-        amount: (parseFloat(item.deal.discountedPrice || "0") * item.quantity).toString(),
-        savingsAmount: ((parseFloat(item.deal.originalPrice || "0") - parseFloat(item.deal.discountedPrice || "0")) * item.quantity).toString(),
-        transactionType: 'redeem',
-        paymentMethod: posState.paymentMethod,
-        pin: item.pin,
-        notes: `Quantity: ${item.quantity}`,
-      };
+    const totalBill = parseFloat(billAmount);
+    
+    try {
+      // Process each deal claim via the complete-claim-transaction endpoint
+      for (const item of posState.selectedDeals) {
+        // Calculate savings based on actual bill amount and discount percentage
+        const itemBillAmount = totalBill / posState.selectedDeals.length; // Divide bill equally among deals
+        const actualDiscount = (itemBillAmount * item.deal.discountPercentage) / 100;
+        
+        // Complete the claim transaction with actual bill amount
+        const response = await apiRequest('/api/pos/complete-claim-transaction', {
+          method: 'POST',
+          body: {
+            claimCode: item.pin, // The claim code stored during verification
+            billAmount: itemBillAmount,
+            actualDiscount: actualDiscount
+          }
+        });
 
-      processTransactionMutation.mutate(transactionData);
-    });
+        if (response.ok) {
+          toast({
+            title: "Transaction Completed",
+            description: `Customer saved ₹${actualDiscount.toFixed(2)} on ${item.deal.title}`,
+          });
+        }
+      }
+
+      // Clear cart and reset form
+      setPosState(prev => ({
+        ...prev,
+        selectedDeals: [],
+        totalAmount: 0,
+        totalSavings: 0
+      }));
+      setShowBillDialog(false);
+      setBillAmount('');
+      setIsProcessingTransaction(false);
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/deals/vendor'] });
+      
+    } catch (error: any) {
+      toast({
+        title: "Transaction Failed",
+        description: error.message || "Failed to complete transaction",
+        variant: "destructive",
+      });
+      setIsProcessingTransaction(false);
+    }
   };
 
   return (
@@ -878,10 +926,11 @@ export default function PosDashboard() {
                 </div>
 
                 <Button
-                  onClick={processTransaction}
+                  onClick={initiateTransaction}
                   disabled={isProcessingTransaction || posState.selectedDeals.length === 0}
                   className="w-full"
                   size="lg"
+                  data-testid="button-process-transaction"
                 >
                   <Receipt className="h-4 w-4 mr-2" />
                   {isProcessingTransaction ? 'Processing...' : 'Process Transaction'}
@@ -1516,6 +1565,78 @@ export default function PosDashboard() {
               <Button variant="outline" onClick={() => setShowCreateBill(false)}>Cancel</Button>
               <Button onClick={handleCreateBill}>Create Invoice</Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bill Amount Dialog */}
+      <Dialog open={showBillDialog} onOpenChange={setShowBillDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enter Bill Amount</DialogTitle>
+            <DialogDescription>
+              Enter the total bill amount to calculate customer savings
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="transactionBillAmount">Total Bill Amount (₹)</Label>
+              <Input
+                id="transactionBillAmount"
+                type="number"
+                value={billAmount}
+                onChange={(e) => setBillAmount(e.target.value)}
+                placeholder="Enter total bill amount"
+                data-testid="input-bill-amount"
+              />
+            </div>
+            
+            {billAmount && posState.selectedDeals.length > 0 && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg space-y-2">
+                <div className="text-sm text-green-700 dark:text-green-300">Calculation Summary:</div>
+                {posState.selectedDeals.map((item, idx) => (
+                  <div key={idx} className="text-sm">
+                    <div className="font-medium text-gray-900 dark:text-gray-100">
+                      {item.deal.title} ({item.deal.discountPercentage}% off)
+                    </div>
+                    <div className="text-green-600 dark:text-green-400">
+                      Savings: ₹{((parseFloat(billAmount) / posState.selectedDeals.length * item.deal.discountPercentage) / 100).toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+                <Separator className="my-2" />
+                <div className="font-bold text-lg text-green-600 dark:text-green-400">
+                  Total Customer Savings: ₹{posState.selectedDeals.reduce((sum, item) => 
+                    sum + ((parseFloat(billAmount) / posState.selectedDeals.length * item.deal.discountPercentage) / 100), 0
+                  ).toFixed(2)}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => {
+              setShowBillDialog(false);
+              setBillAmount('');
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={processTransaction}
+              disabled={!billAmount || parseFloat(billAmount) <= 0 || isProcessingTransaction}
+              data-testid="button-confirm-transaction"
+            >
+              {isProcessingTransaction ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Confirm Transaction
+                </>
+              )}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
