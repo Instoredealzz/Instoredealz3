@@ -96,6 +96,8 @@ export const deals = pgTable("deals", {
   pinCreatedAt: timestamp("pin_created_at").defaultNow(), // PIN creation time
   pinExpiresAt: timestamp("pin_expires_at"), // PIN expiration (optional)
   dealAvailability: text("deal_availability").default("all-stores"), // all-stores, selected-locations
+  dealType: text("deal_type").default("offline"), // offline, online - for affiliate marketing
+  affiliateLink: text("affiliate_link"), // URL for online deals (affiliate link to vendor website/app)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
