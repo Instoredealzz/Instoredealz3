@@ -4519,7 +4519,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discountPercentage,
         validUntil,
         maxRedemptions,
-        requiredMembership
+        requiredMembership,
+        dealType,
+        affiliateLink
       } = req.body;
 
       // Validate required fields
@@ -4527,6 +4529,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({
           success: false,
           message: "All required fields must be provided"
+        });
+      }
+
+      // Validate online deal requires affiliate link
+      if (dealType === 'online' && !affiliateLink) {
+        return res.status(400).json({
+          success: false,
+          message: "Affiliate link is required for online deals"
         });
       }
 
@@ -4585,6 +4595,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isActive: true,
         isApproved: false, // Requires admin approval
         address: vendor.address || "TBD",
+        dealType: dealType || 'offline', // Default to offline if not specified
+        affiliateLink: affiliateLink || null, // Store affiliate link for online deals
       });
 
       // Log the deal creation

@@ -28,7 +28,8 @@ import {
   AlertCircle,
   MapPin,
   Navigation,
-  Crosshair
+  Crosshair,
+  Copy
 } from "lucide-react";
 import ImageUpload from "@/components/ui/image-upload";
 import PinTracker from "@/components/ui/pin-tracker";
@@ -970,6 +971,44 @@ export default function VendorDeals() {
                               <span>Claims: {deal.currentRedemptions || 0}</span>
                             </div>
                           </div>
+                          
+                          {/* Online Deal Information */}
+                          {deal.dealType === 'online' && (
+                            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge className="bg-blue-600 text-white">
+                                  Online Deal
+                                </Badge>
+                              </div>
+                              {deal.affiliateLink && (
+                                <div className="text-sm">
+                                  <p className="text-muted-foreground mb-2">Affiliate Link:</p>
+                                  <div className="flex items-center gap-2">
+                                    <code className="text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 break-all">
+                                      {deal.affiliateLink}
+                                    </code>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(deal.affiliateLink);
+                                        toast({
+                                          title: "Copied!",
+                                          description: "Affiliate link copied to clipboard",
+                                        });
+                                      }}
+                                      className="h-6 px-2 flex-shrink-0"
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                                    Customers will use their claim codes on this link to get {deal.discountPercentage}% off
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                           <div className="mt-2">
                             <div className="flex items-center space-x-1 text-sm text-gray-500">
                               <Clock className="h-4 w-4" />
