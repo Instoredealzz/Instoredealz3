@@ -205,15 +205,15 @@ export default function DealCard({
         </button>
         
         {/* Deal Type and Category Badges */}
-        <div className="absolute bottom-2 left-2 space-y-1">
-          <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs`}>
+        <div className="absolute bottom-2 left-2 space-y-1 z-10">
+          <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs shadow-lg`}>
             {dealType === 'online' ? '🌐 Online' : '🏪 Offline'}
           </Badge>
-          <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0`}>
+          <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0 shadow-md`}>
             {category}
           </Badge>
           {subcategory && formatSubcategory(subcategory) && (
-            <Badge className="bg-green-100 text-green-800 border-0 text-xs block">
+            <Badge className="bg-green-100 text-green-800 border-0 text-xs block shadow-md">
               {formatSubcategory(subcategory)}
             </Badge>
           )}
