@@ -27,7 +27,7 @@ export const users = pgTable("users", {
 // Vendors table for business information
 export const vendors = pgTable("vendors", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
   businessName: text("business_name").notNull(),
   gstNumber: text("gst_number"),
   panNumber: text("pan_number").notNull(),
