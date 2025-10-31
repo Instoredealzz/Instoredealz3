@@ -56,5 +56,21 @@ The application emphasizes modularity, separation of concerns, and type safety. 
 - **Type Validation**: Zod
 - **Authentication**: `jsonwebtoken`, `bcrypt`
 - **QR Code Generation**: `qrcode`
-- **Email Service**: SendGrid
+- **Email Service**: SendGrid (optional - requires SENDGRID_API_KEY in Replit Secrets)
 - **Payment Gateway**: Razorpay
+
+## Production Setup Notes
+
+### Email Notifications (Optional)
+Email notifications are currently disabled. To enable:
+1. Get a SendGrid API key from https://sendgrid.com
+2. Add it to Replit Secrets as `SENDGRID_API_KEY`
+3. Restart the application
+
+Features affected when disabled:
+- Welcome emails for new customers
+- Vendor registration confirmation emails
+- Deal approval/rejection notifications
+- Admin report emails
+
+The application works fully without email notifications - they are optional enhancements.
