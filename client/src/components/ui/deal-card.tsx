@@ -220,19 +220,11 @@ export default function DealCard({
         )}
       </div>
       
-      {/* Deal Type and Category Badges - Positioned outside image container */}
-      <div className="absolute top-[11rem] left-2 space-y-1 z-20">
+      {/* Deal Type Badge - Positioned outside image container */}
+      <div className="absolute top-[11rem] left-2 z-20">
         <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs shadow-lg`}>
           {dealType === 'online' ? '🌐 Online' : '🏪 Offline'}
         </Badge>
-        <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0 shadow-md`}>
-          {category}
-        </Badge>
-        {subcategory && formatSubcategory(subcategory) && (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 border-0 text-xs block shadow-md">
-            {formatSubcategory(subcategory)}
-          </Badge>
-        )}
       </div>
 
       <CardContent className="flex-1 p-4">

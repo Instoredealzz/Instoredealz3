@@ -3542,17 +3542,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Cities endpoint
   app.get('/api/cities', async (req, res) => {
-    const cities = [
-      { name: 'Mumbai', state: 'Maharashtra', dealCount: 2845 },
-      { name: 'Delhi', state: 'Delhi', dealCount: 2134 },
-      { name: 'Bangalore', state: 'Karnataka', dealCount: 1987 },
-      { name: 'Chennai', state: 'Tamil Nadu', dealCount: 1543 },
-      { name: 'Hyderabad', state: 'Telangana', dealCount: 1234 },
-      { name: 'Pune', state: 'Maharashtra', dealCount: 987 },
-      { name: 'Kolkata', state: 'West Bengal', dealCount: 876 },
-      { name: 'Ahmedabad', state: 'Gujarat', dealCount: 654 },
-    ];
-    res.json(cities);
+    try {
+      const deals = await storage.getActiveDeals();
+      const vendors = await storage.getAllVendors();
+      
+      const dealCountByCity = new Map<string, number>();
+      
+      deals.forEach(deal => {
+        const vendor = vendors.find(v => v.id === deal.vendorId);
+        if (vendor && vendor.city) {
+          const currentCount = dealCountByCity.get(vendor.city) || 0;
+          dealCountByCity.set(vendor.city, currentCount + 1);
+        }
+      });
+      
+      const majorCitiesData = [
+        { name: 'Mumbai', state: 'Maharashtra' },
+        { name: 'Delhi', state: 'Delhi' },
+        { name: 'Bangalore', state: 'Karnataka' },
+        { name: 'Chennai', state: 'Tamil Nadu' },
+        { name: 'Hyderabad', state: 'Telangana' },
+        { name: 'Pune', state: 'Maharashtra' },
+        { name: 'Kolkata', state: 'West Bengal' },
+        { name: 'Ahmedabad', state: 'Gujarat' },
+      ];
+      
+      const cities = majorCitiesData.map(city => ({
+        ...city,
+        dealCount: dealCountByCity.get(city.name) || 0
+      }));
+      
+      res.json(cities);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cities" });
+    }
   });
 
   // Admin deal distribution endpoints
