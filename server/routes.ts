@@ -12,6 +12,7 @@ import { z } from "zod";
 import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail } from "./email";
 import { verifyRotatingPin, verifyPin } from "./pin-security";
 import jwt from "jsonwebtoken";
+import { whatsappService, WhatsAppTemplates, formatWhatsAppNumber } from "./whatsapp";
 
 // Configure axios defaults
 const externalAPI = axios.create({
@@ -3184,6 +3185,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Send WhatsApp notifications to customers about new deal
+      if (whatsappService.isServiceEnabled()) {
+        try {
+          // Get customers who might be interested in this deal
+          const allUsers = await storage.getAllUsers();
+          const customers = allUsers.filter(u => 
+            u.role === 'customer' && 
+            u.whatsappPhone && 
+            u.whatsappNotifications &&
+            (u.city === vendor?.city || deal.dealAvailability === 'all-stores')
+          );
+          
+          // Send notifications asynchronously (don't wait for completion)
+          if (customers.length > 0) {
+            Logger.info(`Sending WhatsApp notifications to ${customers.length} customers for new deal`, { dealId, dealTitle: deal.title });
+            
+            // Send notifications in background
+            Promise.all(
+              customers.slice(0, 50).map(customer => // Limit to 50 notifications per deal approval
+                whatsappService.sendMessage({
+                  to: customer.whatsappPhone!,
+                  message: WhatsAppTemplates.newDeal(
+                    customer.name,
+                    deal.title,
+                    deal.discountPercentage,
+                    vendor?.businessName || 'a partner vendor'
+                  )
+                })
+              )
+            ).catch(err => Logger.error('WhatsApp notification batch failed', err));
+          }
+        } catch (whatsappError) {
+          Logger.warn('Failed to send WhatsApp notifications for new deal', whatsappError);
+        }
+      }
+      
       // Log approval (temporarily bypassed due to missing system_logs table)
       try {
         await storage.createSystemLog({
@@ -3552,6 +3589,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error fetching nearby deals:', error);
       res.status(500).json({ error: 'Failed to fetch nearby deals' });
     }
+  });
+
+  // WhatsApp Marketing Campaign endpoints
+  app.get('/api/admin/whatsapp/campaigns', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const campaigns = await storage.getWhatsAppCampaigns();
+      res.json(campaigns);
+    } catch (error) {
+      Logger.error('Failed to fetch WhatsApp campaigns', error);
+      res.status(500).json({ message: "Failed to fetch WhatsApp campaigns" });
+    }
+  });
+
+  app.post('/api/admin/whatsapp/campaigns', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { campaignName, messageContent, targetAudience, targetCity, targetCategory } = req.body;
+      
+      if (!campaignName || !messageContent || !targetAudience) {
+        return res.status(400).json({ message: "Campaign name, message content, and target audience are required" });
+      }
+
+      // Create campaign
+      const campaign = await storage.createWhatsAppCampaign({
+        campaignName,
+        messageContent,
+        targetAudience,
+        targetCity,
+        targetCategory,
+        status: 'draft',
+        createdBy: req.user!.id,
+      });
+
+      res.json(campaign);
+    } catch (error) {
+      Logger.error('Failed to create WhatsApp campaign', error);
+      res.status(500).json({ message: "Failed to create WhatsApp campaign" });
+    }
+  });
+
+  app.post('/api/admin/whatsapp/campaigns/:id/send', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      
+      if (!whatsappService.isServiceEnabled()) {
+        return res.status(503).json({ 
+          message: "WhatsApp service is not configured. Please add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_WHATSAPP_NUMBER to enable WhatsApp messaging." 
+        });
+      }
+
+      const campaign = await storage.getWhatsAppCampaign(campaignId);
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      if (campaign.status === 'completed') {
+        return res.status(400).json({ message: "Campaign already sent" });
+      }
+
+      // Get target customers
+      const allUsers = await storage.getAllUsers();
+      let targetCustomers = allUsers.filter(u => 
+        u.role === 'customer' && 
+        u.whatsappPhone && 
+        u.marketingMessages
+      );
+
+      // Apply targeting filters
+      if (campaign.targetAudience === 'premium_only') {
+        targetCustomers = targetCustomers.filter(u => u.membershipPlan !== 'basic');
+      } else if (campaign.targetAudience === 'by_city' && campaign.targetCity) {
+        targetCustomers = targetCustomers.filter(u => u.city === campaign.targetCity);
+      }
+
+      if (targetCustomers.length === 0) {
+        return res.status(400).json({ message: "No eligible customers found for this campaign" });
+      }
+
+      // Update campaign status
+      await storage.updateWhatsAppCampaign(campaignId, {
+        status: 'sending',
+        totalRecipients: targetCustomers.length,
+        sentAt: new Date(),
+      });
+
+      // Send messages in background
+      const recipients = targetCustomers.map(c => ({
+        userId: c.id,
+        phoneNumber: c.whatsappPhone!,
+        name: c.name,
+      }));
+
+      Logger.info(`Starting WhatsApp campaign ${campaignId} to ${recipients.length} recipients`);
+
+      // Send messages asynchronously
+      whatsappService.sendBulkMessages(
+        recipients,
+        campaign.messageContent,
+        async (sent, total) => {
+          // Update progress
+          await storage.updateWhatsAppCampaign(campaignId, {
+            sentCount: sent,
+          });
+        }
+      ).then(async (results) => {
+        const delivered = results.filter(r => r.success).length;
+        const failed = results.filter(r => !r.success).length;
+
+        // Save individual recipient records
+        for (const result of results) {
+          await storage.createWhatsAppMessageRecipient({
+            messageId: campaignId,
+            userId: result.userId,
+            phoneNumber: result.phoneNumber,
+            status: result.success ? 'sent' : 'failed',
+            errorMessage: result.error,
+            sentAt: result.success ? new Date() : undefined,
+          });
+        }
+
+        // Update campaign final status
+        await storage.updateWhatsAppCampaign(campaignId, {
+          status: 'completed',
+          deliveredCount: delivered,
+          failedCount: failed,
+          completedAt: new Date(),
+        });
+
+        Logger.info(`WhatsApp campaign ${campaignId} completed: ${delivered} delivered, ${failed} failed`);
+      }).catch(async (error) => {
+        Logger.error(`WhatsApp campaign ${campaignId} failed`, error);
+        await storage.updateWhatsAppCampaign(campaignId, {
+          status: 'failed',
+        });
+      });
+
+      res.json({ 
+        message: "Campaign sending started",
+        campaignId,
+        totalRecipients: targetCustomers.length 
+      });
+    } catch (error) {
+      Logger.error('Failed to send WhatsApp campaign', error);
+      res.status(500).json({ message: "Failed to send WhatsApp campaign" });
+    }
+  });
+
+  app.get('/api/admin/whatsapp/campaigns/:id', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const campaignId = parseInt(req.params.id);
+      const campaign = await storage.getWhatsAppCampaign(campaignId);
+      
+      if (!campaign) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      // Get recipients for this campaign
+      const recipients = await storage.getWhatsAppCampaignRecipients(campaignId);
+
+      res.json({
+        ...campaign,
+        recipients,
+      });
+    } catch (error) {
+      Logger.error('Failed to fetch WhatsApp campaign details', error);
+      res.status(500).json({ message: "Failed to fetch campaign details" });
+    }
+  });
+
+  // Check WhatsApp service status
+  app.get('/api/admin/whatsapp/status', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    res.json({
+      enabled: whatsappService.isServiceEnabled(),
+      configured: !!process.env.TWILIO_ACCOUNT_SID && !!process.env.TWILIO_AUTH_TOKEN && !!process.env.TWILIO_WHATSAPP_NUMBER,
+    });
   });
 
   // Categories endpoint

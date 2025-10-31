@@ -92,3 +92,20 @@ Features affected when disabled:
 - Admin report emails
 
 The application works fully without email notifications - they are optional enhancements.
+
+### WhatsApp Business Messaging (Pending Setup)
+WhatsApp Business messaging infrastructure has been implemented but requires credentials. To enable:
+1. Create a Twilio account at https://twilio.com
+2. Enable WhatsApp messaging in your Twilio console
+3. Add these credentials to Replit Secrets:
+   - `TWILIO_ACCOUNT_SID`: Your Twilio Account ID
+   - `TWILIO_AUTH_TOKEN`: Your Twilio authentication token
+   - `TWILIO_WHATSAPP_NUMBER`: Your WhatsApp-enabled phone number (format: whatsapp:+1234567890)
+4. Restart the application
+
+Features pending activation:
+- Deal notifications to customers when new deals match their preferences
+- Marketing messages for promotional campaigns
+- Bulk WhatsApp messaging from admin panel
+
+The application works fully without WhatsApp messaging - it is an optional marketing enhancement.

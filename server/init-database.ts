@@ -1,9 +1,13 @@
 import { db } from './db';
 import { users, vendors, deals } from '../shared/schema';
 import { sql } from 'drizzle-orm';
+import { migrateWhatsAppColumns } from './migrate-whatsapp';
 
 export async function initializeDatabase() {
   try {
+    // Run WhatsApp migrations first
+    await migrateWhatsAppColumns();
+    
     // Add status column to vendors table if it doesn't exist
     await db.execute(sql`
       ALTER TABLE vendors 

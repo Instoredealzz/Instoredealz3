@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   role: text("role").notNull().default("customer"), // customer, vendor, admin, superadmin
   name: text("name").notNull(),
   phone: text("phone"),
+  whatsappPhone: text("whatsapp_phone"), // WhatsApp-enabled phone number for notifications
   city: text("city"),
   state: text("state"),
   profileImage: text("profile_image"), // URL or base64 data for profile photo
@@ -20,6 +21,8 @@ export const users = pgTable("users", {
   isPromotionalUser: boolean("is_promotional_user").default(false),
   totalSavings: decimal("total_savings", { precision: 10, scale: 2 }).default("0"),
   dealsClaimed: integer("deals_claimed").default(0),
+  whatsappNotifications: boolean("whatsapp_notifications").default(true), // Opt-in for WhatsApp notifications
+  marketingMessages: boolean("marketing_messages").default(true), // Opt-in for marketing messages
   createdAt: timestamp("created_at").defaultNow(),
   isActive: boolean("is_active").default(true),
 });
@@ -1315,3 +1318,61 @@ export const insertBannerAnalyticsSchema = createInsertSchema(bannerAnalytics).o
 
 export type BannerAnalytics = typeof bannerAnalytics.$inferSelect;
 export type InsertBannerAnalytics = z.infer<typeof insertBannerAnalyticsSchema>;
+
+// WhatsApp Messages table for tracking marketing campaigns
+export const whatsappMessages = pgTable("whatsapp_messages", {
+  id: serial("id").primaryKey(),
+  campaignName: text("campaign_name").notNull(),
+  messageContent: text("message_content").notNull(),
+  targetAudience: text("target_audience").notNull(), // all_customers, premium_only, by_city, by_category
+  targetCity: text("target_city"), // optional, for city-specific campaigns
+  targetCategory: text("target_category"), // optional, for category-specific campaigns
+  totalRecipients: integer("total_recipients").default(0),
+  sentCount: integer("sent_count").default(0),
+  deliveredCount: integer("delivered_count").default(0),
+  failedCount: integer("failed_count").default(0),
+  status: text("status").default("draft"), // draft, sending, completed, failed
+  scheduledAt: timestamp("scheduled_at"),
+  sentAt: timestamp("sent_at"),
+  completedAt: timestamp("completed_at"),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const whatsappMessagesRelations = relations(whatsappMessages, ({ one }) => ({
+  creator: one(users, { fields: [whatsappMessages.createdBy], references: [users.id] }),
+}));
+
+export const insertWhatsappMessageSchema = createInsertSchema(whatsappMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type WhatsappMessage = typeof whatsappMessages.$inferSelect;
+export type InsertWhatsappMessage = z.infer<typeof insertWhatsappMessageSchema>;
+
+// WhatsApp Message Recipients table for tracking individual message delivery
+export const whatsappMessageRecipients = pgTable("whatsapp_message_recipients", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").references(() => whatsappMessages.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  status: text("status").default("pending"), // pending, sent, delivered, failed
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const whatsappMessageRecipientsRelations = relations(whatsappMessageRecipients, ({ one }) => ({
+  message: one(whatsappMessages, { fields: [whatsappMessageRecipients.messageId], references: [whatsappMessages.id] }),
+  user: one(users, { fields: [whatsappMessageRecipients.userId], references: [users.id] }),
+}));
+
+export const insertWhatsappMessageRecipientSchema = createInsertSchema(whatsappMessageRecipients).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type WhatsappMessageRecipient = typeof whatsappMessageRecipients.$inferSelect;
+export type InsertWhatsappMessageRecipient = z.infer<typeof insertWhatsappMessageRecipientSchema>;
