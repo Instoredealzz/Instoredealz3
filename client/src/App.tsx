@@ -16,6 +16,9 @@ import Pricing from "@/pages/shared/pricing";
 import Terms from "@/pages/shared/terms";
 import Privacy from "@/pages/shared/privacy";
 import Help from "@/pages/shared/help";
+import CookieConsent from "@/pages/shared/cookie-consent";
+import RefundPolicy from "@/pages/shared/refund-policy";
+import BusinessSupport from "@/pages/shared/business-support";
 import ResponsiveTest from "@/pages/shared/responsive-test";
 
 // Customer pages
@@ -48,6 +51,7 @@ import VendorProfileData from "@/pages/vendor/vendor-profile-data";
 import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
 import VendorLocationAnalytics from "@/pages/vendor/location-analytics";
 import ManualVerification from "@/pages/vendor/ManualVerification";
+import MarketingTools from "@/pages/vendor/marketing-tools";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -136,6 +140,9 @@ function Router() {
   const [matchTerms] = useRoute("/terms");
   const [matchPrivacy] = useRoute("/privacy");
   const [matchHelp] = useRoute("/help");
+  const [matchCookieConsent] = useRoute("/cookie-consent");
+  const [matchRefundPolicy] = useRoute("/refund-policy");
+  const [matchBusinessSupport] = useRoute("/business-support");
   const [matchResponsiveTest] = useRoute("/responsive-test");
   const [matchTest] = useRoute("/test");
   const [matchQRTest] = useRoute("/qr-test");
@@ -179,6 +186,7 @@ function Router() {
   const [matchVendorProfile] = useRoute("/vendor/profile");
   const [matchVendorProfileData] = useRoute("/vendor/profile-data");
   const [matchVendorManualVerification] = useRoute("/vendor/manual-verification");
+  const [matchVendorMarketingTools] = useRoute("/vendor/marketing-tools");
 
   // Admin routes
   const [matchAdmin] = useRoute("/admin");
@@ -210,6 +218,9 @@ function Router() {
   if (matchTerms) return <Terms />;
   if (matchPrivacy) return <Privacy />;
   if (matchHelp) return <Help />;
+  if (matchCookieConsent) return <CookieConsent />;
+  if (matchRefundPolicy) return <RefundPolicy />;
+  if (matchBusinessSupport) return <BusinessSupport />;
   if (matchResponsiveTest) return <ResponsiveTest />;
   if (matchTest) return <TestFlows />;
   if (matchQRTest) return <QRTest />;
@@ -417,6 +428,7 @@ function Router() {
       </RoleProtectedRoute>
     );
   }
+  if (matchVendorMarketingTools) return <MarketingTools />;
 
   if (matchVendorProcess) {
     return (
