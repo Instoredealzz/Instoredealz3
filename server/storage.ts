@@ -39,6 +39,12 @@ import {
   InsertPinAttempt,
   PromotionalBanner,
   InsertPromotionalBanner,
+  VendorCommissionSettings,
+  InsertVendorCommissionSettings,
+  CommissionTransaction,
+  InsertCommissionTransaction,
+  CommissionPayoutBatch,
+  InsertCommissionPayoutBatch,
 } from "../shared/schema";
 
 export interface IStorage {
@@ -228,6 +234,53 @@ export interface IStorage {
   getBannerAnalytics(bannerId: number): Promise<BannerAnalytics[]>;
   getBannerStats(bannerId: number): Promise<{ views: number; clicks: number; socialClicks: number; ctr: number }>;
   getAllBannerStats(): Promise<Array<{ bannerId: number; title: string; views: number; clicks: number; socialClicks: number; ctr: number }>>;
+
+  // Commission Tracking operations
+  getVendorCommissionSettings(vendorId: number): Promise<VendorCommissionSettings | undefined>;
+  createVendorCommissionSettings(settings: InsertVendorCommissionSettings): Promise<VendorCommissionSettings>;
+  updateVendorCommissionSettings(vendorId: number, updates: Partial<VendorCommissionSettings>): Promise<VendorCommissionSettings | undefined>;
+  
+  createCommissionTransaction(transaction: InsertCommissionTransaction): Promise<CommissionTransaction>;
+  getCommissionTransactionsByVendor(vendorId: number, startDate?: Date, endDate?: Date): Promise<CommissionTransaction[]>;
+  getCommissionTransactionsByDeal(dealId: number): Promise<CommissionTransaction[]>;
+  getCommissionTransactionById(id: number): Promise<CommissionTransaction | undefined>;
+  updateCommissionTransaction(id: number, updates: Partial<CommissionTransaction>): Promise<CommissionTransaction | undefined>;
+  getCommissionSummaryByVendor(vendorId: number, startDate?: Date, endDate?: Date): Promise<{
+    totalClicks: number;
+    totalConversions: number;
+    totalSaleAmount: number;
+    totalCommission: number;
+    estimatedCommission: number;
+    confirmedCommission: number;
+  }>;
+  getOnlineDealPerformance(vendorId: number): Promise<Array<{
+    dealId: number;
+    dealTitle: string;
+    clicks: number;
+    conversions: number;
+    estimatedRevenue: number;
+    estimatedCommission: number;
+  }>>;
+  
+  createCommissionPayoutBatch(batch: InsertCommissionPayoutBatch): Promise<CommissionPayoutBatch>;
+  getCommissionPayoutBatchesByVendor(vendorId: number): Promise<CommissionPayoutBatch[]>;
+  getCommissionPayoutBatch(id: number): Promise<CommissionPayoutBatch | undefined>;
+  updateCommissionPayoutBatch(id: number, updates: Partial<CommissionPayoutBatch>): Promise<CommissionPayoutBatch | undefined>;
+  getAllPendingPayoutBatches(): Promise<CommissionPayoutBatch[]>;
+  
+  getAdminCommissionOverview(startDate?: Date, endDate?: Date): Promise<{
+    totalCommissionRevenue: number;
+    totalVendorsWithOnlineDeals: number;
+    totalOnlineClicks: number;
+    totalConversions: number;
+    averageCommissionRate: number;
+    topPerformingVendors: Array<{
+      vendorId: number;
+      businessName: string;
+      totalClicks: number;
+      totalCommission: number;
+    }>;
+  }>;
 }
 
 export class MemStorage implements IStorage {

@@ -594,6 +594,107 @@ export const posTerminals = pgTable("pos_terminals", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Commission Tracking System for Online Deals
+export const vendorCommissionSettings = pgTable("vendor_commission_settings", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull().unique(),
+  
+  // Commission rates (percentage)
+  onlineClickCommission: decimal("online_click_commission", { precision: 5, scale: 2 }).default("5.00"), // % per click
+  onlineConversionCommission: decimal("online_conversion_commission", { precision: 5, scale: 2 }).default("10.00"), // % of sale value
+  affiliateNetworkRate: decimal("affiliate_network_rate", { precision: 5, scale: 2 }), // Rate from affiliate network
+  
+  // Payment terms
+  paymentCycle: text("payment_cycle").default("monthly"), // weekly, monthly, quarterly
+  minimumPayout: decimal("minimum_payout", { precision: 10, scale: 2 }).default("500.00"),
+  currency: text("currency").default("INR"),
+  
+  // Settlement details
+  bankAccountName: text("bank_account_name"),
+  bankAccountNumber: text("bank_account_number"),
+  bankIfscCode: text("bank_ifsc_code"),
+  bankName: text("bank_name"),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Commission Transactions - Track estimated and actual commissions
+export const commissionTransactions = pgTable("commission_transactions", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
+  dealClaimId: integer("deal_claim_id").references(() => dealClaims.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Transaction details
+  transactionType: text("transaction_type").notNull(), // 'click', 'conversion', 'refund'
+  clickTimestamp: timestamp("click_timestamp"),
+  conversionTimestamp: timestamp("conversion_timestamp"),
+  
+  // Commission calculation
+  saleAmount: decimal("sale_amount", { precision: 12, scale: 2 }), // Actual sale amount if conversion
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).notNull(), // % applied
+  commissionAmount: decimal("commission_amount", { precision: 10, scale: 2 }).notNull(), // Calculated commission
+  
+  // Status tracking
+  status: text("status").default("pending"), // pending, confirmed, paid, refunded
+  isEstimated: boolean("is_estimated").default(true), // true until conversion confirmed
+  
+  // Affiliate tracking
+  affiliateNetwork: text("affiliate_network"), // e.g., 'Amazon Associates', 'Flipkart Affiliate'
+  affiliateTransactionId: text("affiliate_transaction_id"), // External tracking ID
+  affiliateLink: text("affiliate_link"),
+  
+  // Payment tracking
+  payoutBatchId: integer("payout_batch_id").references(() => commissionPayoutBatches.id), // Reference to payout batch
+  paidAt: timestamp("paid_at"),
+  paymentReference: text("payment_reference"),
+  
+  // Metadata
+  customerIpAddress: text("customer_ip_address"),
+  customerUserAgent: text("customer_user_agent"),
+  referrerUrl: text("referrer_url"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Commission Payout Batches - For batch payments to platform
+export const commissionPayoutBatches = pgTable("commission_payout_batches", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  
+  // Batch details
+  batchNumber: text("batch_number").notNull().unique(),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  
+  // Financial summary
+  totalClicks: integer("total_clicks").default(0),
+  totalConversions: integer("total_conversions").default(0),
+  totalSaleAmount: decimal("total_sale_amount", { precision: 12, scale: 2 }).default("0"),
+  totalCommission: decimal("total_commission", { precision: 12, scale: 2 }).notNull(),
+  platformFee: decimal("platform_fee", { precision: 10, scale: 2 }).default("0"),
+  netPayout: decimal("net_payout", { precision: 12, scale: 2 }).notNull(),
+  
+  // Status
+  status: text("status").default("pending"), // pending, processing, paid, failed
+  generatedAt: timestamp("generated_at").defaultNow(),
+  paidAt: timestamp("paid_at"),
+  
+  // Payment details
+  paymentMethod: text("payment_method"), // bank_transfer, wallet, etc.
+  transactionReference: text("transaction_reference"),
+  notes: text("notes"),
+  
+  createdBy: integer("created_by").references(() => users.id),
+  approvedBy: integer("approved_by").references(() => users.id),
+  approvedAt: timestamp("approved_at"),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   vendor: one(vendors, { fields: [users.id], references: [vendors.userId] }),
@@ -626,6 +727,9 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   posTerminals: many(posTerminals),
   stockMovements: many(stockMovements),
   approvals: many(vendorApprovals),
+  commissionSettings: one(vendorCommissionSettings, { fields: [vendors.id], references: [vendorCommissionSettings.vendorId] }),
+  commissionTransactions: many(commissionTransactions),
+  payoutBatches: many(commissionPayoutBatches),
 }));
 
 export const vendorApprovalsRelations = relations(vendorApprovals, ({ one }) => ({
@@ -735,6 +839,24 @@ export const helpTicketsRelations = relations(helpTickets, ({ one }) => ({
 // System logs relations
 export const systemLogsRelations = relations(systemLogs, ({ one }) => ({
   user: one(users, { fields: [systemLogs.userId], references: [users.id] }),
+}));
+
+// Commission tracking relations
+export const vendorCommissionSettingsRelations = relations(vendorCommissionSettings, ({ one }) => ({
+  vendor: one(vendors, { fields: [vendorCommissionSettings.vendorId], references: [vendors.id] }),
+}));
+
+export const commissionTransactionsRelations = relations(commissionTransactions, ({ one }) => ({
+  vendor: one(vendors, { fields: [commissionTransactions.vendorId], references: [vendors.id] }),
+  deal: one(deals, { fields: [commissionTransactions.dealId], references: [deals.id] }),
+  dealClaim: one(dealClaims, { fields: [commissionTransactions.dealClaimId], references: [dealClaims.id] }),
+  user: one(users, { fields: [commissionTransactions.userId], references: [users.id] }),
+}));
+
+export const commissionPayoutBatchesRelations = relations(commissionPayoutBatches, ({ one }) => ({
+  vendor: one(vendors, { fields: [commissionPayoutBatches.vendorId], references: [vendors.id] }),
+  createdByUser: one(users, { fields: [commissionPayoutBatches.createdBy], references: [users.id] }),
+  approvedByUser: one(users, { fields: [commissionPayoutBatches.approvedBy], references: [users.id] }),
 }));
 
 // Insert schemas
@@ -958,6 +1080,31 @@ export type GdsTransaction = typeof gdsTransactions.$inferSelect;
 export type InsertGdsTransaction = z.infer<typeof insertGdsTransactionSchema>;
 export type PosTerminal = typeof posTerminals.$inferSelect;
 export type InsertPosTerminal = z.infer<typeof insertPosTerminalSchema>;
+
+// Commission Tracking Schemas
+export const insertVendorCommissionSettingsSchema = createInsertSchema(vendorCommissionSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCommissionTransactionSchema = createInsertSchema(commissionTransactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCommissionPayoutBatchSchema = createInsertSchema(commissionPayoutBatches).omit({
+  id: true,
+  generatedAt: true,
+});
+
+export type VendorCommissionSettings = typeof vendorCommissionSettings.$inferSelect;
+export type InsertVendorCommissionSettings = z.infer<typeof insertVendorCommissionSettingsSchema>;
+export type CommissionTransaction = typeof commissionTransactions.$inferSelect;
+export type InsertCommissionTransaction = z.infer<typeof insertCommissionTransactionSchema>;
+export type CommissionPayoutBatch = typeof commissionPayoutBatches.$inferSelect;
+export type InsertCommissionPayoutBatch = z.infer<typeof insertCommissionPayoutBatchSchema>;
 
 // Auth schemas
 export const loginSchema = z.object({
