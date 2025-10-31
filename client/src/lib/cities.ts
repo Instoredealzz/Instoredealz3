@@ -129,16 +129,16 @@ export const indianStates: State[] = [
 ];
 
 export const majorCities: City[] = [
-  { name: "Mumbai", state: "Maharashtra", dealCount: 2845 },
-  { name: "Delhi", state: "Delhi", dealCount: 2134 },
-  { name: "Bangalore", state: "Karnataka", dealCount: 1987 },
-  { name: "Chennai", state: "Tamil Nadu", dealCount: 1543 },
-  { name: "Hyderabad", state: "Telangana", dealCount: 1234 },
-  { name: "Pune", state: "Maharashtra", dealCount: 987 },
-  { name: "Kolkata", state: "West Bengal", dealCount: 876 },
-  { name: "Ahmedabad", state: "Gujarat", dealCount: 654 },
-  { name: "Jaipur", state: "Rajasthan", dealCount: 543 },
-  { name: "Lucknow", state: "Uttar Pradesh", dealCount: 432 },
+  { name: "Mumbai", state: "Maharashtra" },
+  { name: "Delhi", state: "Delhi" },
+  { name: "Bangalore", state: "Karnataka" },
+  { name: "Chennai", state: "Tamil Nadu" },
+  { name: "Hyderabad", state: "Telangana" },
+  { name: "Pune", state: "Maharashtra" },
+  { name: "Kolkata", state: "West Bengal" },
+  { name: "Ahmedabad", state: "Gujarat" },
+  { name: "Jaipur", state: "Rajasthan" },
+  { name: "Lucknow", state: "Uttar Pradesh" },
 ];
 
 export const getCitiesByState = (stateName: string): string[] => {

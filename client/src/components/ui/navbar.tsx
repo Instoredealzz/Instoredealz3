@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import InstoredeelzLogo from "@/components/ui/instoredealz-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useQuery } from "@tanstack/react-query";
 
 interface NavbarProps {
   selectedCity?: string;
@@ -20,6 +21,13 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
   const [location, setLocation] = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const { data: citiesWithDeals } = useQuery<Array<{ name: string; state: string; dealCount: number }>>({
+    queryKey: ['/api/cities'],
+    staleTime: 60000,
+  });
+
+  const citiesToDisplay = citiesWithDeals || majorCities;
 
   const handleLogout = () => {
     logout();
@@ -144,13 +152,15 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                 </div>
               </SelectTrigger>
               <SelectContent>
-                {majorCities.map((city) => (
+                {citiesToDisplay.map((city) => (
                   <SelectItem key={city.name} value={city.name}>
                     <div className="flex justify-between items-center w-full">
                       <span>{city.name}</span>
-                      <span className="text-xs text-gray-500 ml-2">
-                        {city.dealCount} deals
-                      </span>
+                      {city.dealCount !== undefined && city.dealCount > 0 && (
+                        <span className="text-xs text-gray-500 ml-2">
+                          {city.dealCount} deals
+                        </span>
+                      )}
                     </div>
                   </SelectItem>
                 ))}
