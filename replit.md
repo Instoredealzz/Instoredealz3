@@ -7,6 +7,10 @@ Instoredealz is a full-stack deal discovery platform designed to connect custome
 Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 2025)
+- **Separated online and offline deal claim flows**: Online deals now bypass store verification, providing immediate claim codes and affiliate link redirects. Offline deals continue to require in-store PIN verification with bill amount.
+- **Enhanced security for online claims**: Implemented crypto-grade randomness (crypto.randomBytes) for generating claim codes instead of Math.random()
+- **Added endpoint safeguards**: The `/api/deals/:id/claim-with-bill` endpoint now explicitly rejects online deals to prevent misrouting
+- **Improved customer UX**: Different claim buttons and instructions for online vs offline deals, with automatic affiliate link opening for online claims
 - **Fixed critical race condition bug in POS transactions**: Implemented atomic SQL increment operations for redemption counters (dealsClaimed, currentRedemptions, totalRedemptions) to prevent lost updates during concurrent POS transactions
 - **Added atomic increment methods**: Created three new storage methods (incrementUserDealsClaimed, incrementVendorRedemptions, incrementDealRedemptions) using `UPDATE table SET column = COALESCE(column, 0) + 1` for NULL-safe atomic updates
 - **Completed comprehensive end-to-end testing**: Verified complete workflow across all three roles (customer, vendor, admin) from vendor registration through deal redemption
