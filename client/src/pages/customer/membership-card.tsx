@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Store,
   Scan,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateCustomerClaimQR } from "@/lib/qr-code";
@@ -41,22 +42,358 @@ const tierConfig = {
   basic: {
     name: "Basic",
     color: "bg-gradient-to-br from-gray-400 to-gray-600",
+    cardGradient: "from-slate-600 via-slate-700 to-slate-800",
+    glowColor: "rgba(148, 163, 184, 0.5)",
+    accentColor: "#94a3b8",
     icon: Shield,
     benefits: ["Access to Food & Travel deals", "Standard support", "Basic rewards"],
   },
   premium: {
     name: "Premium",
     color: "bg-gradient-to-br from-blue-500 to-purple-600",
+    cardGradient: "from-blue-600 via-purple-600 to-indigo-700",
+    glowColor: "rgba(147, 51, 234, 0.6)",
+    accentColor: "#a855f7",
     icon: Crown,
     benefits: ["Access to most deal categories", "Priority support", "Enhanced rewards", "Exclusive offers"],
   },
   ultimate: {
     name: "Ultimate",
     color: "bg-gradient-to-br from-purple-600 to-pink-600",
+    cardGradient: "from-amber-500 via-orange-500 to-yellow-600",
+    glowColor: "rgba(251, 191, 36, 0.7)",
+    accentColor: "#fbbf24",
     icon: Star,
     benefits: ["Access to ALL deals", "VIP support", "Maximum rewards", "Early access", "Premium concierge"],
   },
 };
+
+// Custom hook for 3D tilt effect
+const use3DTilt = () => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [tiltStyle, setTiltStyle] = useState({});
+
+  useEffect(() => {
+    const card = cardRef.current;
+    if (!card) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const rotateX = ((y - centerY) / centerY) * -15;
+      const rotateY = ((x - centerX) / centerX) * 15;
+      
+      const lightX = (x / rect.width) * 100;
+      const lightY = (y / rect.height) * 100;
+
+      setTiltStyle({
+        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`,
+        background: `radial-gradient(circle at ${lightX}% ${lightY}%, rgba(255,255,255,0.2) 0%, transparent 50%)`,
+      });
+    };
+
+    const handleMouseLeave = () => {
+      setTiltStyle({
+        transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+        background: 'transparent',
+      });
+    };
+
+    card.addEventListener('mousemove', handleMouseMove);
+    card.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      card.removeEventListener('mousemove', handleMouseMove);
+      card.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, []);
+
+  return { cardRef, tiltStyle };
+};
+
+// Enhanced 3D Membership Card Component
+interface Enhanced3DCardProps {
+  user: any;
+  cardData: MembershipCardData | undefined;
+  tierInfo: any;
+  TierIcon: any;
+  qrCodeDataUrl: string;
+  showQR: boolean;
+  generateQRCode: () => void;
+}
+
+function Enhanced3DCard({ user, cardData, tierInfo, TierIcon, qrCodeDataUrl, showQR, generateQRCode }: Enhanced3DCardProps) {
+  const { cardRef, tiltStyle } = use3DTilt();
+  const memberSince = user?.createdAt ? new Date(user.createdAt).getFullYear() : new Date().getFullYear();
+  const expiryYear = cardData?.membershipExpiry ? new Date(cardData.membershipExpiry).getFullYear() : 2025;
+
+  return (
+    <>
+      <style>{`
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 20px ${tierInfo.glowColor}, 0 0 40px ${tierInfo.glowColor}; }
+          50% { box-shadow: 0 0 30px ${tierInfo.glowColor}, 0 0 60px ${tierInfo.glowColor}; }
+        }
+
+        @keyframes shimmer {
+          0% { background-position: -1000px 0; }
+          100% { background-position: 1000px 0; }
+        }
+
+        .card-3d-container {
+          perspective: 1500px;
+          transform-style: preserve-3d;
+        }
+
+        .card-3d {
+          transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
+          transform-style: preserve-3d;
+          will-change: transform;
+        }
+
+        .glow-border {
+          animation: glow-pulse 2s ease-in-out infinite;
+        }
+
+        .metallic-shine {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(
+            120deg,
+            transparent 30%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 70%
+          );
+          background-size: 200% 100%;
+          animation: shimmer 3s infinite;
+          pointer-events: none;
+          border-radius: inherit;
+        }
+
+        .glass-effect {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .reflection-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.4) 0%,
+            transparent 20%,
+            transparent 80%,
+            rgba(255, 255, 255, 0.2) 100%
+          );
+          pointer-events: none;
+          border-radius: inherit;
+          mix-blend-mode: overlay;
+        }
+
+        .card-pattern {
+          background-image: 
+            repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 10px,
+              rgba(255, 255, 255, 0.03) 10px,
+              rgba(255, 255, 255, 0.03) 20px
+            );
+        }
+      `}</style>
+
+      <div className="card-3d-container" data-testid="enhanced-3d-card">
+        <div
+          ref={cardRef}
+          className="card-3d glow-border relative"
+          style={{
+            ...tiltStyle,
+            borderRadius: '20px',
+          }}
+        >
+          <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${tierInfo.cardGradient} text-white shadow-2xl`}>
+            {/* Metallic Shine Effect */}
+            <div className="metallic-shine" />
+            
+            {/* Reflection Overlay */}
+            <div className="reflection-overlay" />
+
+            {/* Dynamic Light Effect from tilt */}
+            <div 
+              className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+              style={{
+                background: (tiltStyle as any).background || 'transparent',
+                borderRadius: 'inherit',
+              }}
+            />
+
+            {/* Card Pattern */}
+            <div className="card-pattern absolute inset-0" />
+
+            {/* Card Content */}
+            <div className="relative z-10 p-8">
+              {/* Header with Logo */}
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-5 h-5" style={{ color: tierInfo.accentColor }} />
+                    <h3 className="text-2xl font-bold tracking-wider" style={{ 
+                      textShadow: `0 0 10px ${tierInfo.glowColor}` 
+                    }}>
+                      INSTOREDEALZ
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <TierIcon className="w-5 h-5" style={{ color: tierInfo.accentColor }} />
+                    <span className="text-sm font-semibold uppercase tracking-widest opacity-90">
+                      {tierInfo.name} Member
+                    </span>
+                  </div>
+                </div>
+                <Badge 
+                  className="glass-effect text-white border-white/30 backdrop-blur-md"
+                  style={{ 
+                    backgroundColor: `${tierInfo.glowColor}`,
+                  }}
+                >
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                    Active
+                  </span>
+                </Badge>
+              </div>
+
+              {/* Member Name */}
+              <div className="mb-6">
+                <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Member Name</p>
+                <h2 className="text-2xl font-bold tracking-wide" style={{
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.3)'
+                }}>
+                  {user?.name || 'Guest Member'}
+                </h2>
+              </div>
+
+              {/* Card Number & Tier */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="glass-effect rounded-lg p-3">
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Membership ID</p>
+                  <p className="font-mono text-sm font-semibold tracking-wider">
+                    {cardData?.cardNumber || 'ISD-00000000'}
+                  </p>
+                </div>
+                <div className="glass-effect rounded-lg p-3">
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Tier Level</p>
+                  <p className="font-bold text-sm uppercase tracking-wider" style={{ color: tierInfo.accentColor }}>
+                    {tierInfo.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* Member Since & Expiry */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Member Since</p>
+                  <p className="font-bold text-lg">{memberSince}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Expiry</p>
+                  <p className="font-bold text-lg">{expiryYear}</p>
+                </div>
+              </div>
+
+              <div className="h-px bg-white/20 mb-6" />
+
+              {/* QR Code Section - Enhanced Size */}
+              <div className="glass-effect rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <QrCode className="w-4 h-4" style={{ color: tierInfo.accentColor }} />
+                    <p className="text-xs uppercase tracking-wider font-semibold">
+                      {showQR ? 'Scan to Verify' : 'Verification Code'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!showQR && !qrCodeDataUrl) {
+                        await generateQRCode();
+                      }
+                    }}
+                    className="text-xs underline hover:no-underline transition-all"
+                    style={{ color: tierInfo.accentColor }}
+                  >
+                    {showQR ? 'Hide' : 'Show'} QR
+                  </button>
+                </div>
+                {showQR && qrCodeDataUrl ? (
+                  <div 
+                    className="bg-white rounded-lg p-4 flex items-center justify-center"
+                    style={{
+                      boxShadow: `0 0 20px ${tierInfo.glowColor}`,
+                    }}
+                  >
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="Membership QR Code"
+                      className="w-48 h-48"
+                      data-testid="card-qr-code"
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-white/10 rounded-lg p-8 flex items-center justify-center border-2 border-dashed border-white/30">
+                    <div className="text-center">
+                      <QrCode className="w-16 h-16 mx-auto mb-2 opacity-40" />
+                      <p className="text-xs opacity-60">Click "Show QR" to reveal</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats Footer */}
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <div className="text-center glass-effect rounded-lg p-3">
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Total Savings</p>
+                  <p className="font-bold text-xl" style={{ color: tierInfo.accentColor }}>
+                    ₹{cardData?.totalSavings || '0'}
+                  </p>
+                </div>
+                <div className="text-center glass-effect rounded-lg p-3">
+                  <p className="text-xs text-white/60 uppercase tracking-wider mb-1">Deals Claimed</p>
+                  <p className="font-bold text-xl" style={{ color: tierInfo.accentColor }}>
+                    {cardData?.dealsClaimed || 0}
+                  </p>
+                </div>
+              </div>
+
+              {/* Decorative Corner Elements */}
+              <div className="absolute top-4 right-4 opacity-20">
+                <TierIcon className="w-24 h-24" />
+              </div>
+              <div className="absolute bottom-4 left-4 opacity-10">
+                <div className="flex gap-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="w-2 h-8 bg-white/30 rounded-full" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function MembershipCard() {
   const { user, isAuthenticated } = useAuth();
@@ -273,76 +610,17 @@ export default function MembershipCard() {
           </Card>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            {/* Membership Card */}
+            {/* Enhanced 3D Membership Card */}
             <div className="space-y-6">
-              <Card className={`overflow-hidden ${tierInfo.color} text-white relative`}>
-                <div className="absolute top-4 right-4">
-                  <TierIcon className="w-8 h-8 opacity-30" />
-                </div>
-                
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-2xl font-bold text-white">
-                        {tierInfo.name} Member
-                      </CardTitle>
-                      <p className="text-white/80">Instoredealz</p>
-                    </div>
-                    <Badge className="bg-card/20 text-white border-white/30">
-                      Active
-                    </Badge>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <div className="flex items-center space-x-4">
-                    {/* Profile Image */}
-                    <div className="flex-shrink-0">
-                      <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
-                        <User className="w-8 h-8 text-white/60" />
-                      </div>
-                    </div>
-                    
-                    {/* Member Name */}
-                    <div className="flex-1">
-                      <p className="text-white/80 text-sm">Member Name</p>
-                      <p className="font-semibold text-lg">{user.name}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-white/80 text-sm">Card Number</p>
-                      <p className="font-mono text-sm">{cardData?.cardNumber}</p>
-                    </div>
-                    <div>
-                      <p className="text-white/80 text-sm">Valid Until</p>
-                      <p className="text-sm">
-                        {cardData?.membershipExpiry ? 
-                          new Date(cardData.membershipExpiry).toLocaleDateString('en-IN', {
-                            month: 'short',
-                            year: 'numeric'
-                          }) : 
-                          'Dec 2025'
-                        }
-                      </p>
-                    </div>
-                  </div>
-
-                  <Separator className="bg-card/20" />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-white/80 text-sm">Total Savings</p>
-                      <p className="font-bold text-xl">₹{cardData?.totalSavings || '0'}</p>
-                    </div>
-                    <div>
-                      <p className="text-white/80 text-sm">Deals Claimed</p>
-                      <p className="font-bold text-xl">{cardData?.dealsClaimed || 0}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <Enhanced3DCard 
+                user={user}
+                cardData={cardData}
+                tierInfo={tierInfo}
+                TierIcon={TierIcon}
+                qrCodeDataUrl={qrCodeDataUrl}
+                showQR={showQR}
+                generateQRCode={generateQRCode}
+              />
 
               {/* Card Actions */}
               <div className="grid grid-cols-2 gap-4">
