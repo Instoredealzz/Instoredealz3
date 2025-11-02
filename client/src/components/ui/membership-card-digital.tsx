@@ -255,7 +255,7 @@ export default function MembershipCardDigital({
             {/* QR Code */}
             <div className="bg-card p-3 rounded-lg shadow-lg">
               <div 
-                className="w-24 h-24 bg-center bg-no-repeat bg-contain"
+                className="w-40 h-40 bg-center bg-no-repeat bg-contain"
                 style={{ backgroundImage: `url("${qrCode}")` }}
               ></div>
             </div>

@@ -338,7 +338,7 @@ export default function MembershipCard({
                 </div>
                 {qrCodeUrl ? (
                   <div 
-                    className="bg-white rounded-lg p-2 flex items-center justify-center"
+                    className="bg-white rounded-lg p-3 flex items-center justify-center"
                     style={{
                       boxShadow: `0 0 15px ${tierConfig.glow}`,
                     }}
@@ -346,7 +346,7 @@ export default function MembershipCard({
                     <img
                       src={qrCodeUrl}
                       alt="Membership QR Code"
-                      className="w-24 h-24"
+                      className="w-48 h-48"
                       data-testid="card-qr-code"
                     />
                   </div>
