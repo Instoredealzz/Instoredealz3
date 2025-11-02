@@ -125,9 +125,10 @@ interface Enhanced3DCardProps {
   qrCodeDataUrl: string;
   showQR: boolean;
   generateQRCode: () => void;
+  onToggleQR: () => void;
 }
 
-function Enhanced3DCard({ user, cardData, tierInfo, TierIcon, qrCodeDataUrl, showQR, generateQRCode }: Enhanced3DCardProps) {
+function Enhanced3DCard({ user, cardData, tierInfo, TierIcon, qrCodeDataUrl, showQR, generateQRCode, onToggleQR }: Enhanced3DCardProps) {
   const { cardRef, tiltStyle } = use3DTilt();
   const memberSince = user?.createdAt ? new Date(user.createdAt).getFullYear() : new Date().getFullYear();
   const expiryYear = cardData?.membershipExpiry ? new Date(cardData.membershipExpiry).getFullYear() : 2025;
@@ -329,9 +330,11 @@ function Enhanced3DCard({ user, cardData, tierInfo, TierIcon, qrCodeDataUrl, sho
                       if (!showQR && !qrCodeDataUrl) {
                         await generateQRCode();
                       }
+                      onToggleQR();
                     }}
                     className="text-xs underline hover:no-underline transition-all"
                     style={{ color: tierInfo.accentColor }}
+                    data-testid="button-toggle-card-qr"
                   >
                     {showQR ? 'Hide' : 'Show'} QR
                   </button>
@@ -620,6 +623,7 @@ export default function MembershipCard() {
                 qrCodeDataUrl={qrCodeDataUrl}
                 showQR={showQR}
                 generateQRCode={generateQRCode}
+                onToggleQR={() => setShowQR(!showQR)}
               />
 
               {/* Card Actions */}
