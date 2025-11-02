@@ -1985,17 +1985,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Legacy analytics endpoint for backward compatibility
-  app.get('/api/analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
-    try {
-      const analytics = await storage.getAnalytics();
-      res.json(analytics);
-    } catch (error) {
-      console.error('Analytics API error:', error);
-      res.status(500).json({ message: "Failed to fetch analytics" });
-    }
-  });
-
   // Comprehensive claim code analytics for admin dashboard
   app.get('/api/admin/claim-code-analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
@@ -4623,64 +4612,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       Logger.error('Failed to get vendor payouts', error);
       res.status(500).json({ message: "Failed to get payout history" });
-    }
-  });
-
-  // External API proxy endpoints
-  app.get('/api/external/deals', async (req: AuthenticatedRequest, res) => {
-    try {
-      const response = await fetch('https://api.instoredealz.com/S0G1IP/Deals/AllDeals');
-      if (!response.ok) {
-        throw new Error(`External API error: ${response.status}`);
-      }
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error('Error fetching external deals:', error);
-      res.status(500).json({ error: 'Failed to fetch external deals' });
-    }
-  });
-
-  app.get('/api/external/categories', async (req: AuthenticatedRequest, res) => {
-    try {
-      const response = await fetch('https://api.instoredealz.com/S0G1IP/Category/AllCategories');
-      if (!response.ok) {
-        throw new Error(`External API error: ${response.status}`);
-      }
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error('Error fetching external categories:', error);
-      res.status(500).json({ error: 'Failed to fetch external categories' });
-    }
-  });
-
-  app.get('/api/external/store-deals/:storeId/:dealId/:pinId', async (req: AuthenticatedRequest, res) => {
-    try {
-      const { storeId, dealId, pinId } = req.params;
-      const response = await fetch(`https://api.instoredealz.com/S0G1IP/FrontHome/GetStoredDealById/${storeId}/${dealId}/${pinId}`);
-      if (!response.ok) {
-        throw new Error(`External API error: ${response.status}`);
-      }
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error('Error fetching external store deal:', error);
-      res.status(500).json({ error: 'Failed to fetch external store deal' });
-    }
-  });
-
-  app.get('/api/external/blogs', async (req: AuthenticatedRequest, res) => {
-    try {
-      const response = await fetch('https://api.instoredealz.com/S0G1IP/Blogs/GetAllBlogs');
-      if (!response.ok) {
-        throw new Error(`External API error: ${response.status}`);
-      }
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error('Error fetching external blogs:', error);
-      res.status(500).json({ error: 'Failed to fetch external blogs' });
     }
   });
 
