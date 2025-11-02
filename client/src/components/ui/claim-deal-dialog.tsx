@@ -34,10 +34,10 @@ export function ClaimDealDialog({
 
   const handlePinChange = (index: number, value: string) => {
     if (value.length > 1) return;
-    if (value && !/^\d$/.test(value)) return;
+    if (value && !/^[A-Z0-9]$/i.test(value)) return;
 
     const newPin = [...pin];
-    newPin[index] = value;
+    newPin[index] = value.toUpperCase();
     setPin(newPin);
 
     if (value && index < 5) {
@@ -64,7 +64,7 @@ export function ClaimDealDialog({
 
     const fullPin = pin.join("");
     if (fullPin.length !== 6) {
-      setError("Please enter the complete 6-digit PIN");
+      setError("Please enter the complete 6-character code");
       return;
     }
 
@@ -129,9 +129,9 @@ export function ClaimDealDialog({
 
           {/* PIN Input */}
           <div className="space-y-2">
-            <Label className="text-base font-semibold">Enter 6 digits Pin</Label>
+            <Label className="text-base font-semibold">Enter 6-Character Code</Label>
             <p className="text-sm text-muted-foreground">
-              Please ask the merchant to enter the 6 digit pin.
+              Please ask the merchant to provide the 6-character verification code.
             </p>
             <div className="flex gap-2 justify-center">
               {pin.map((digit, index) => (
@@ -139,12 +139,12 @@ export function ClaimDealDialog({
                   key={index}
                   id={`pin-${index}`}
                   type="text"
-                  inputMode="numeric"
+                  inputMode="text"
                   maxLength={1}
                   value={digit}
                   onChange={(e) => handlePinChange(index, e.target.value)}
                   onKeyDown={(e) => handlePinKeyDown(index, e)}
-                  className="w-14 h-14 text-center text-2xl font-bold"
+                  className="w-14 h-14 text-center text-2xl font-bold uppercase"
                   disabled={isLoading}
                   data-testid={`input-pin-${index}`}
                 />

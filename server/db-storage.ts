@@ -45,6 +45,10 @@ import type {
   InsertPromotionalBanner,
   BannerAnalytics,
   InsertBannerAnalytics,
+  WhatsappMessage,
+  InsertWhatsappMessage,
+  WhatsappMessageRecipient,
+  InsertWhatsappMessageRecipient,
 } from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
