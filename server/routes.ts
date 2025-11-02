@@ -1086,6 +1086,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate savings
       const savingsAmount = (billAmount * deal.discountPercentage) / 100;
 
+      // Generate claim code
+      const crypto = await import('crypto');
+      const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+      const codeExpiresAt = new Date(deal.validUntil);
+
       // Create or update claim
       const claim = await storage.claimDeal({
         userId,
@@ -1093,6 +1098,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         savingsAmount: savingsAmount.toString(),
         status: "used",
         billAmount: billAmount.toString(),
+        claimCode,
+        codeExpiresAt,
       });
 
       // Update user's total savings
@@ -7099,95 +7106,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Complete transaction with claim code
-  app.post('/api/pos/complete-claim-transaction', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
-    try {
-      const { claimCode, billAmount, actualDiscount } = req.body;
-
-      if (!claimCode || !billAmount || !actualDiscount) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Claim code, bill amount, and actual discount are required" 
-        });
-      }
-
-      // Find and verify claim
-      const allClaims = await storage.getAllDealClaims();
-      const claim = allClaims.find(c => c.claimCode === claimCode);
-
-      if (!claim || claim.vendorVerified) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "Invalid or already used claim code" 
-        });
-      }
-
-      // Get deal details
-      const deal = await storage.getDeal(claim.dealId);
-      if (!deal) {
-        return res.status(404).json({ 
-          success: false, 
-          error: "Deal not found" 
-        });
-      }
-
-      // Update claim as verified and used
-      await storage.updateDealClaim(claim.id, {
-        status: "used",
-        vendorVerified: true,
-        verifiedAt: new Date(),
-        usedAt: new Date(),
-        billAmount: billAmount.toString(),
-        actualSavings: actualDiscount.toString(),
-        savingsAmount: actualDiscount.toString()
-      });
-
-      // Update user's total savings
-      const customer = await storage.getUser(claim.userId);
-      if (customer) {
-        const newTotalSavings = parseFloat(customer.totalSavings || '0') + parseFloat(actualDiscount);
-        await storage.updateUserProfile(claim.userId, {
-          totalSavings: newTotalSavings.toString(),
-          dealsClaimed: (customer.dealsClaimed || 0) + 1
-        });
-      }
-
-      // Increment deal redemption count
-      await storage.incrementDealRedemptions(claim.dealId);
-
-      // Log the transaction completion
-      await storage.createSystemLog({
-        userId: req.user!.id,
-        action: "CLAIM_TRANSACTION_COMPLETED",
-        details: {
-          claimCode,
-          claimId: claim.id,
-          dealId: claim.dealId,
-          billAmount,
-          actualDiscount,
-          customerId: claim.userId
-        },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent']
-      });
-
-      res.json({
-        success: true,
-        message: "Transaction completed successfully",
-        claimId: claim.id,
-        actualDiscount,
-        billAmount,
-        customerSavings: actualDiscount
-      });
-
-    } catch (error) {
-      Logger.error('Error completing claim transaction', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to complete transaction' 
-      });
-    }
-  });
 
   // ===============================
   // MANUAL VERIFICATION FOR VENDORS WITHOUT POS
