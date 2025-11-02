@@ -158,6 +158,7 @@ export default function CustomerDashboard() {
               profileImage={currentUser.profileImage}
               userEmail={currentUser.email}
               userPhone={currentUser.phone}
+              createdAt={currentUser.createdAt}
             />
           </div>
           
