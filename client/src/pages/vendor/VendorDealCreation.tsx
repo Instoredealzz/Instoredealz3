@@ -56,7 +56,7 @@ const dealCreationSchema = z.object({
   requiredMembership: z.enum(['basic', 'premium', 'ultimate']),
   terms: z.string().min(10, 'Terms and conditions must be at least 10 characters').optional(),
   imageUrl: z.string().optional().or(z.literal('')),
-  verificationPin: z.string().regex(/^[0-9]{4}$/, 'PIN must be exactly 4 digits'),
+  verificationPin: z.string().regex(/^[A-Z0-9]{6}$/, 'PIN must be exactly 6 alphanumeric characters'),
   dealType: z.enum(['offline', 'online']).default('offline'),
   affiliateLink: z.string().optional(),
 }).refine(
@@ -156,8 +156,15 @@ const VendorDealCreation = () => {
   };
 
   const generateRandomPin = () => {
-    const pin = Math.floor(1000 + Math.random() * 9000).toString();
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const pin = Array.from({ length: 6 }, () => 
+      chars.charAt(Math.floor(Math.random() * chars.length))
+    ).join('');
     form.setValue('verificationPin', pin);
+    toast({
+      title: "PIN Generated",
+      description: `Your verification PIN: ${pin}`,
+    });
   };
 
   const watchedValues = form.watch();
@@ -656,10 +663,13 @@ const VendorDealCreation = () => {
                               <div className="flex space-x-2">
                                 <FormControl>
                                   <Input
-                                    placeholder="1234"
+                                    placeholder="K9M3X7"
                                     maxLength={6}
                                     {...field}
+                                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                                    className="font-mono uppercase"
                                     disabled={previewMode}
+                                    data-testid="input-verification-pin"
                                   />
                                 </FormControl>
                                 <Button
@@ -667,12 +677,13 @@ const VendorDealCreation = () => {
                                   variant="outline"
                                   onClick={generateRandomPin}
                                   disabled={previewMode}
+                                  data-testid="button-generate-pin"
                                 >
                                   Generate
                                 </Button>
                               </div>
                               <FormDescription>
-                                6-character code for customers to verify their purchase at your store
+                                6-character alphanumeric code for deal verification (e.g., K9M3X7)
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
