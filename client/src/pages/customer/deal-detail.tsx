@@ -637,7 +637,7 @@ export default function DealDetail({ params }: DealDetailProps) {
                         {currentDeal?.dealType === 'online' ? (
                           <>Click "Claim Online Deal" to get your unique code. You'll be redirected to the vendor's website where you can use the code at checkout to get your discount!</>
                         ) : (
-                          <>Visit the store and click "Claim Deal" at checkout. Enter your billed amount and the vendor's 6-character verification code to complete the claim. Your savings will be automatically added to your account!</>
+                          <>Visit the store and click "Claim Deal" at checkout. Enter your billed amount and ask the vendor for 6-character verification code to complete the claim. Your savings will be automatically added to your account!</>
                         )}
                       </p>
                     </div>
