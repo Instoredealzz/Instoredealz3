@@ -5,6 +5,11 @@ import { migrateWhatsAppColumns } from './migrate-whatsapp';
 
 export async function initializeDatabase() {
   try {
+    console.log('[INIT] Testing database connection...');
+    // Test the database connection first
+    await db.execute(sql`SELECT 1`);
+    console.log('[INIT] Database connection successful!');
+    
     // Run WhatsApp migrations first
     await migrateWhatsAppColumns();
     
@@ -246,8 +251,26 @@ export async function initializeDatabase() {
       ON CONFLICT DO NOTHING
     `);
 
-    console.log('Database initialized successfully with sample data');
-  } catch (error) {
-    console.error('Database initialization failed:', error);
+    console.log('[INIT] Database initialized successfully with sample data');
+  } catch (error: any) {
+    console.error('========================================');
+    console.error('[INIT] DATABASE CONNECTION FAILED!');
+    console.error('========================================');
+    if (error.message && error.message.includes('password authentication failed')) {
+      console.error('[INIT] The DATABASE_URL in your .env file has invalid credentials.');
+      console.error('[INIT] ');
+      console.error('[INIT] TO FIX THIS:');
+      console.error('[INIT] 1. Open Tools > Database in the left sidebar');
+      console.error('[INIT] 2. Click on the "Commands" tab');
+      console.error('[INIT] 3. Scroll to "Environment variables" section');
+      console.error('[INIT] 4. Copy the DATABASE_URL value');
+      console.error('[INIT] 5. Open your .env file and replace the DATABASE_URL line with the new value');
+      console.error('[INIT] 6. Save and the app will restart automatically');
+      console.error('[INIT] ');
+      console.error('[INIT] The app will run with limited functionality until the database is connected.');
+    } else {
+      console.error('[INIT] Database error:', error);
+    }
+    console.error('========================================');
   }
 }
