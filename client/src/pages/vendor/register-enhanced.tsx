@@ -113,11 +113,38 @@ export default function VendorRegisterEnhanced() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: VendorRegistrationForm) => {
+      // First upload the PAN card file
+      if (!panCardFile) {
+        throw new Error('PAN card file is required');
+      }
+      
+      const formData = new FormData();
+      formData.append('image', panCardFile);
+      
+      const uploadResponse = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to upload PAN card file');
+      }
+      
+      const uploadResult = await uploadResponse.json();
+      
+      if (!uploadResult.success || !uploadResult.data?.url) {
+        throw new Error('Upload succeeded but did not return a valid file URL');
+      }
+      
+      const panCardUrl = uploadResult.data.url;
+      
       const payload = {
         businessName: data.businessName,
         gstNumber: data.hasGst === "yes" ? data.gstNumber : null,
         panNumber: data.panNumber,
-        panCardFile: data.panCardFile,
+        panCardFile: panCardUrl,
         logoUrl: data.logoUrl,
         companyWebsite: data.companyWebsite,
         description: `${data.companyType} business located in ${data.city}, ${data.state}. Contact: ${data.contactPersonName} at ${data.emailAddress} (Mobile: ${data.mobileNumber}, Phone: ${data.contactNumber})`,
@@ -567,29 +594,35 @@ export default function VendorRegisterEnhanced() {
                                     <Input
                                       id="pan-upload"
                                       type="file"
-                                      accept="image/*,.pdf"
+                                      accept="image/jpeg,image/jpg,image/png"
                                       className="sr-only"
                                       onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) {
-                                          if (file.size > 1024 * 1024) { // 1MB limit
+                                          if (file.size > 5 * 1024 * 1024) { // 5MB limit to match backend
                                             toast({
                                               title: "File too large",
-                                              description: "PAN card file must be less than 1MB",
+                                              description: "PAN card image must be less than 5MB",
                                               variant: "destructive",
                                             });
                                             e.target.value = '';
+                                            setPanCardFile(null);
+                                            field.onChange(null);
                                             return;
                                           }
                                           setPanCardFile(file);
                                           field.onChange(file);
+                                        } else {
+                                          // User cancelled or cleared the file picker
+                                          setPanCardFile(null);
+                                          field.onChange(null);
                                         }
                                       }}
                                     />
                                   </Label>
                                   <p className="pl-1">or drag and drop</p>
                                 </div>
-                                <p className="text-xs text-gray-500">PNG, JPG, PDF up to 1MB</p>
+                                <p className="text-xs text-gray-500">PNG or JPG up to 5MB</p>
                                 {panCardFile && (
                                   <div className="mt-2 text-sm text-green-600">
                                     Selected: {panCardFile.name}
