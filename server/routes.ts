@@ -352,12 +352,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.user = { 
             id: payload.userId, 
             role: payload.role, 
-            email: payload.email 
+            // Normalize email to lowercase for case-insensitive authentication
+            email: payload.email ? payload.email.toLowerCase() : payload.email
           };
         } else {
           // Simple pipe-separated token for backwards compatibility
           const [id, role, email] = token.split('|');
-          req.user = { id: parseInt(id), role, email };
+          // Normalize email to lowercase for case-insensitive authentication
+          req.user = { id: parseInt(id), role, email: email ? email.toLowerCase() : email };
         }
       } catch (e) {
         // Invalid token, continue without user
@@ -373,8 +375,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if credential is an email or phone number
       const isEmail = credential.includes('@');
+      // Fetch user by email (case-insensitive) or phone (exact match)
       const user = isEmail 
-        ? await storage.getUserByEmail(credential)
+        ? await storage.getUserByEmail(credential.toLowerCase())
         : await storage.getUserByPhone(credential);
       
       if (!user) {
@@ -445,8 +448,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = signupSchema.parse(req.body);
       
+      // Convert email to lowercase for case-insensitive storage
+      const normalizedEmail = userData.email.toLowerCase();
+      
       // Check if user already exists by email
-      const existingUser = await storage.getUserByEmail(userData.email);
+      const existingUser = await storage.getUserByEmail(normalizedEmail);
       if (existingUser) {
         return res.status(400).json({ message: "Email address is already registered" });
       }
@@ -469,15 +475,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Debug logging for signup
       Logger.debug("User signup password storage", {
-        email: userData.email,
+        email: normalizedEmail,
         passwordProvided: userData.password,
         passwordType: typeof userData.password,
         passwordLength: userData.password?.length
       });
       
-      // Ensure password is properly trimmed string
+      // Ensure password is properly trimmed string and email is lowercase
       const cleanedUserData = {
         ...userData,
+        email: normalizedEmail,
         password: String(userData.password || '').trim(),
       };
       
