@@ -847,60 +847,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle online deals differently from offline deals
       if (deal.dealType === 'online') {
-        // For online deals: Create claim and mark as completed immediately
-        // Generate a unique claim code for tracking using crypto-grade randomness
-        const crypto = await import('crypto');
-        const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        // For online deals: Check if user already has a claim for this deal
+        const existingClaims = await storage.getUserClaims(userId);
+        const existingClaim = existingClaims.find(claim => claim.dealId === dealId);
         
-        const claim = await storage.claimDeal({
-          userId,
-          dealId,
-          savingsAmount: "0", // Savings tracked via affiliate link
-          status: "clicked", // Mark as clicked (not pending)
-          claimCode,
-          codeExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days for online deals
-        });
-
-        // Increment deal redemptions for online deals
-        await storage.incrementDealRedemptions(deal.id);
-
-        // Create commission transaction for click tracking
-        try {
-          const vendor = await storage.getVendor(deal.vendorId);
-          if (vendor) {
-            // Get vendor commission settings or use defaults
-            const vendorSettings = await storage.getVendorCommissionSettings(vendor.id);
-            const commissionRate = vendorSettings?.onlineClickCommission || "5.00";
-            
-            await storage.createCommissionTransaction({
-              vendorId: vendor.id,
-              dealId: deal.id,
-              dealClaimId: claim.id,
-              userId: userId,
-              transactionType: "click",
-              clickTimestamp: new Date(),
-              commissionRate: commissionRate,
-              commissionAmount: "0.00", // No commission for clicks, only for conversions
-              status: "pending",
-              isEstimated: true,
-              affiliateLink: deal.affiliateLink || null,
-              customerIpAddress: req.ip || null,
-              customerUserAgent: req.headers['user-agent'] || null,
-            });
-
-            Logger.info("Commission transaction created for online deal click", {
-              dealId,
-              claimId: claim.id,
-              vendorId: vendor.id,
-              userId
-            });
-          }
-        } catch (commissionError) {
-          Logger.error("Failed to create commission transaction", {
+        let claim;
+        let isNewClaim = false;
+        
+        if (existingClaim) {
+          // Return existing claim instead of creating a duplicate
+          claim = existingClaim;
+          console.log(`Reusing existing online claim ${claim.id} for user ${userId} on deal ${dealId}`);
+        } else {
+          // Create claim and mark as completed immediately
+          // Generate a unique claim code for tracking using crypto-grade randomness
+          const crypto = await import('crypto');
+          const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+          
+          claim = await storage.claimDeal({
+            userId,
             dealId,
-            error: commissionError
+            savingsAmount: "0", // Savings tracked via affiliate link
+            status: "clicked", // Mark as clicked (not pending)
+            claimCode,
+            codeExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days for online deals
           });
-          // Don't fail the claim if commission tracking fails
+          isNewClaim = true;
+        }
+
+        // Increment deal redemptions only for new claims
+        if (isNewClaim) {
+          await storage.incrementDealRedemptions(deal.id);
+        }
+
+        // Create commission transaction for click tracking only for new claims
+        if (isNewClaim) {
+          try {
+            const vendor = await storage.getVendor(deal.vendorId);
+            if (vendor) {
+              // Get vendor commission settings or use defaults
+              const vendorSettings = await storage.getVendorCommissionSettings(vendor.id);
+              const commissionRate = vendorSettings?.onlineClickCommission || "5.00";
+              
+              await storage.createCommissionTransaction({
+                vendorId: vendor.id,
+                dealId: deal.id,
+                dealClaimId: claim.id,
+                userId: userId,
+                transactionType: "click",
+                clickTimestamp: new Date(),
+                commissionRate: commissionRate,
+                commissionAmount: "0.00", // No commission for clicks, only for conversions
+                status: "pending",
+                isEstimated: true,
+                affiliateLink: deal.affiliateLink || null,
+                customerIpAddress: req.ip || null,
+                customerUserAgent: req.headers['user-agent'] || null,
+              });
+
+              Logger.info("Commission transaction created for online deal click", {
+                dealId,
+                claimId: claim.id,
+                vendorId: vendor.id,
+                userId
+              });
+            }
+          } catch (commissionError) {
+            Logger.error("Failed to create commission transaction", {
+              dealId,
+              error: commissionError
+            });
+            // Don't fail the claim if commission tracking fails
+          }
         }
 
         // Log the online claim activity
@@ -930,19 +948,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isOnline: true
         });
       } else {
-        // For offline deals: Create pending claim that needs store verification
-        // Generate a unique claim code for tracking using crypto-grade randomness
-        const crypto = await import('crypto');
-        const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        // For offline deals: Check if user already has a pending claim
+        const existingClaims = await storage.getUserClaims(userId);
+        const pendingClaim = existingClaims.find(
+          claim => claim.dealId === dealId && claim.status === "pending"
+        );
         
-        const claim = await storage.claimDeal({
-          userId,
-          dealId,
-          savingsAmount: "0", // No savings until PIN verification
-          status: "pending", // Mark as pending until store verification
-          claimCode,
-          codeExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days for offline deals
-        });
+        let claim;
+        if (pendingClaim) {
+          // Return existing pending claim instead of creating a duplicate
+          claim = pendingClaim;
+          console.log(`Reusing existing pending claim ${claim.id} for user ${userId} on deal ${dealId}`);
+        } else {
+          // Create new pending claim that needs store verification
+          // Generate a unique claim code for tracking using crypto-grade randomness
+          const crypto = await import('crypto');
+          const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+          
+          claim = await storage.claimDeal({
+            userId,
+            dealId,
+            savingsAmount: "0", // No savings until PIN verification
+            status: "pending", // Mark as pending until store verification
+            claimCode,
+            codeExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days for offline deals
+          });
+        }
 
         // Log the claim activity (but not as completed savings)
         try {
