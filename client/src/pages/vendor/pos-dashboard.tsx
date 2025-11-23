@@ -1532,59 +1532,70 @@ export default function PosDashboard() {
                       <tr className="text-sm text-muted-foreground">
                         <th className="py-3 text-left font-medium">Customer</th>
                         <th className="py-3 text-left font-medium">Deal</th>
+                        <th className="py-3 text-left font-medium">Store Location</th>
                         <th className="py-3 text-right font-medium">Discount</th>
-                        <th className="py-3 text-right font-medium">Total Sales</th>
-                        <th className="py-3 text-left font-medium">Claimed At</th>
+                        <th className="py-3 text-right font-medium">Total Sales Amount</th>
+                        <th className="py-3 text-left font-medium">Date</th>
+                        <th className="py-3 text-left font-medium">Time</th>
                         <th className="py-3 text-left font-medium">Expires At</th>
                         <th className="py-3 text-center font-medium">Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {claimedDeals.map((claim: any) => (
-                        <tr key={claim.id} className="border-b" data-testid={`claim-row-${claim.id}`}>
-                          <td className="py-3">
-                            <div>
-                              <div className="font-medium">{claim.customerName}</div>
-                              <div className="text-sm text-muted-foreground">{claim.customerEmail}</div>
-                              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                <span>{claim.customerPhone}</span>
-                                <span className="text-muted-foreground">•</span>
-                                <span className="font-mono">ID: {claim.customerId}</span>
-                                <span className="text-muted-foreground">•</span>
-                                <span className="font-mono">{claim.claimCode}</span>
+                      {claimedDeals.map((claim: any) => {
+                        const claimedDate = new Date(claim.claimedAt);
+                        return (
+                          <tr key={claim.id} className="border-b" data-testid={`claim-row-${claim.id}`}>
+                            <td className="py-3">
+                              <div>
+                                <div className="font-medium">{claim.customerName}</div>
+                                <div className="text-sm text-muted-foreground">{claim.customerEmail}</div>
+                                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <span>{claim.customerPhone}</span>
+                                  <span className="text-muted-foreground">•</span>
+                                  <span className="font-mono">ID: {claim.customerId}</span>
+                                </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="py-3 font-medium">{claim.dealTitle}</td>
-                          <td className="py-3 text-right">{claim.discountPercentage}%</td>
-                          <td className="py-3 text-right font-semibold">
-                            {claim.billAmount && parseFloat(claim.billAmount) > 0 ? (
-                              <span className="text-green-600">₹{parseFloat(claim.billAmount).toLocaleString()}</span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </td>
-                          <td className="py-3 text-sm">{new Date(claim.claimedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
-                          <td className="py-3 text-sm">
-                            {claim.codeExpiresAt ? (
-                              <span className={new Date(claim.codeExpiresAt) < new Date() ? 'text-red-500' : ''}>
-                                {new Date(claim.codeExpiresAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
-                              </span>
-                            ) : '-'}
-                          </td>
-                          <td className="py-3 text-center">
-                            <Badge variant={
-                              claim.status === 'used' ? 'default' : 
-                              claim.status === 'pending' ? 'secondary' : 
-                              claim.status === 'clicked' ? 'outline' : 'destructive'
-                            }>
-                              {claim.status === 'used' ? 'Verified' : 
-                               claim.status === 'pending' ? 'Pending' :
-                               claim.status === 'clicked' ? 'Clicked' : claim.status}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="py-3 font-medium">{claim.dealTitle}</td>
+                            <td className="py-3">
+                              <span className="text-sm">{claim.storeLocation || '-'}</span>
+                            </td>
+                            <td className="py-3 text-right">{claim.discountPercentage}%</td>
+                            <td className="py-3 text-right font-semibold">
+                              {claim.billAmount && parseFloat(claim.billAmount) > 0 ? (
+                                <span className="text-green-600">₹{parseFloat(claim.billAmount).toLocaleString()}</span>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 text-sm">
+                              {claimedDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </td>
+                            <td className="py-3 text-sm">
+                              {claimedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </td>
+                            <td className="py-3 text-sm">
+                              {claim.codeExpiresAt ? (
+                                <span className={new Date(claim.codeExpiresAt) < new Date() ? 'text-red-500' : ''}>
+                                  {new Date(claim.codeExpiresAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </span>
+                              ) : '-'}
+                            </td>
+                            <td className="py-3 text-center">
+                              <Badge variant={
+                                claim.status === 'used' ? 'default' : 
+                                claim.status === 'pending' ? 'secondary' : 
+                                claim.status === 'clicked' ? 'outline' : 'destructive'
+                              }>
+                                {claim.status === 'used' ? 'Verified' : 
+                                 claim.status === 'pending' ? 'Pending' :
+                                 claim.status === 'clicked' ? 'Clicked' : claim.status}
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
