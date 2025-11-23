@@ -24,7 +24,8 @@ import {
   DollarSign,
   Download,
   FileText,
-  Database
+  Database,
+  Key
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart, ComposedChart, RadialBarChart, RadialBar } from "recharts";
 import { useState } from "react";
@@ -766,11 +767,19 @@ export default function AdminDashboard() {
                     </div>
                   </Link>
                 </Button>
-                <Button asChild className="h-16 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white col-span-2" data-testid="button-reports">
+                <Button asChild className="h-16 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white" data-testid="button-reports">
                   <Link to="/admin/reports">
                     <div className="text-center">
                       <FileText className="h-6 w-6 mx-auto mb-1" />
                       <span className="text-sm font-medium">Reports</span>
+                    </div>
+                  </Link>
+                </Button>
+                <Button asChild className="h-16 bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white" data-testid="button-api-keys">
+                  <Link to="/admin/api-keys">
+                    <div className="text-center">
+                      <Key className="h-6 w-6 mx-auto mb-1" />
+                      <span className="text-sm font-medium">API Keys</span>
                     </div>
                   </Link>
                 </Button>
