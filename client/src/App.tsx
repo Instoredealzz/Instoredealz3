@@ -66,6 +66,7 @@ import AdminAnalytics from "@/pages/admin/analytics";
 import AdminLocationAnalytics from "@/pages/admin/location-analytics";
 import PromotionalBanners from "@/pages/admin/promotional-banners";
 import CommissionReports from "@/pages/admin/commission-reports";
+import AdminApiKeys from "@/pages/admin/api-keys";
 
 // Super Admin pages
 import SuperAdminDashboard from "@/pages/superadmin/dashboard";
@@ -205,6 +206,7 @@ function Router() {
   const [matchAdminAnalytics] = useRoute("/admin/analytics");
   const [matchAdminLocationAnalytics] = useRoute("/admin/location-analytics");
   const [matchAdminPromotionalBanners] = useRoute("/admin/promotional-banners");
+  const [matchAdminApiKeys] = useRoute("/admin/api-keys");
 
   // Super Admin routes
   const [matchSuperAdmin] = useRoute("/superadmin");
@@ -534,6 +536,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
         <PromotionalBanners />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchAdminApiKeys) {
+    return (
+      <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
+        <AdminApiKeys />
       </RoleProtectedRoute>
     );
   }
