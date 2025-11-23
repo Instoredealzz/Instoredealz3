@@ -3428,6 +3428,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const billAmount = parseFloat(claim.billAmount || '0');
         const discountPercentage = deal?.discountPercentage || 0;
         const totalBilledAmount = billAmount;
+        const calculatedSavings = billAmount > 0 ? (billAmount * discountPercentage) / 100 : 0;
+        const actualSavings = calculatedSavings > 0 ? calculatedSavings : parseFloat(claim.actualSavings || '0');
 
         return {
           claimId: claim.id,
@@ -3460,7 +3462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           billAmount: billAmount,
           totalBilledAmount: totalBilledAmount,
           savingsAmount: parseFloat(claim.savingsAmount || '0'),
-          actualSavings: parseFloat(claim.actualSavings || '0'),
+          actualSavings: actualSavings,
         };
       });
 

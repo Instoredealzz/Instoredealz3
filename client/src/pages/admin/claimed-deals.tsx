@@ -351,39 +351,33 @@ export default function AdminClaimedDeals() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Claim ID</TableHead>
-                        <TableHead>Customer Info</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Membership</TableHead>
-                        <TableHead>Deal Info</TableHead>
-                        <TableHead>Vendor</TableHead>
-                        <TableHead>Store Location</TableHead>
-                        <TableHead>Discount %</TableHead>
-                        <TableHead>Total Billed Amount</TableHead>
-                        <TableHead>Savings</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Claimed At</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setSearchQuery(searchQuery)}>Customer Info</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setSearchQuery(searchQuery)}>Contact</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setMembershipFilter(membershipFilter)}>Membership</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setCategoryFilter(categoryFilter)}>Deal Info</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setVendorFilter(vendorFilter)}>Vendor</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setLocationFilter(locationFilter)}>Store Location</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Discount %</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Total Billed Amount</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Savings</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Status</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Claim Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredClaims.map((claim) => (
                         <TableRow key={claim.claimId} data-testid={`row-claim-${claim.claimId}`}>
                           <TableCell>
-                            <div className="font-mono text-xs" data-testid={`text-claim-id-${claim.claimId}`}>
-                              #{claim.claimId}
-                            </div>
-                            <div className="text-xs text-muted-foreground" data-testid={`text-claim-code-${claim.claimId}`}>
-                              {claim.claimCode}
-                            </div>
-                          </TableCell>
-                          <TableCell>
                             <div className="flex items-center gap-2">
                               <User className="h-4 w-4 text-muted-foreground" />
                               <div>
                                 <div className="font-medium" data-testid={`text-customer-name-${claim.claimId}`}>{claim.customerName}</div>
-                                <div className="text-xs text-muted-foreground flex items-center gap-1" data-testid={`text-customer-email-${claim.claimId}`}>
+                                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5" data-testid={`text-customer-email-${claim.claimId}`}>
                                   <Mail className="h-3 w-3" />
                                   {claim.customerEmail}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1 font-mono" data-testid={`text-customer-id-${claim.claimId}`}>
+                                  ID: {claim.customerId}
                                 </div>
                               </div>
                             </div>
@@ -446,7 +440,7 @@ export default function AdminClaimedDeals() {
                           </TableCell>
                           <TableCell>
                             <div className="font-semibold text-gold" data-testid={`text-savings-${claim.claimId}`}>
-                              ₹{claim.actualSavings.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                              ₹{(claim.actualSavings || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                             </div>
                           </TableCell>
                           <TableCell>
