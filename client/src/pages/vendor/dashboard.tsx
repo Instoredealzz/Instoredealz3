@@ -26,7 +26,8 @@ import {
   Target,
   BookOpen,
   MapPin,
-  Smartphone
+  Smartphone,
+  Key
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, Tooltip, Legend } from "recharts";
 
@@ -479,6 +480,12 @@ export default function VendorDashboard() {
                     <Link to="/vendor/analytics">
                       <BarChart3 className="h-4 w-4 mr-2" />
                       View Analytics
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/vendor/api-keys" data-testid="button-view-apikeys">
+                      <Key className="h-4 w-4 mr-2" />
+                      API Keys
                     </Link>
                   </Button>
                 </CardContent>
