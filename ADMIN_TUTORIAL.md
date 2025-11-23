@@ -704,8 +704,18 @@ Generate and manage API keys for vendors who want to integrate their POS systems
 - ✓ **Rate Limit**: Requests per minute allowed
 - ✓ **Usage Instructions**: Sample curl command
 
+**Automated Email Notification**
+📧 When you generate an API key, the system automatically sends an email to the vendor with:
+- Their business name
+- The API key (for immediate access)
+- Creation date and rate limit information
+- Expiration details (if applicable)
+- Security best practices and usage instructions
+
+This ensures vendors receive their API key credentials immediately and securely without manual intervention.
+
 **Security Alert**
-⚠️ The API key and secret are shown ONLY ONCE. The vendor must copy and save them securely immediately. They cannot be retrieved later.
+⚠️ The API key and secret are shown ONLY ONCE in the admin dashboard. The vendor receives the API key via email and can also view it anytime from their vendor dashboard under "API Keys" menu. They cannot retrieve the secret key after initial generation.
 
 #### 3. API Key Management
 

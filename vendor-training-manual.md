@@ -233,6 +233,63 @@ Monitor these key metrics:
 3. **Configuration**: Set up printing, payment options
 4. **Testing**: Process test transactions
 
+### API Keys for Third-Party Integration
+
+If you use a third-party POS system and want to integrate it with Instoredealz for automated claim verification, you'll need an API key.
+
+#### Viewing Your API Keys
+
+1. **Access API Keys Page**: Navigate to `/vendor/api-keys` from your vendor dashboard
+2. **View Key Details**: See all your API keys with:
+   - API Key (for authentication)
+   - Status (Active/Inactive/Expired)
+   - Creation date
+   - Last used date
+   - Rate limits
+   - Expiration date (if applicable)
+
+#### Receiving Your API Key
+
+When an administrator generates an API key for your business:
+
+1. **Email Notification**: You'll receive an automated email with:
+   - Your business name
+   - The complete API key
+   - Creation date and rate limit information
+   - Security best practices
+   - Usage instructions
+
+2. **Dashboard Access**: You can view your API keys anytime from your vendor dashboard under "API Keys" menu
+
+3. **Copy to Clipboard**: Use the copy button to easily copy your API key for integration
+
+#### Using Your API Key
+
+**Security Best Practices:**
+- ⚠️ Never share your API key publicly
+- Keep it secure in your POS system's configuration
+- Don't commit API keys to version control (Git, etc.)
+- Use HTTPS for all API requests
+
+**Integration Example:**
+```bash
+# Example API request with your key
+curl -X POST https://api.instoredealz.com/v1/claims/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"claimCode": "ABC123"}'
+```
+
+**Rate Limits:**
+- Monitor your API usage to stay within rate limits
+- Default: 1000 requests per hour
+- Contact support if you need higher limits
+
+**Need Help?**
+- Contact support for API documentation
+- Request integration assistance
+- Report any API-related issues
+
 ### Daily Operations
 
 #### Starting Your POS Session

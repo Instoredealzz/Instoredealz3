@@ -40,6 +40,7 @@ import VendorRegister from "@/pages/vendor/register-enhanced";
 import VendorDashboard from "@/pages/vendor/dashboard";
 import VendorDeals from "@/pages/vendor/deals";
 import VendorAnalytics from "@/pages/vendor/analytics";
+import VendorApiKeys from "@/pages/vendor/api-keys";
 import PosDashboard from "@/pages/vendor/pos-dashboard";
 import EnhancedPosDashboard from "@/pages/vendor/enhanced-pos-dashboard";
 import POSPinVerification from "@/pages/vendor/pos-pin-verification";
@@ -181,6 +182,7 @@ function Router() {
   const [matchVendorCreateDeal] = useRoute("/vendor/create-deal");
   const [matchVendorDealCreation] = useRoute("/vendor/deals/create");
   const [matchVendorAnalytics] = useRoute("/vendor/analytics");
+  const [matchVendorApiKeys] = useRoute("/vendor/api-keys");
   const [matchVendorLocationAnalytics] = useRoute("/vendor/location-analytics");
   const [matchVendorPos] = useRoute("/vendor/pos");
   const [matchVendorPosDashboard] = useRoute("/vendor/pos-dashboard");
@@ -370,6 +372,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorAnalytics />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorApiKeys) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorApiKeys />
       </RoleProtectedRoute>
     );
   }

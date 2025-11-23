@@ -1,6 +1,7 @@
 import { MailService } from '@sendgrid/mail';
 
 const SENDGRID_ENABLED = !!process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@instoredealz.com';
 
 let mailService: MailService | null = null;
 
@@ -8,6 +9,7 @@ if (SENDGRID_ENABLED) {
   mailService = new MailService();
   mailService.setApiKey(process.env.SENDGRID_API_KEY!);
   console.log('[EMAIL] SendGrid email service enabled');
+  console.log(`[EMAIL] Using sender email: ${FROM_EMAIL}`);
 } else {
   console.warn('[EMAIL] SendGrid API key not found. Email notifications will be disabled.');
 }
@@ -410,6 +412,146 @@ export function getDealApprovalEmail(dealTitle: string, businessName: string, ve
       
       Congratulations on your approved deal!
       The Instoredealz Team
+    `
+  };
+}
+
+export function getApiKeyGeneratedEmail(businessName: string, vendorName: string, email: string, apiKey: string, createdAt: string, rateLimit: number, expiresAt: string | null) {
+  const expiryInfo = expiresAt 
+    ? `<p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleDateString()}</p>`
+    : `<p><strong>Expires:</strong> Never</p>`;
+  
+  const expiryText = expiresAt 
+    ? `Expires: ${new Date(expiresAt).toLocaleDateString()}`
+    : `Expires: Never`;
+
+  return {
+    to: email,
+    from: FROM_EMAIL,
+    subject: '🔐 Your API Key for POS Integration - Instoredealz',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>API Key Generated</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🔐 API Key Generated</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">POS Integration Credentials for ${businessName}</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Hi ${vendorName}! 🎉</h2>
+          
+          <p>Great news! Your API key for POS integration has been generated successfully. You can now integrate your Point of Sale system with Instoredealz for automated claim verification.</p>
+          
+          <div style="background: #fff5f5; border-left: 4px solid #ef4444; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #ef4444; margin-top: 0;">⚠️ IMPORTANT SECURITY NOTICE</h3>
+            <p style="margin: 0;"><strong>This is the only time you'll see your complete API key.</strong> Save it securely immediately. You won't be able to retrieve it later.</p>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px; font-size: 14px;">
+              <li>Never share your API key publicly</li>
+              <li>Don't commit it to version control (GitHub, etc.)</li>
+              <li>Store it securely in your POS system configuration</li>
+              <li>Contact support immediately if compromised</li>
+            </ul>
+          </div>
+          
+          <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #667eea; margin-top: 0;">🔑 Your API Credentials</h3>
+            <p><strong>Business:</strong> ${businessName}</p>
+            <p><strong>API Key:</strong></p>
+            <div style="background: #1a1a1a; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; word-break: break-all; margin: 10px 0;">
+              ${apiKey}
+            </div>
+            <p><strong>Generated:</strong> ${new Date(createdAt).toLocaleString()}</p>
+            ${expiryInfo}
+            <p><strong>Rate Limit:</strong> ${rateLimit} requests per minute</p>
+          </div>
+          
+          <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #10b981; margin-top: 0;">🚀 Next Steps</h3>
+            <ol style="margin: 10px 0; padding-left: 20px;">
+              <li><strong>Copy & Save:</strong> Copy your API key to a secure location</li>
+              <li><strong>Configure POS:</strong> Add the API key to your POS system settings</li>
+              <li><strong>Test Integration:</strong> Make a test API call to verify connectivity</li>
+              <li><strong>Go Live:</strong> Start accepting automated claim verifications</li>
+            </ol>
+          </div>
+          
+          <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #667eea; margin-top: 0;">📖 Integration Guide</h3>
+            <p>Example API call to verify a claim:</p>
+            <div style="background: #1a1a1a; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 11px; overflow-x: auto; margin: 10px 0;">
+curl -X POST https://your-domain.com/api/v1/claims/verify \\<br>
+  -H "X-API-Key: ${apiKey.substring(0, 20)}..." \\<br>
+  -H "Content-Type: application/json" \\<br>
+  -d '{"claimCode": "ABC123"}'
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://instoredealz.com/vendor/api-keys" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              View API Keys Dashboard
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          
+          <p style="color: #666; font-size: 14px; margin: 0;">
+            Need help with integration? Check our <a href="https://instoredealz.com/docs/api" style="color: #667eea;">API Documentation</a> or contact our support team at <a href="mailto:support@instoredealz.com" style="color: #667eea;">support@instoredealz.com</a>
+          </p>
+          
+          <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+            Happy integrating!<br>
+            The Instoredealz Integration Team
+          </p>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      API Key Generated - Instoredealz POS Integration
+      
+      Hi ${vendorName}!
+      
+      Great news! Your API key for POS integration has been generated successfully. You can now integrate your Point of Sale system with Instoredealz for automated claim verification.
+      
+      ⚠️ IMPORTANT SECURITY NOTICE
+      This is the only time you'll see your complete API key. Save it securely immediately. You won't be able to retrieve it later.
+      
+      - Never share your API key publicly
+      - Don't commit it to version control (GitHub, etc.)
+      - Store it securely in your POS system configuration
+      - Contact support immediately if compromised
+      
+      Your API Credentials:
+      Business: ${businessName}
+      API Key: ${apiKey}
+      Generated: ${new Date(createdAt).toLocaleString()}
+      ${expiryText}
+      Rate Limit: ${rateLimit} requests per minute
+      
+      Next Steps:
+      1. Copy & Save: Copy your API key to a secure location
+      2. Configure POS: Add the API key to your POS system settings
+      3. Test Integration: Make a test API call to verify connectivity
+      4. Go Live: Start accepting automated claim verifications
+      
+      Example API Call:
+      curl -X POST https://your-domain.com/api/v1/claims/verify \\
+        -H "X-API-Key: ${apiKey}" \\
+        -H "Content-Type: application/json" \\
+        -d '{"claimCode": "ABC123"}'
+      
+      View API Keys Dashboard: https://instoredealz.com/vendor/api-keys
+      
+      Need help with integration? Check our API Documentation or contact our support team at support@instoredealz.com
+      
+      Happy integrating!
+      The Instoredealz Integration Team
     `
   };
 }

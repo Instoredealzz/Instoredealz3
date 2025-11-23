@@ -9,7 +9,7 @@ import { upload, processImage, processBase64Image, processImageFromUrl, deleteIm
 let storage: any = new DatabaseStorage();
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
-import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail } from "./email";
+import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail, getApiKeyGeneratedEmail } from "./email";
 import { verifyRotatingPin, verifyPin } from "./pin-security";
 import jwt from "jsonwebtoken";
 import { whatsappService, WhatsAppTemplates, formatWhatsAppNumber } from "./whatsapp";
@@ -4794,6 +4794,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get commission summary" });
     }
   });
+  // Vendor: Get API keys
+  app.get('/api/vendor/api-keys', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const apiKeys = await storage.getVendorApiKeysByVendor(vendor.id);
+      
+      // Hide sensitive information (API secret)
+      const safeApiKeys = apiKeys.map(key => ({
+        id: key.id,
+        keyName: key.keyName,
+        apiKey: key.apiKey,
+        isActive: key.isActive,
+        createdAt: key.createdAt,
+        lastUsed: key.lastUsed,
+        expiresAt: key.expiresAt,
+        rateLimit: key.rateLimit,
+        description: key.description
+      }));
+      
+      res.json(safeApiKeys);
+    } catch (error) {
+      Logger.error('Failed to get vendor API keys', error);
+      res.status(500).json({ message: "Failed to get API keys" });
+    }
+  });
 
   // Admin: Create payout batch
   app.post('/api/admin/commission/payouts', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
@@ -8499,6 +8528,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       Logger.info('API key generated for vendor by admin', { vendorId: vendor.id, businessName: vendor.businessName, adminId: req.user.id });
+      // Get vendor user information for email
+      const vendorUser = await storage.getUser(vendor.userId);
+      if (vendorUser) {
+        // Send email notification to vendor
+        const emailData = getApiKeyGeneratedEmail(
+          vendor.businessName,
+          vendorUser.name,
+          vendorUser.email,
+          newApiKey.apiKey,
+          newApiKey.createdAt.toISOString(),
+          newApiKey.rateLimit || 1000,
+          newApiKey.expiresAt?.toISOString() || null
+        );
+        await sendEmail(emailData);
+        Logger.info('API key email sent to vendor', { vendorId: vendor.id, email: vendorUser.email });
+      }
 
       res.status(201).json({
         apiKey: newApiKey.apiKey,
