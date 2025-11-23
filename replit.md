@@ -17,6 +17,16 @@ Preferred communication style: Simple, everyday language.
 - **Fixed duplicate vendor registration forms**: Consolidated multiple registration prompts into a single VendorRegistrationStatus component across dashboard, profile, and deal creation pages
 - **Database workflow confirmed**: All data properly flows from vendor registration through admin approval to customer-facing deals with correct counter updates
 - **Commission Tracking Foundation (October 31, 2025)**: Built comprehensive database schema and storage interface for tracking affiliate commissions from online deals without requiring payment gateway integration initially. System supports click tracking, conversion tracking (manual confirmation), commission calculations based on vendor-specific rates, and payout batch management. Ready for implementation phase.
+- **Third-Party Vendor API (November 23, 2025)**: Implemented complete RESTful API for external vendor POS integrations with:
+  - API key authentication system with automatic key generation and validation
+  - Six production-ready endpoints: authenticate, verify claims, complete transactions, check status, analytics, and documentation
+  - Comprehensive error handling with standardized error codes and messages
+  - Rate limiting support (1000 requests/minute per key)
+  - Real-time claim verification and transaction processing
+  - Vendor-specific analytics with date range filtering
+  - Complete documentation with JavaScript, Python, and cURL code examples (VENDOR_API_DOCUMENTATION.md, VENDOR_API_EXAMPLES.md)
+  - Full test coverage with test report (VENDOR_API_TEST_REPORT.md)
+  - Security features: API key expiration, vendor approval validation, cross-vendor access prevention
 
 ## System Architecture
 
@@ -58,6 +68,16 @@ The application follows a monorepo structure with distinct `client/` (React with
     - Educational information about commission tracking
   - Complete end-to-end flow: customer claims online deal → commission transaction created → admin confirms conversion → payout batch processed
   - Predicate-based cache invalidation ensures real-time data updates after mutations
+- **Third-Party Vendor API** (Fully Implemented - November 23, 2025): Complete RESTful API for external POS system integration:
+  - **Authentication**: Secure API key generation and management for approved vendors
+  - **Claim Verification**: Real-time verification of customer claim codes before transaction processing
+  - **Transaction Completion**: Automated claim status updates with bill amount and savings calculation
+  - **Status Checking**: Query claim status by code or ID for audit and tracking
+  - **Analytics**: Comprehensive vendor performance metrics with date range and deal filtering
+  - **Documentation**: Auto-generated API documentation endpoint with all specs and error codes
+  - **Security**: API key validation, vendor approval checking, cross-vendor access prevention, rate limiting
+  - **Integration Support**: Full documentation with JavaScript, Python, and cURL examples for easy integration
+  - **Database Integration**: All endpoints use real database storage with atomic transaction updates
 
 ### System Design Choices
 The application emphasizes modularity, separation of concerns, and type safety. Database operations are abstracted through an `IStorage` interface. All critical processes like PIN verification and claim management are designed for high security and data integrity. The system supports a flexible workflow where customers can claim deals online and verify them offline at the store. Extensive error handling and robust validation are implemented across the system.
