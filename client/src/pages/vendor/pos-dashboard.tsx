@@ -133,6 +133,14 @@ export default function PosDashboard() {
     name: '', sku: '', stock: 0, price: 0, lowStockAlert: 5
   });
   const [billAmount, setBillAmount] = useState('');
+  
+  // Filter states for claimed deals
+  const [claimFilters, setClaimFilters] = useState({
+    search: '',
+    status: 'all',
+    dateFrom: '',
+    dateTo: ''
+  });
 
   // Add inventory item handler
   const handleAddInventory = () => {
@@ -1516,6 +1524,67 @@ export default function PosDashboard() {
               <CardDescription>Track and manage customer deal claims and redemptions</CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Filters */}
+              <div className="mb-6 p-4 bg-muted/30 rounded-lg border">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <Label htmlFor="search-customer" className="text-xs font-medium mb-2">Search Customer</Label>
+                    <Input
+                      id="search-customer"
+                      placeholder="Name, email, or phone..."
+                      value={claimFilters.search}
+                      onChange={(e) => setClaimFilters({...claimFilters, search: e.target.value})}
+                      className="h-9"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="filter-status" className="text-xs font-medium mb-2">Status</Label>
+                    <select
+                      id="filter-status"
+                      value={claimFilters.status}
+                      onChange={(e) => setClaimFilters({...claimFilters, status: e.target.value})}
+                      className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="used">Verified</option>
+                      <option value="clicked">Clicked</option>
+                      <option value="expired">Expired</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="date-from" className="text-xs font-medium mb-2">From Date</Label>
+                    <Input
+                      id="date-from"
+                      type="date"
+                      value={claimFilters.dateFrom}
+                      onChange={(e) => setClaimFilters({...claimFilters, dateFrom: e.target.value})}
+                      className="h-9"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="date-to" className="text-xs font-medium mb-2">To Date</Label>
+                    <Input
+                      id="date-to"
+                      type="date"
+                      value={claimFilters.dateTo}
+                      onChange={(e) => setClaimFilters({...claimFilters, dateTo: e.target.value})}
+                      className="h-9"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setClaimFilters({ search: '', status: 'all', dateFrom: '', dateTo: '' })}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+            <CardContent>
               {isLoadingClaims ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -1542,7 +1611,30 @@ export default function PosDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {claimedDeals.map((claim: any) => {
+                      {claimedDeals
+                        .filter((claim: any) => {
+                          // Search filter
+                          const searchLower = claimFilters.search.toLowerCase();
+                          const matchesSearch = !claimFilters.search || 
+                            claim.customerName?.toLowerCase().includes(searchLower) ||
+                            claim.customerEmail?.toLowerCase().includes(searchLower) ||
+                            claim.customerPhone?.toLowerCase().includes(searchLower) ||
+                            claim.customerId?.toString().includes(searchLower);
+                          
+                          // Status filter
+                          const matchesStatus = claimFilters.status === 'all' || claim.status === claimFilters.status;
+                          
+                          // Date filter
+                          const claimDate = new Date(claim.claimedAt);
+                          const fromDate = claimFilters.dateFrom ? new Date(claimFilters.dateFrom) : null;
+                          const toDate = claimFilters.dateTo ? new Date(claimFilters.dateTo) : null;
+                          
+                          const matchesDateFrom = !fromDate || claimDate >= fromDate;
+                          const matchesDateTo = !toDate || claimDate <= new Date(toDate.setHours(23, 59, 59));
+                          
+                          return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+                        })
+                        .map((claim: any) => {
                         const claimedDate = new Date(claim.claimedAt);
                         return (
                           <tr key={claim.id} className="border-b hover:bg-muted/30 transition-colors" data-testid={`claim-row-${claim.id}`}>
