@@ -138,6 +138,7 @@ export default function PosDashboard() {
   const [claimFilters, setClaimFilters] = useState({
     search: '',
     status: 'all',
+    location: '',
     dateFrom: '',
     dateTo: ''
   });
@@ -1526,7 +1527,7 @@ export default function PosDashboard() {
             <CardContent>
               {/* Filters */}
               <div className="mb-6 p-4 bg-muted/30 rounded-lg border">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
                     <Label htmlFor="search-customer" className="text-xs font-medium mb-2">Search Customer</Label>
                     <Input
@@ -1553,6 +1554,16 @@ export default function PosDashboard() {
                     </select>
                   </div>
                   <div>
+                    <Label htmlFor="filter-location" className="text-xs font-medium mb-2">Store Location</Label>
+                    <Input
+                      id="filter-location"
+                      placeholder="Location..."
+                      value={claimFilters.location}
+                      onChange={(e) => setClaimFilters({...claimFilters, location: e.target.value})}
+                      className="h-9"
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="date-from" className="text-xs font-medium mb-2">From Date</Label>
                     <Input
                       id="date-from"
@@ -1577,7 +1588,7 @@ export default function PosDashboard() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setClaimFilters({ search: '', status: 'all', dateFrom: '', dateTo: '' })}
+                    onClick={() => setClaimFilters({ search: '', status: 'all', location: '', dateFrom: '', dateTo: '' })}
                   >
                     Clear Filters
                   </Button>
@@ -1624,6 +1635,11 @@ export default function PosDashboard() {
                           // Status filter
                           const matchesStatus = claimFilters.status === 'all' || claim.status === claimFilters.status;
                           
+                          // Location filter
+                          const locationLower = claimFilters.location.toLowerCase();
+                          const matchesLocation = !claimFilters.location || 
+                            claim.storeLocation?.toLowerCase().includes(locationLower);
+                          
                           // Date filter
                           const claimDate = new Date(claim.claimedAt);
                           const fromDate = claimFilters.dateFrom ? new Date(claimFilters.dateFrom) : null;
@@ -1632,7 +1648,7 @@ export default function PosDashboard() {
                           const matchesDateFrom = !fromDate || claimDate >= fromDate;
                           const matchesDateTo = !toDate || claimDate <= new Date(toDate.setHours(23, 59, 59));
                           
-                          return matchesSearch && matchesStatus && matchesDateFrom && matchesDateTo;
+                          return matchesSearch && matchesStatus && matchesLocation && matchesDateFrom && matchesDateTo;
                         })
                         .map((claim: any) => {
                         const claimedDate = new Date(claim.claimedAt);
