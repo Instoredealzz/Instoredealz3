@@ -1527,62 +1527,62 @@ export default function PosDashboard() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="border-b">
+                  <table className="w-full table-fixed">
+                    <thead className="border-b bg-muted/50">
                       <tr className="text-sm text-muted-foreground">
-                        <th className="py-3 text-left font-medium">Customer</th>
-                        <th className="py-3 text-left font-medium">Deal</th>
-                        <th className="py-3 text-left font-medium">Store Location</th>
-                        <th className="py-3 text-right font-medium">Discount</th>
-                        <th className="py-3 text-right font-medium">Total Sales Amount</th>
-                        <th className="py-3 text-left font-medium">Date</th>
-                        <th className="py-3 text-left font-medium">Time</th>
-                        <th className="py-3 text-left font-medium">Expires At</th>
-                        <th className="py-3 text-center font-medium">Status</th>
+                        <th className="py-3 px-4 text-left font-medium w-[200px]">Customer</th>
+                        <th className="py-3 px-4 text-left font-medium w-[180px]">Deal</th>
+                        <th className="py-3 px-4 text-left font-medium w-[140px]">Store Location</th>
+                        <th className="py-3 px-4 text-right font-medium w-[100px]">Discount</th>
+                        <th className="py-3 px-4 text-right font-medium w-[140px]">Total Sales Amount</th>
+                        <th className="py-3 px-4 text-left font-medium w-[120px]">Claimed Date</th>
+                        <th className="py-3 px-4 text-left font-medium w-[90px]">Time</th>
+                        <th className="py-3 px-4 text-left font-medium w-[120px]">Expires At</th>
+                        <th className="py-3 px-4 text-center font-medium w-[100px]">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {claimedDeals.map((claim: any) => {
                         const claimedDate = new Date(claim.claimedAt);
                         return (
-                          <tr key={claim.id} className="border-b" data-testid={`claim-row-${claim.id}`}>
-                            <td className="py-3">
+                          <tr key={claim.id} className="border-b hover:bg-muted/30 transition-colors" data-testid={`claim-row-${claim.id}`}>
+                            <td className="py-4 px-4">
                               <div>
                                 <div className="font-medium">{claim.customerName}</div>
                                 <div className="text-sm text-muted-foreground">{claim.customerEmail}</div>
-                                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                                   <span>{claim.customerPhone}</span>
                                   <span className="text-muted-foreground">•</span>
                                   <span className="font-mono">ID: {claim.customerId}</span>
                                 </div>
                               </div>
                             </td>
-                            <td className="py-3 font-medium">{claim.dealTitle}</td>
-                            <td className="py-3">
+                            <td className="py-4 px-4 font-medium">{claim.dealTitle}</td>
+                            <td className="py-4 px-4">
                               <span className="text-sm">{claim.storeLocation || '-'}</span>
                             </td>
-                            <td className="py-3 text-right">{claim.discountPercentage}%</td>
-                            <td className="py-3 text-right font-semibold">
+                            <td className="py-4 px-4 text-right font-medium">{claim.discountPercentage}%</td>
+                            <td className="py-4 px-4 text-right font-semibold">
                               {claim.billAmount && parseFloat(claim.billAmount) > 0 ? (
                                 <span className="text-green-600">₹{parseFloat(claim.billAmount).toLocaleString()}</span>
                               ) : (
                                 <span className="text-muted-foreground">-</span>
                               )}
                             </td>
-                            <td className="py-3 text-sm">
+                            <td className="py-4 px-4 text-sm">
                               {claimedDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
                             </td>
-                            <td className="py-3 text-sm">
+                            <td className="py-4 px-4 text-sm">
                               {claimedDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                             </td>
-                            <td className="py-3 text-sm">
+                            <td className="py-4 px-4 text-sm">
                               {claim.codeExpiresAt ? (
                                 <span className={new Date(claim.codeExpiresAt) < new Date() ? 'text-red-500' : ''}>
                                   {new Date(claim.codeExpiresAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
                                 </span>
                               ) : '-'}
                             </td>
-                            <td className="py-3 text-center">
+                            <td className="py-4 px-4 text-center">
                               <Badge variant={
                                 claim.status === 'used' ? 'default' : 
                                 claim.status === 'pending' ? 'secondary' : 
