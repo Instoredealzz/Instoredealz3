@@ -13,6 +13,12 @@ export async function initializeDatabase() {
     // Run WhatsApp migrations first
     await migrateWhatsAppColumns();
     
+    // Add gender and date of birth columns to users table
+    console.log('[MIGRATION] Adding gender and date of birth columns to users table...');
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth TIMESTAMP`);
+    console.log('[MIGRATION] Gender and date of birth columns added successfully');
+    
     // Add status column to vendors table if it doesn't exist
     await db.execute(sql`
       ALTER TABLE vendors 
