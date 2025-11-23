@@ -347,107 +347,109 @@ export default function AdminClaimedDeals() {
                   <p data-testid="text-no-claims">No claimed deals found</p>
                 </div>
               ) : (
-                <div className="rounded-md border overflow-x-auto">
+                <div className="rounded-lg border border-border/50 overflow-hidden shadow-sm">
                   <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setSearchQuery(searchQuery)}>Customer Info</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setMembershipFilter(membershipFilter)}>Membership</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setCategoryFilter(categoryFilter)}>Deal Info</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setVendorFilter(vendorFilter)}>Vendor</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setLocationFilter(locationFilter)}>Store Location</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Discount %</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Total Billed Amount</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Savings</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Status</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setStatusFilter(statusFilter)}>Claim Date</TableHead>
+                    <TableHeader className="bg-gradient-to-r from-slate-50 to-slate-50 dark:from-slate-900/50 dark:to-slate-900/50 border-b border-border/50">
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setSearchQuery(searchQuery)}>Customer Info</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setMembershipFilter(membershipFilter)}>Membership</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setCategoryFilter(categoryFilter)}>Deal Info</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setVendorFilter(vendorFilter)}>Vendor</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setLocationFilter(locationFilter)}>Store Location</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground text-right" onClick={() => setStatusFilter(statusFilter)}>Discount %</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground text-right" onClick={() => setStatusFilter(statusFilter)}>Total Billed</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground text-right" onClick={() => setStatusFilter(statusFilter)}>Savings</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setStatusFilter(statusFilter)}>Status</TableHead>
+                        <TableHead className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors h-12 px-6 font-semibold text-foreground" onClick={() => setStatusFilter(statusFilter)}>Claim Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredClaims.map((claim) => (
-                        <TableRow key={claim.claimId} data-testid={`row-claim-${claim.claimId}`}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium" data-testid={`text-customer-name-${claim.claimId}`}>{claim.customerName}</div>
-                                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5" data-testid={`text-customer-email-${claim.claimId}`}>
-                                  <Mail className="h-3 w-3" />
-                                  {claim.customerEmail}
+                        <TableRow key={claim.claimId} data-testid={`row-claim-${claim.claimId}`} className="hover:bg-blue-50 dark:hover:bg-slate-800/30 transition-colors border-b border-border/30">
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-start gap-3">
+                              <div className="mt-0.5">
+                                <User className="h-4 w-4 text-slate-400" />
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-semibold text-foreground text-sm" data-testid={`text-customer-name-${claim.claimId}`}>{claim.customerName}</div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-1" data-testid={`text-customer-email-${claim.claimId}`}>
+                                  <Mail className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{claim.customerEmail}</span>
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-2 space-y-1">
                                   {claim.customerPhone && (
                                     <div className="flex items-center gap-1" data-testid={`text-customer-phone-${claim.claimId}`}>
-                                      <Phone className="h-3 w-3 text-muted-foreground" />
-                                      <span>{claim.customerPhone}</span>
+                                      <Phone className="h-3 w-3 flex-shrink-0" />
+                                      <span className="truncate">{claim.customerPhone}</span>
                                     </div>
                                   )}
                                   {claim.customerWhatsappPhone && (
                                     <div className="flex items-center gap-1" data-testid={`text-customer-whatsapp-${claim.claimId}`}>
-                                      <Phone className="h-3 w-3 text-success" />
-                                      <span>{claim.customerWhatsappPhone}</span>
+                                      <Phone className="h-3 w-3 flex-shrink-0 text-success" />
+                                      <span className="truncate">{claim.customerWhatsappPhone}</span>
                                     </div>
                                   )}
-                                  <div className="font-mono" data-testid={`text-customer-id-${claim.claimId}`}>
+                                  <div className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded inline-block w-fit" data-testid={`text-customer-id-${claim.claimId}`}>
                                     ID: {claim.customerId}
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-6 py-4">
                             {getMembershipBadge(claim.customerMembership)}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-6 py-4">
                             <div>
-                              <div className="font-medium" data-testid={`text-deal-title-${claim.claimId}`}>{claim.dealTitle}</div>
-                              <div className="text-xs text-muted-foreground capitalize">
+                              <div className="font-semibold text-foreground text-sm" data-testid={`text-deal-title-${claim.claimId}`}>{claim.dealTitle}</div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400 capitalize mt-1">
                                 {claim.dealCategory}
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Store className="h-4 w-4 text-muted-foreground" />
-                              <div>
-                                <div className="font-medium text-sm" data-testid={`text-vendor-name-${claim.claimId}`}>{claim.vendorName}</div>
-                                <div className="text-xs text-muted-foreground">
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-start gap-2">
+                              <Store className="h-4 w-4 text-slate-400 mt-0.5 flex-shrink-0" />
+                              <div className="min-w-0">
+                                <div className="font-semibold text-foreground text-sm" data-testid={`text-vendor-name-${claim.claimId}`}>{claim.vendorName}</div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400">
                                   {claim.vendorCity}, {claim.vendorState}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="text-sm" data-testid={`text-store-location-${claim.claimId}`}>
-                              {claim.storeLocation || '-'}
+                          <TableCell className="px-6 py-4">
+                            <div className="text-sm text-foreground" data-testid={`text-store-location-${claim.claimId}`}>
+                              {claim.storeLocation || <span className="text-slate-400">-</span>}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono" data-testid={`text-discount-${claim.claimId}`}>
+                          <TableCell className="px-6 py-4 text-right">
+                            <Badge variant="secondary" className="font-semibold" data-testid={`text-discount-${claim.claimId}`}>
                               {claim.discountPercentage}%
                             </Badge>
                           </TableCell>
-                          <TableCell>
-                            <div className="font-semibold text-success" data-testid={`text-billed-amount-${claim.claimId}`}>
+                          <TableCell className="px-6 py-4 text-right">
+                            <div className="font-semibold text-success text-sm" data-testid={`text-billed-amount-${claim.claimId}`}>
                               ₹{claim.totalBilledAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="font-semibold text-gold" data-testid={`text-savings-${claim.claimId}`}>
+                          <TableCell className="px-6 py-4 text-right">
+                            <div className="font-semibold text-amber-600 dark:text-amber-400 text-sm" data-testid={`text-savings-${claim.claimId}`}>
                               ₹{(claim.actualSavings || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
                             </div>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-6 py-4">
                             {getStatusBadge(claim.status, claim.vendorVerified)}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground" data-testid={`text-claimed-date-${claim.claimId}`}>
-                              <Calendar className="h-3 w-3" />
+                          <TableCell className="px-6 py-4">
+                            <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400" data-testid={`text-claimed-date-${claim.claimId}`}>
+                              <Calendar className="h-3 w-3 flex-shrink-0" />
                               {claim.claimedAt ? format(new Date(claim.claimedAt), 'MMM dd, yyyy') : 'N/A'}
                             </div>
                             {claim.verifiedAt && (
-                              <div className="text-xs text-success mt-1" data-testid={`text-verified-date-${claim.claimId}`}>
-                                Verified: {format(new Date(claim.verifiedAt), 'MMM dd, yyyy')}
+                              <div className="text-xs text-success mt-2 font-medium" data-testid={`text-verified-date-${claim.claimId}`}>
+                                ✓ Verified: {format(new Date(claim.verifiedAt), 'MMM dd')}
                               </div>
                             )}
                           </TableCell>
