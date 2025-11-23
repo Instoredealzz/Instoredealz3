@@ -1498,7 +1498,7 @@ export default function PosDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold">₹{claimedDeals.reduce((sum: number, c: any) => sum + parseFloat(c.savingsAmount || 0), 0).toLocaleString()}</p>
+                    <p className="text-2xl font-bold">₹{claimedDeals.reduce((sum: number, c: any) => sum + parseFloat(c.billAmount || 0), 0).toLocaleString()}</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-green-500" />
                 </div>
@@ -1549,13 +1549,21 @@ export default function PosDashboard() {
                               <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <span>{claim.customerPhone}</span>
                                 <span className="text-muted-foreground">•</span>
-                                <span className="font-mono text-xs">{claim.claimCode}</span>
+                                <span className="font-mono">ID: {claim.customerId}</span>
+                                <span className="text-muted-foreground">•</span>
+                                <span className="font-mono">{claim.claimCode}</span>
                               </div>
                             </div>
                           </td>
                           <td className="py-3 font-medium">{claim.dealTitle}</td>
                           <td className="py-3 text-right">{claim.discountPercentage}%</td>
-                          <td className="py-3 text-right font-semibold">₹{parseFloat(claim.savingsAmount || 0).toLocaleString()}</td>
+                          <td className="py-3 text-right font-semibold">
+                            {claim.billAmount && parseFloat(claim.billAmount) > 0 ? (
+                              <span className="text-green-600">₹{parseFloat(claim.billAmount).toLocaleString()}</span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </td>
                           <td className="py-3 text-sm">{new Date(claim.claimedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                           <td className="py-3 text-sm">
                             {claim.codeExpiresAt ? (
