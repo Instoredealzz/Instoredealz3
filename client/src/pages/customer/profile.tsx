@@ -22,6 +22,8 @@ const updateUserProfileSchema = z.object({
   phone: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits").optional(),
   city: z.string().optional(),
   state: z.string().optional(),
+  gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
+  dateOfBirth: z.string().optional(),
   profileImage: z.string().optional(),
 });
 
@@ -36,6 +38,8 @@ interface UserData {
   phone?: string;
   city?: string;
   state?: string;
+  gender?: string;
+  dateOfBirth?: string;
   profileImage?: string;
   membershipPlan: string;
   totalSavings: string;
@@ -64,6 +68,8 @@ export default function CustomerProfile() {
       phone: "",
       city: "",
       state: "",
+      gender: undefined,
+      dateOfBirth: "",
       profileImage: "",
     },
   });
@@ -73,11 +79,18 @@ export default function CustomerProfile() {
   // Update form defaults when user data loads
   useEffect(() => {
     if (user) {
+      // Format dateOfBirth for input[type="date"]
+      const formattedDate = user.dateOfBirth 
+        ? new Date(user.dateOfBirth).toISOString().split('T')[0]
+        : "";
+      
       form.reset({
         name: user.name || "",
         phone: user.phone || "",
         city: user.city || "",
         state: user.state || "",
+        gender: user.gender as "male" | "female" | "other" | "prefer_not_to_say" | undefined,
+        dateOfBirth: formattedDate,
         profileImage: user.profileImage || "",
       });
     }
@@ -252,6 +265,56 @@ export default function CustomerProfile() {
                                   placeholder="Enter your phone number" 
                                   {...field} 
                                   value={field.value || ""}
+                                  data-testid="input-phone"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="gender"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gender</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-gender">
+                                    <SelectValue placeholder="Select gender" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="male">Male</SelectItem>
+                                  <SelectItem value="female">Female</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="dateOfBirth"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date of Birth</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="date" 
+                                  {...field} 
+                                  value={field.value || ""}
+                                  data-testid="input-date-of-birth"
+                                  max={new Date().toISOString().split('T')[0]}
                                 />
                               </FormControl>
                               <FormMessage />
