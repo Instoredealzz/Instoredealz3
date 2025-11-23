@@ -277,6 +277,27 @@ export async function initializeDatabase() {
       ON CONFLICT DO NOTHING
     `);
 
+    // Create vendor_api_keys table if it doesn't exist
+    console.log('[MIGRATION] Creating vendor_api_keys table...');
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS vendor_api_keys (
+        id SERIAL PRIMARY KEY,
+        vendor_id INTEGER NOT NULL REFERENCES vendors(id),
+        key_name TEXT NOT NULL,
+        api_key TEXT NOT NULL UNIQUE,
+        api_secret TEXT,
+        is_active BOOLEAN DEFAULT true,
+        last_used_at TIMESTAMP,
+        expires_at TIMESTAMP,
+        rate_limit INTEGER DEFAULT 1000,
+        allowed_endpoints TEXT[],
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by INTEGER REFERENCES users(id)
+      )
+    `);
+    console.log('[MIGRATION] vendor_api_keys table created successfully');
+
     console.log('[INIT] Database initialized successfully with sample data');
   } catch (error: any) {
     console.error('========================================');
