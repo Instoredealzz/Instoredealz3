@@ -792,10 +792,10 @@ export default function PosDashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <div className="flex items-center justify-between">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="font-medium text-green-800 dark:text-green-200">
+                      <p className="font-semibold text-green-800 dark:text-green-200 text-lg">
                         {verifiedCustomer.userName}
                       </p>
                       <p className="text-sm text-green-600 dark:text-green-300 capitalize">
@@ -803,8 +803,32 @@ export default function PosDashboard() {
                       </p>
                     </div>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      <CheckCircle className="h-3 w-3 mr-1" />
                       Verified
                     </Badge>
+                  </div>
+                  
+                  <Separator className="my-2 bg-green-200 dark:bg-green-700" />
+                  
+                  <div className="space-y-1.5 text-sm">
+                    {verifiedCustomer.userId !== 0 && (
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                        <span className="text-muted-foreground min-w-[80px]">Customer ID:</span>
+                        <span className="font-mono font-medium">#{verifiedCustomer.userId}</span>
+                      </div>
+                    )}
+                    {verifiedCustomer.email && verifiedCustomer.email !== 'walkin@customer.com' && (
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                        <span className="text-muted-foreground min-w-[80px]">Email:</span>
+                        <span className="font-medium">{verifiedCustomer.email}</span>
+                      </div>
+                    )}
+                    {verifiedCustomer.phone && (
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                        <span className="text-muted-foreground min-w-[80px]">Phone:</span>
+                        <span className="font-medium">{verifiedCustomer.phone}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
