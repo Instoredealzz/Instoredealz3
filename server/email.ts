@@ -1,17 +1,50 @@
-import { MailService } from '@sendgrid/mail';
+import { Resend } from 'resend';
 
-const SENDGRID_ENABLED = !!process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@instoredealz.com';
+let resendClient: Resend | null = null;
+let fromEmail: string = 'noreply@instoredealz.com';
 
-let mailService: MailService | null = null;
+async function getResendClient() {
+  if (resendClient) {
+    return { client: resendClient, fromEmail };
+  }
 
-if (SENDGRID_ENABLED) {
-  mailService = new MailService();
-  mailService.setApiKey(process.env.SENDGRID_API_KEY!);
-  console.log('[EMAIL] SendGrid email service enabled');
-  console.log(`[EMAIL] Using sender email: ${FROM_EMAIL}`);
-} else {
-  console.warn('[EMAIL] SendGrid API key not found. Email notifications will be disabled.');
+  try {
+    const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+    const xReplitToken = process.env.REPL_IDENTITY 
+      ? 'repl ' + process.env.REPL_IDENTITY 
+      : process.env.WEB_REPL_RENEWAL 
+      ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+      : null;
+
+    if (!xReplitToken) {
+      throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+    }
+
+    const connectionSettings = await fetch(
+      'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
+      {
+        headers: {
+          'Accept': 'application/json',
+          'X_REPLIT_TOKEN': xReplitToken
+        }
+      }
+    ).then(res => res.json()).then(data => data.items?.[0]);
+
+    if (!connectionSettings || (!connectionSettings.settings.api_key)) {
+      throw new Error('Resend not connected');
+    }
+
+    resendClient = new Resend(connectionSettings.settings.api_key);
+    fromEmail = connectionSettings.settings.from_email || 'noreply@instoredealz.com';
+    console.log('[EMAIL] Resend email service enabled');
+    console.log(`[EMAIL] Using sender email: ${fromEmail}`);
+    
+    return { client: resendClient, fromEmail };
+  } catch (error) {
+    console.error('[EMAIL] Failed to initialize Resend:', error);
+    console.warn('[EMAIL] Email notifications will be disabled.');
+    return { client: null, fromEmail: 'noreply@instoredealz.com' };
+  }
 }
 
 interface EmailParams {
@@ -23,40 +56,51 @@ interface EmailParams {
 }
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
-  if (!SENDGRID_ENABLED || !mailService) {
-    console.log(`[EMAIL] Email sending disabled - would have sent: ${params.subject} to ${params.to}`);
-    return true; // Return true to not break the flow
-  }
-
   try {
+    const { client } = await getResendClient();
+    
+    if (!client) {
+      console.log(`[EMAIL] Email sending disabled - would have sent: ${params.subject} to ${params.to}`);
+      return true;
+    }
+
     const emailData: any = {
       to: params.to,
       from: params.from,
       subject: params.subject,
     };
     
-    if (params.text) {
+    if (params.html) {
+      emailData.html = params.html;
+    } else if (params.text) {
       emailData.text = params.text;
     }
     
-    if (params.html) {
-      emailData.html = params.html;
+    const response = await client.emails.send(emailData);
+    
+    if (response.error) {
+      console.error('Resend email error:', response.error);
+      return false;
     }
     
-    await mailService!.send(emailData);
     console.log(`Email sent successfully to ${params.to}`);
     return true;
   } catch (error) {
-    console.error('SendGrid email error:', error);
+    console.error('Resend email error:', error);
     return false;
   }
+}
+
+export async function getFromEmail(): Promise<string> {
+  const { fromEmail: email } = await getResendClient();
+  return email;
 }
 
 // Email templates
 export function getWelcomeCustomerEmail(name: string, email: string) {
   return {
     to: email,
-    from: 'noreply@instoredealz.com', // Replace with your verified sender email
+    from: 'noreply@instoredealz.com',
     subject: 'Welcome to Instoredealz - Start Saving Today!',
     html: `
       <!DOCTYPE html>
@@ -226,7 +270,7 @@ export function getReportEmail(reportType: string, adminName: string, adminEmail
 export function getVendorRegistrationEmail(businessName: string, contactName: string, email: string) {
   return {
     to: email,
-    from: 'noreply@instoredealz.com', // Replace with your verified sender email
+    from: 'noreply@instoredealz.com',
     subject: 'Business Registration Received - Welcome to Instoredealz',
     html: `
       <!DOCTYPE html>
@@ -416,7 +460,8 @@ export function getDealApprovalEmail(dealTitle: string, businessName: string, ve
   };
 }
 
-export function getApiKeyGeneratedEmail(businessName: string, vendorName: string, email: string, apiKey: string, createdAt: string, rateLimit: number, expiresAt: string | null) {
+export async function getApiKeyGeneratedEmail(businessName: string, vendorName: string, email: string, apiKey: string, createdAt: string, rateLimit: number, expiresAt: string | null) {
+  const { fromEmail: senderEmail } = await getResendClient();
   const expiryInfo = expiresAt 
     ? `<p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleDateString()}</p>`
     : `<p><strong>Expires:</strong> Never</p>`;
@@ -427,7 +472,7 @@ export function getApiKeyGeneratedEmail(businessName: string, vendorName: string
 
   return {
     to: email,
-    from: FROM_EMAIL,
+    from: senderEmail,
     subject: '🔐 Your API Key for POS Integration - Instoredealz',
     html: `
       <!DOCTYPE html>

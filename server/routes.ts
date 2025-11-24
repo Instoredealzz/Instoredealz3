@@ -8532,7 +8532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const vendorUser = await storage.getUser(vendor.userId);
       if (vendorUser) {
         // Send email notification to vendor
-        const emailData = getApiKeyGeneratedEmail(
+        const emailData = await getApiKeyGeneratedEmail(
           vendor.businessName,
           vendorUser.name,
           vendorUser.email,
