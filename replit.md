@@ -27,6 +27,12 @@ Preferred communication style: Simple, everyday language.
   - Complete documentation with JavaScript, Python, and cURL code examples (VENDOR_API_DOCUMENTATION.md, VENDOR_API_EXAMPLES.md)
   - Full test coverage with test report (VENDOR_API_TEST_REPORT.md)
   - Security features: API key expiration, vendor approval validation, cross-vendor access prevention
+- **Email Service Migration (November 25, 2025)**: Migrated from Resend to ZeptoMail for all transactional emails:
+  - Uninstalled Resend package and installed ZeptoMail
+  - Completely rewrote server/email.ts to use ZeptoMail's official SendMailClient API
+  - Maintained all email templates (welcome, vendor registration, deal approval/rejection, reports, API key generation)
+  - Email service gracefully disables when ZMPT_TOKEN is not provided
+  - All email functionality tested and working correctly
 
 ## System Architecture
 
@@ -100,15 +106,18 @@ The application emphasizes modularity, separation of concerns, and type safety. 
 - **Type Validation**: Zod
 - **Authentication**: `jsonwebtoken`, `bcrypt`
 - **QR Code Generation**: `qrcode`
-- **Email Service**: SendGrid (optional - requires SENDGRID_API_KEY in Replit Secrets)
+- **Email Service**: ZeptoMail (optional - requires ZMPT_TOKEN in Replit Secrets)
 - **Payment Gateway**: Razorpay
 
 ## Production Setup Notes
 
 ### Email Notifications (Optional)
 Email notifications are currently disabled. To enable:
-1. Get a SendGrid API key from https://sendgrid.com
-2. Add it to Replit Secrets as `SENDGRID_API_KEY`
+1. Get a ZeptoMail Send Mail Token from https://www.zoho.com/zeptomail/
+   - Sign up for a ZeptoMail account
+   - Go to Mail Agents tab → Setup Info (gear icon) → API tab
+   - Copy your Send Mail Token
+2. Add it to Replit Secrets as `ZMPT_TOKEN`
 3. Restart the application
 
 Features affected when disabled:
@@ -116,6 +125,7 @@ Features affected when disabled:
 - Vendor registration confirmation emails
 - Deal approval/rejection notifications
 - Admin report emails
+- API key generation notifications
 
 The application works fully without email notifications - they are optional enhancements.
 
