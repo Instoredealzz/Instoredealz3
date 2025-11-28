@@ -308,12 +308,28 @@ export default function VendorDeals() {
     mutationFn: async (data: DealForm) => {
       // Use custom category if "others" is selected and transform data types
       const finalData = {
-        ...data,
+        title: data.title,
+        description: data.description,
         category: data.category === "others" && data.customCategory ? data.customCategory : data.category,
         subcategory: data.subcategory || null,
+        imageUrl: data.imageUrl || null,
+        discountPercentage: data.discountPercentage,
+        verificationPin: data.verificationPin,
         validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : undefined,
+        maxRedemptions: data.maxRedemptions || null,
+        requiredMembership: data.requiredMembership,
+        address: data.address,
         latitude: data.latitude ? data.latitude.toString() : undefined,
         longitude: data.longitude ? data.longitude.toString() : undefined,
+        dealAvailability: data.dealAvailability,
+        dealType: data.dealType,
+        affiliateLink: data.affiliateLink || null,
+        // When using selected-locations, don't send the main deal location fields
+        state: null,
+        city: null,
+        sublocation: null,
+        pincode: null,
+        contactPhone: null,
         locations: data.dealAvailability === "selected-locations" ? storeLocations : []
       };
       return apiRequest('/api/vendors/deals', {
@@ -346,12 +362,22 @@ export default function VendorDeals() {
       
       // Use custom category if "others" is selected and transform data types
       const finalData = {
-        ...data,
+        title: data.title,
+        description: data.description,
         category: data.category === "others" && data.customCategory ? data.customCategory : data.category,
         subcategory: data.subcategory || null,
+        imageUrl: data.imageUrl || null,
+        discountPercentage: data.discountPercentage,
+        verificationPin: data.verificationPin,
         validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : undefined,
+        maxRedemptions: data.maxRedemptions || null,
+        requiredMembership: data.requiredMembership,
+        address: data.address,
         latitude: data.latitude ? data.latitude.toString() : undefined,
         longitude: data.longitude ? data.longitude.toString() : undefined,
+        dealAvailability: data.dealAvailability,
+        dealType: data.dealType,
+        affiliateLink: data.affiliateLink || null,
       };
       return apiRequest(`/api/vendors/deals/${editingDeal.id}`, {
         method: 'PUT',
