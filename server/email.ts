@@ -16,7 +16,7 @@ async function getZeptoClient() {
       throw new Error("ZMPT_TOKEN not found in environment");
     }
 
-    const url = "api.zeptomail.in";
+    const url = "https://api.zeptomail.in/";
     zeptoClient = new SendMailClient({ url, token });
     fromEmail = "admin@instoredealz.com";
     console.log("[EMAIL] ZeptoMail email service enabled");

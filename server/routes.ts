@@ -8197,6 +8197,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test email endpoint
+  app.post('/api/test/email', async (req, res) => {
+    try {
+      const { email, subject, message } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Email address is required' 
+        });
+      }
+
+      Logger.info('Testing email service', { to: email, subject });
+
+      const emailResult = await sendEmail({
+        to: email,
+        from: 'admin@instoredealz.com',
+        subject: subject || 'Test Email from Instoredealz',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Test Email</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">Test Email</h1>
+              <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Email Service Test</p>
+            </div>
+            <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+              <h2 style="color: #333; margin-top: 0;">Hello!</h2>
+              <p>${message || 'This is a test email from Instoredealz to verify that the email service is working correctly.'}</p>
+              <div style="background: #f0fdf4; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #10b981;"><strong>Email Service Status: Active</strong></p>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">Sent at: ${new Date().toLocaleString()}</p>
+              </div>
+              <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+              <p style="color: #666; font-size: 12px; margin: 0;">This is an automated test email from Instoredealz.</p>
+            </div>
+          </body>
+          </html>
+        `,
+        text: message || 'This is a test email from Instoredealz to verify that the email service is working correctly.'
+      });
+
+      if (emailResult) {
+        Logger.info('Test email sent successfully', { to: email });
+        res.json({ 
+          success: true, 
+          message: `Test email sent successfully to ${email}`,
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        Logger.error('Test email failed to send', { to: email });
+        res.status(500).json({ 
+          success: false, 
+          error: 'Failed to send test email. Check email service configuration.'
+        });
+      }
+    } catch (error) {
+      Logger.error('Test email error', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Email test failed',
+        details: error.message
+      });
+    }
+  });
+
   // Comprehensive vendor API integration health check
   app.get('/api/test/vendor-integration-health', async (req, res) => {
     try {
