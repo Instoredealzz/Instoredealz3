@@ -2080,6 +2080,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactPhone: req.body.contactPhone,
       };
       
+      Logger.debug('Deal creation data received:', {
+        hasState: !!transformedData.state,
+        hasCity: !!transformedData.city,
+        hasSublocation: !!transformedData.sublocation,
+        hasPincode: !!transformedData.pincode,
+        hasContactPhone: !!transformedData.contactPhone,
+        state: transformedData.state,
+        city: transformedData.city,
+        sublocation: transformedData.sublocation,
+        pincode: transformedData.pincode,
+        contactPhone: transformedData.contactPhone,
+      });
+      
       const dealData = insertDealSchema.parse(transformedData);
       
       const deal = await storage.createDeal(dealData);
