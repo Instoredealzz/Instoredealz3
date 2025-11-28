@@ -34,7 +34,7 @@ import {
   Shield,
   AlertTriangle
 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart, ComposedChart, RadialBarChart, RadialBar } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart, ComposedChart, RadialBarChart, RadialBar, ScatterChart, Scatter, Tooltip, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Funnel, FunnelChart } from "recharts";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,6 +49,14 @@ export default function AdminDashboard() {
   const [chartType, setChartType] = useState("bar");
   const [refreshing, setRefreshing] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
+  const [enabledCharts, setEnabledCharts] = useState({
+    vendorPerformance: true,
+    performanceRadar: true,
+    conversionFunnel: true,
+    dealLifecycle: true,
+    categoryTrends: true,
+    userEngagement: true,
+  });
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -422,11 +430,12 @@ export default function AdminDashboard() {
 
         {/* Interactive Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50">
+          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50">
             <TabsTrigger value="overview" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">Overview</TabsTrigger>
             <TabsTrigger value="performance" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">Performance</TabsTrigger>
             <TabsTrigger value="insights" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">Insights</TabsTrigger>
             <TabsTrigger value="distribution" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">Distribution</TabsTrigger>
+            <TabsTrigger value="advanced" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">Advanced</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
@@ -698,6 +707,188 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="advanced" className="space-y-8">
+            {/* Vendor Performance Scatter Plot */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-blue-600" />
+                  Vendor Performance Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} key={animationKey}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                    <XAxis dataKey="dealsCreated" name="Deals Created" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                    <YAxis dataKey="claimsReceived" name="Claims Received" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                    <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<ChartTooltipContent />} />
+                    <Scatter name="Vendors" data={[
+                      { dealsCreated: 45, claimsReceived: 1280, fill: '#3B82F6' },
+                      { dealsCreated: 38, claimsReceived: 956, fill: '#10B981' },
+                      { dealsCreated: 32, claimsReceived: 845, fill: '#F59E0B' },
+                      { dealsCreated: 28, claimsReceived: 720, fill: '#8B5CF6' },
+                      { dealsCreated: 22, claimsReceived: 580, fill: '#EC4899' }
+                    ]} fill={CHART_COLORS.primary[0]} />
+                  </ScatterChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* Performance Radar Chart */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-purple-600" />
+                    Performance Radar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <RadarChart data={performanceMetrics} key={animationKey}>
+                      <PolarGrid stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                      <PolarAngleAxis dataKey="name" tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }} />
+                      <PolarRadiusAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }} />
+                      <Radar name="Current" dataKey="value" stroke={CHART_COLORS.primary[0]} fill={CHART_COLORS.primary[0]} fillOpacity={0.6} />
+                      <Radar name="Target" dataKey="target" stroke={CHART_COLORS.success[0]} fill={CHART_COLORS.success[0]} fillOpacity={0.3} />
+                      <Legend />
+                    </RadarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              {/* Conversion Funnel */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5 text-orange-600" />
+                    Deal Conversion Funnel
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <FunnelChart key={animationKey}>
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Funnel 
+                        data={[
+                          { name: 'Deal Views', value: 5240 },
+                          { name: 'Added to Wishlist', value: 3820 },
+                          { name: 'Claimed Online', value: 2890 },
+                          { name: 'Redeemed In-Store', value: 1960 },
+                          { name: 'Completed', value: 1520 }
+                        ]}
+                        dataKey="value"
+                        stroke={CHART_COLORS.primary[0]}
+                        fill={CHART_COLORS.primary[0]}
+                        fillOpacity={0.8}
+                      >
+                        {[CHART_COLORS.primary[0], CHART_COLORS.success[0], CHART_COLORS.warning[0], CHART_COLORS.purple[0], CHART_COLORS.pink[0]].map((color, i) => (
+                          <Cell key={`cell-${i}`} fill={color} />
+                        ))}
+                      </Funnel>
+                    </FunnelChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Deal Lifecycle & Category Trends */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-green-600" />
+                    Deal Lifecycle (Days Active)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <BarChart data={[
+                      { phase: '0-7 days', active: 450, expired: 80, refunded: 15 },
+                      { phase: '8-14 days', active: 380, expired: 120, refunded: 25 },
+                      { phase: '15-30 days', active: 280, expired: 200, refunded: 40 },
+                      { phase: '31-60 days', active: 150, expired: 350, refunded: 60 },
+                      { phase: '60+ days', active: 45, expired: 420, refunded: 85 }
+                    ]} key={animationKey}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                      <XAxis dataKey="phase" tick={{ fill: 'hsl(var(--foreground))', fontSize: 11 }} />
+                      <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="active" fill={CHART_COLORS.success[0]} name="Active" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="expired" fill={CHART_COLORS.warning[0]} name="Expired" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="refunded" fill={CHART_COLORS.error[0]} name="Refunded" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Ticket className="h-5 w-5 text-cyan-600" />
+                    Category Trends (90 Days)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <LineChart data={[
+                      { week: 'W1', fashion: 120, tech: 90, food: 75, beauty: 65 },
+                      { week: 'W2', fashion: 145, tech: 110, food: 88, beauty: 78 },
+                      { week: 'W3', fashion: 168, tech: 135, food: 102, beauty: 92 },
+                      { week: 'W4', fashion: 195, tech: 160, food: 125, beauty: 115 },
+                      { week: 'W5', fashion: 220, tech: 190, food: 148, beauty: 138 },
+                      { week: 'W6', fashion: 245, tech: 215, food: 168, beauty: 160 }
+                    ]} key={animationKey}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                      <XAxis dataKey="week" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                      <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Line type="monotone" dataKey="fashion" stroke={CHART_COLORS.primary[0]} strokeWidth={2} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="tech" stroke={CHART_COLORS.success[0]} strokeWidth={2} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="food" stroke={CHART_COLORS.warning[0]} strokeWidth={2} dot={{ r: 4 }} />
+                      <Line type="monotone" dataKey="beauty" stroke={CHART_COLORS.purple[0]} strokeWidth={2} dot={{ r: 4 }} />
+                      <Legend />
+                    </LineChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* User Engagement Heatmap-style Stacked Area */}
+            <Card className="glass-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-pink-600" />
+                  User Engagement Over Time
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-[350px] w-full">
+                  <AreaChart data={[
+                    { day: 'Mon', browsing: 420, claiming: 240, redeeming: 120, sharing: 80 },
+                    { day: 'Tue', browsing: 520, claiming: 290, redeeming: 150, sharing: 110 },
+                    { day: 'Wed', browsing: 680, claiming: 350, redeeming: 200, sharing: 150 },
+                    { day: 'Thu', browsing: 750, claiming: 380, redeeming: 220, sharing: 180 },
+                    { day: 'Fri', browsing: 920, claiming: 480, redeeming: 300, sharing: 250 },
+                    { day: 'Sat', browsing: 1020, claiming: 520, redeeming: 350, sharing: 300 },
+                    { day: 'Sun', browsing: 850, claiming: 420, redeeming: 280, sharing: 220 }
+                  ]} key={animationKey}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                    <XAxis dataKey="day" tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                    <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                    <Tooltip content={<ChartTooltipContent />} />
+                    <Area type="monotone" dataKey="browsing" stackId="1" stroke={CHART_COLORS.primary[0]} fill={CHART_COLORS.primary[0]} fillOpacity={0.6} name="Browsing" />
+                    <Area type="monotone" dataKey="claiming" stackId="1" stroke={CHART_COLORS.success[0]} fill={CHART_COLORS.success[0]} fillOpacity={0.6} name="Claiming" />
+                    <Area type="monotone" dataKey="redeeming" stackId="1" stroke={CHART_COLORS.warning[0]} fill={CHART_COLORS.warning[0]} fillOpacity={0.6} name="Redeeming" />
+                    <Area type="monotone" dataKey="sharing" stackId="1" stroke={CHART_COLORS.purple[0]} fill={CHART_COLORS.purple[0]} fillOpacity={0.6} name="Sharing" />
+                    <Legend />
+                  </AreaChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
