@@ -61,8 +61,30 @@ const dealSchema = z.object({
   city: z.string().min(1, "Please select a city"),
   sublocation: z.string().optional(),
   pincode: z.string().min(1, "Pincode is required"),
-  contactPhone: z.string().min(10, "Contact number must be 10 digits").max(10, "Contact number must be 10 digits"),
+  country: z.enum(["IN", "US", "UK", "CA"]).default("IN"),
+  contactPhone: z.string().min(1, "Contact number is required"),
 }).refine(
+  (data) => {
+    // Validate phone number based on country
+    const phoneDigits = data.contactPhone.replace(/\D/g, '');
+    const countryFormats: Record<string, { min: number; max: number }> = {
+      "IN": { min: 10, max: 10 }, // India: 10 digits
+      "US": { min: 10, max: 10 }, // USA: 10 digits
+      "UK": { min: 10, max: 11 }, // UK: 10-11 digits
+      "CA": { min: 10, max: 10 }, // Canada: 10 digits
+    };
+    
+    const format = countryFormats[data.country];
+    if (phoneDigits.length < format.min || phoneDigits.length > format.max) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Invalid phone number for selected country',
+    path: ['contactPhone'],
+  }
+).refine(
   (data) => {
     if (data.dealType === 'online' && !data.affiliateLink) {
       return false;
@@ -257,6 +279,7 @@ export default function VendorDeals() {
       city: "",
       sublocation: "",
       pincode: "",
+      country: "IN",
       contactPhone: "",
     },
   });
@@ -1017,27 +1040,53 @@ export default function VendorDeals() {
                       />
                     </div>
 
-                    {/* Contact Number */}
-                    <FormField
-                      control={form.control}
-                      name="contactPhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Contact Number *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="9876543210"
-                              className="h-12 text-base"
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs">
-                            10-digit phone number
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Country and Contact Number */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Country *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-12">
+                                  <SelectValue placeholder="Select country" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="IN">🇮🇳 India (10 digits)</SelectItem>
+                                <SelectItem value="US">🇺🇸 USA (10 digits)</SelectItem>
+                                <SelectItem value="UK">🇬🇧 UK (10-11 digits)</SelectItem>
+                                <SelectItem value="CA">🇨🇦 Canada (10 digits)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="contactPhone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Contact Number *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                placeholder={form.watch("country") === "UK" ? "10-11 digits" : "10 digits"}
+                                className="h-12 text-base"
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs">
+                              {form.watch("country") === "UK" ? "10-11 digits" : "10 digits"}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     {/* Row 7: Image Upload */}
                     <FormField
