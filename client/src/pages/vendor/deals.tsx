@@ -938,6 +938,14 @@ export default function VendorDeals() {
                       )}
                     />
 
+                    {/* Multi-Store Location Manager */}
+                    {form.watch("dealAvailability") === "selected-locations" && (
+                      <MultiStoreLocationManager
+                        locations={storeLocations}
+                        onChange={setStoreLocations}
+                      />
+                    )}
+
                     {/* State and City */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <FormField
