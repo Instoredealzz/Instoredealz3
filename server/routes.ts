@@ -3522,7 +3522,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userMap = new Map(users.map(u => [u.id, u]));
       const vendorMap = new Map(vendors.map(v => [v.id, v]));
 
-      const claimedDealsWithDetails = claims.map(claim => {
+      const claimedDealsWithDetails = await Promise.all(claims.map(async (claim) => {
         const deal = dealMap.get(claim.dealId);
         const customer = userMap.get(claim.userId);
         const vendor = deal ? vendorMap.get(deal.vendorId) : null;
@@ -3533,13 +3533,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const calculatedSavings = billAmount > 0 ? (billAmount * discountPercentage) / 100 : 0;
         const actualSavings = calculatedSavings > 0 ? calculatedSavings : parseFloat(claim.actualSavings || '0');
 
-        // Build store location from deal data
-        const storeLocation = deal ? [
-          deal.sublocation,
-          deal.city,
-          deal.state,
-          deal.pincode
-        ].filter(Boolean).join(", ") : null;
+        // Build store location from deal locations if using selected-locations, otherwise from main deal data
+        let storeLocation = null;
+        if (deal) {
+          if (deal.dealAvailability === 'selected-locations') {
+            // Fetch locations from deal_locations table
+            const dealLocations = await storage.getDealLocations(deal.id);
+            if (dealLocations && dealLocations.length > 0) {
+              // Get first location for display
+              const firstLocation = dealLocations[0];
+              storeLocation = [
+                firstLocation.storeName,
+                firstLocation.address,
+                firstLocation.city,
+                firstLocation.state
+              ].filter(Boolean).join(", ");
+            }
+          } else {
+            // Fall back to main deal table fields for non-selected-locations deals
+            storeLocation = [
+              deal.sublocation,
+              deal.city,
+              deal.state,
+              deal.pincode
+            ].filter(Boolean).join(", ") || null;
+          }
+        }
 
         return {
           claimId: claim.id,
@@ -3574,7 +3593,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           savingsAmount: parseFloat(claim.savingsAmount || '0'),
           actualSavings: actualSavings,
         };
-      });
+      }));
 
       res.json(claimedDealsWithDetails);
     } catch (error) {
