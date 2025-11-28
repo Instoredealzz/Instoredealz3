@@ -307,7 +307,7 @@ export default function VendorDeals() {
   const createDealMutation = useMutation({
     mutationFn: async (data: DealForm) => {
       // Use custom category if "others" is selected and transform data types
-      const finalData = {
+      const finalData: any = {
         title: data.title,
         description: data.description,
         category: data.category === "others" && data.customCategory ? data.customCategory : data.category,
@@ -324,14 +324,16 @@ export default function VendorDeals() {
         dealAvailability: data.dealAvailability,
         dealType: data.dealType,
         affiliateLink: data.affiliateLink || null,
-        // When using selected-locations, don't send the main deal location fields
-        state: null,
-        city: null,
-        sublocation: null,
-        pincode: null,
-        contactPhone: null,
         locations: data.dealAvailability === "selected-locations" ? storeLocations : []
       };
+      
+      // Remove fields that are undefined
+      Object.keys(finalData).forEach(key => {
+        if (finalData[key] === undefined) {
+          delete finalData[key];
+        }
+      });
+      
       return apiRequest('/api/vendors/deals', {
         method: 'POST',
         body: finalData
@@ -361,7 +363,7 @@ export default function VendorDeals() {
       if (!editingDeal) throw new Error("No deal selected for editing");
       
       // Use custom category if "others" is selected and transform data types
-      const finalData = {
+      const finalData: any = {
         title: data.title,
         description: data.description,
         category: data.category === "others" && data.customCategory ? data.customCategory : data.category,
@@ -379,6 +381,13 @@ export default function VendorDeals() {
         dealType: data.dealType,
         affiliateLink: data.affiliateLink || null,
       };
+      
+      // Remove fields that are undefined
+      Object.keys(finalData).forEach(key => {
+        if (finalData[key] === undefined) {
+          delete finalData[key];
+        }
+      });
       return apiRequest(`/api/vendors/deals/${editingDeal.id}`, {
         method: 'PUT',
         body: finalData

@@ -2072,13 +2072,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Ensure latitude and longitude are strings if provided
         latitude: req.body.latitude ? String(req.body.latitude) : undefined,
         longitude: req.body.longitude ? String(req.body.longitude) : undefined,
-        // Store location fields - set to empty string if null (schema expects string or empty)
-        state: req.body.state || "",
-        city: req.body.city || "",
-        sublocation: req.body.sublocation || null,
-        pincode: req.body.pincode || "",
-        contactPhone: req.body.contactPhone || "",
       };
+      
+      // Remove undefined values to prevent validation errors
+      Object.keys(transformedData).forEach(key => {
+        if (transformedData[key] === undefined) {
+          delete transformedData[key];
+        }
+      });
       
       const dealData = insertDealSchema.parse(transformedData);
       Logger.debug('Deal data after schema parse:', {
