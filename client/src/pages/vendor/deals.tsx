@@ -54,7 +54,7 @@ const dealSchema = z.object({
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   useCurrentLocation: z.boolean().optional(),
-  dealAvailability: z.enum(["all-stores", "selected-locations"]).default("all-stores"),
+  dealAvailability: z.enum(["selected-locations"]).default("selected-locations"),
   dealType: z.enum(['offline', 'online']).default('offline'),
   affiliateLink: z.string().optional(),
   state: z.string().min(1, "Please select a state"),
@@ -900,170 +900,14 @@ export default function VendorDeals() {
                       )}
                     </div>
 
-                    {/* Deal Availability Options */}
-                    <FormField
-                      control={form.control}
-                      name="dealAvailability"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-base">Deal Availability</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="flex flex-col space-y-2"
-                            >
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="all-stores" id="all-stores" />
-                                <label htmlFor="all-stores" className="text-sm font-medium">
-                                  All Stores
-                                </label>
-                              </div>
-                              <p className="text-xs text-muted-foreground ml-6">
-                                Available at all your business locations
-                              </p>
-                              <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="selected-locations" id="selected-locations" />
-                                <label htmlFor="selected-locations" className="text-sm font-medium">
-                                  Selected Locations Only
-                                </label>
-                              </div>
-                              <p className="text-xs text-muted-foreground ml-6">
-                                Choose specific store locations for this deal
-                              </p>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                     {/* Multi-Store Location Manager */}
-                    {form.watch("dealAvailability") === "selected-locations" && (
+                    <div>
+                      <FormLabel className="text-base mb-3 block">Deal Locations</FormLabel>
                       <MultiStoreLocationManager
                         locations={storeLocations}
                         onChange={setStoreLocations}
                       />
-                    )}
-
-                    {/* All Stores Location Fields - Only show for All Stores */}
-                    {form.watch("dealAvailability") === "all-stores" && (
-                      <>
-                        {/* State and City */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <FormField
-                            control={form.control}
-                            name="state"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">State *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-12">
-                                      <SelectValue placeholder="Select state" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {indianStates.map((state) => (
-                                      <SelectItem key={state.name} value={state.name}>
-                                        {state.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">City *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-12">
-                                      <SelectValue placeholder="Select city" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {form.watch("state") && getCitiesByState(form.watch("state") || "").map((city) => (
-                                      <SelectItem key={city} value={city}>
-                                        {city}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {/* Sublocation and Pincode */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <FormField
-                            control={form.control}
-                            name="sublocation"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">Sublocation</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    placeholder="e.g., Dadar, Bandra"
-                                    className="h-12 text-base"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="pincode"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">Pincode *</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    placeholder="400001"
-                                    className="h-12 text-base"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {/* Contact Number */}
-                        <FormField
-                          control={form.control}
-                          name="contactPhone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm">Contact Number *</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  placeholder="9876543210"
-                                  className="h-12 text-base"
-                                />
-                              </FormControl>
-                              <FormDescription className="text-xs">
-                                10-digit Indian phone number
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
+                    </div>
 
                     {/* Row 7: Image Upload */}
                     <FormField
