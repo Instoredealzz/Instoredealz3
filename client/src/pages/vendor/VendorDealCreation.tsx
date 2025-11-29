@@ -352,6 +352,38 @@ const VendorDealCreation = () => {
                             )}
                           />
 
+                          <FormField
+                            control={form.control}
+                            name="storeType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Store Type</FormLabel>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  defaultValue={field.value}
+                                  disabled={previewMode}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Your store type" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {STORE_TYPES.map((type) => (
+                                      <SelectItem key={type.value} value={type.value}>
+                                        {type.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  Helps categorize your deal based on your business type
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
                           {watchedValues.category === 'others' && (
                             <FormField
                               control={form.control}
