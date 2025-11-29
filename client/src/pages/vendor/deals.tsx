@@ -37,19 +37,19 @@ import RotatingPinDisplay from "@/components/ui/rotating-pin-display";
 import MultiStoreLocationManager from "@/components/MultiStoreLocationManager";
 
 const DEAL_DESCRIPTIONS: Record<string, string> = {
-  electronics: "Example: Get 20% off on all smartphones. This offer includes: free screen protector, 1 year warranty, free installation. Valid on selected models. Terms: Valid on new purchases, cannot be combined with other offers.",
-  fashion: "Example: Buy 2 get 1 free on all winter collection. Includes: shirts, pants, jackets from leading brands. Limited stock available. Terms: Must purchase 2 items to get 3rd free, applicable on equal or lesser value.",
-  restaurants: "Example: Get 30% off on dine-in bills above ₹500. Include: starters, mains, beverages. Valid for lunch and dinner. Terms: Not applicable on alcohol, taxes extra, one offer per table.",
-  beauty: "Example: Free facial treatment with every haircut package. Includes: professional haircut, shampoo, conditioning. Valid at all branches. Terms: Valid for new customers or after 3 months.",
-  fitness: "Example: Get 3 months free gym membership with annual subscription. Includes: unlimited access, personal trainer consultation. Limited offer. Terms: Valid for new members only.",
-  travel: "Example: Book and save 25% on domestic tour packages. Includes: hotel, transportation, meals, sightseeing. Popular destinations. Terms: Advance booking required, non-refundable offer.",
-  home: "Example: Save 40% on all furniture items. Includes: beds, sofas, dining sets. Premium quality guaranteed. Terms: Free delivery for purchases above ₹10000, includes 1 year warranty.",
-  automotive: "Example: Get 50% off on car servicing packages. Includes: oil change, filter replacement, inspection. Authentic parts only. Terms: Valid on first service, appointment required.",
-  education: "Example: Enroll now and get 20% off on course fees. Includes: online classes, materials, certification. Various courses available. Terms: Valid for new enrollments, non-refundable.",
-  healthcare: "Example: Get 30% off on health checkup packages. Includes: blood tests, health screening, doctor consultation. Modern lab facilities. Terms: Results within 24 hours, valid for walk-ins.",
-  entertainment: "Example: Get 2 movie tickets for the price of 1. Valid on all shows except premieres. Premium theaters. Terms: Not applicable on special events, valid on weekdays.",
-  services: "Example: Get 25% off on home cleaning service. Includes: deep cleaning, pest control, sanitization. Professional team. Terms: Minimum 2 visits required, advance booking essential.",
-  others: "Example: Special discount on our products and services. Terms and conditions apply. Contact us for more details.",
+  electronics: "We sell: Smartphones, Laptops, TVs, Home Appliances, Cameras, Audio Systems, Gaming Consoles, Tablets, Wearables. Get flat discount on your total bill. Terms: Valid on all products, cannot be combined with other offers.",
+  fashion: "We sell: Men's & Women's Clothing, Footwear, Handbags, Accessories, Ethnic Wear, Western Wear, Kids Wear, Sportswear. Get flat discount on your total purchase. Terms: Valid on all items, minimum purchase may apply.",
+  restaurants: "We serve: North Indian, South Indian, Chinese, Continental, Fast Food, Desserts, Beverages, Multi-Cuisine. Get flat discount on your total food bill. Terms: Dine-in only, taxes extra, not valid on alcohol.",
+  beauty: "We offer: Haircuts, Hair Coloring, Facials, Manicure, Pedicure, Spa Treatments, Bridal Makeup, Skin Care Services. Get flat discount on your total service bill. Terms: Prior appointment recommended.",
+  fitness: "We offer: Gym Memberships, Personal Training, Yoga Classes, Zumba, CrossFit, Swimming, Aerobics, Sports Training. Get flat discount on membership fees. Terms: Valid for new and existing members.",
+  travel: "We offer: Holiday Packages, Flight Bookings, Hotel Stays, Car Rentals, Tour Guides, Adventure Trips, Honeymoon Packages. Get flat discount on total booking value. Terms: Advance booking required.",
+  home: "We sell: Furniture, Home Decor, Mattresses, Kitchenware, Lighting, Curtains, Bedding, Storage Solutions. Get flat discount on your total purchase. Terms: Delivery charges may apply.",
+  automotive: "We offer: Car Servicing, Oil Change, Tyre Replacement, AC Service, Denting & Painting, Car Wash, Accessories. Get flat discount on your total service bill. Terms: Appointment required.",
+  education: "We offer: Coaching Classes, Online Courses, Skill Training, Language Classes, Competitive Exam Prep, Certification Programs. Get flat discount on course fees. Terms: Valid for new enrollments.",
+  healthcare: "We offer: Health Checkups, Lab Tests, Doctor Consultations, Dental Care, Eye Care, Physiotherapy, Diagnostic Services. Get flat discount on your total bill. Terms: Prior appointment recommended.",
+  entertainment: "We offer: Movie Tickets, Gaming Zones, Amusement Parks, Bowling, Escape Rooms, Event Tickets, Theme Parks. Get flat discount on entry or ticket prices. Terms: Subject to availability.",
+  services: "We offer: Home Cleaning, Plumbing, Electrical Work, Pest Control, AC Repair, Carpentry, Painting, Moving Services. Get flat discount on your total service bill. Terms: Advance booking required.",
+  others: "Describe what products or services you offer and the discount available on total billing. Include any terms and conditions.",
 };
 
 const dealSchema = z.object({
