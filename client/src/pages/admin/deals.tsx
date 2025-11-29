@@ -26,7 +26,8 @@ import {
   TrendingUp,
   X,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Crown
 } from "lucide-react";
 
 export default function AdminDeals() {
@@ -268,6 +269,8 @@ export default function AdminDeals() {
   const totalPending = pendingDeals?.length || 0;
   const highDiscountDeals = pendingDeals?.filter((d: any) => d.discountPercentage >= 50).length || 0;
   const premiumDeals = pendingDeals?.filter((d: any) => d.requiredMembership === "premium" || d.requiredMembership === "ultimate").length || 0;
+  const basicDeals = pendingDeals?.filter((d: any) => !d.requiredMembership || d.requiredMembership === "basic").length || 0;
+  const ultimateDeals = pendingDeals?.filter((d: any) => d.requiredMembership === "ultimate").length || 0;
   const avgDiscount = pendingDeals?.length > 0 
     ? Math.round(pendingDeals.reduce((sum: number, d: any) => sum + d.discountPercentage, 0) / pendingDeals.length)
     : 0;
@@ -275,7 +278,9 @@ export default function AdminDeals() {
   const stats = [
     { label: "Pending Approval", value: totalPending, icon: Clock, bgGradient: "from-orange-50 to-red-100 dark:from-orange-950/50 dark:to-red-900/30", borderColor: "border-orange-200 dark:border-orange-800", iconBg: "bg-orange-500", textColor: "text-orange-800 dark:text-orange-200", valueColor: "text-orange-900 dark:text-orange-100" },
     { label: "High Discount (50%+)", value: highDiscountDeals, icon: TrendingUp, bgGradient: "from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-900/30", borderColor: "border-green-200 dark:border-green-800", iconBg: "bg-green-500", textColor: "text-green-800 dark:text-green-200", valueColor: "text-green-900 dark:text-green-100" },
+    { label: "Basic Deals", value: basicDeals, icon: Tag, bgGradient: "from-gray-50 to-slate-100 dark:from-gray-950/50 dark:to-slate-900/30", borderColor: "border-gray-200 dark:border-gray-800", iconBg: "bg-gray-500", textColor: "text-gray-800 dark:text-gray-200", valueColor: "text-gray-900 dark:text-gray-100" },
     { label: "Premium Deals", value: premiumDeals, icon: Tag, bgGradient: "from-purple-50 to-violet-100 dark:from-purple-950/50 dark:to-violet-900/30", borderColor: "border-purple-200 dark:border-purple-800", iconBg: "bg-purple-500", textColor: "text-purple-800 dark:text-purple-200", valueColor: "text-purple-900 dark:text-purple-100" },
+    { label: "Ultimate Deals", value: ultimateDeals, icon: Crown, bgGradient: "from-amber-50 to-yellow-100 dark:from-amber-950/50 dark:to-yellow-900/30", borderColor: "border-amber-200 dark:border-amber-800", iconBg: "bg-amber-500", textColor: "text-amber-800 dark:text-amber-200", valueColor: "text-amber-900 dark:text-amber-100" },
     { label: "Avg Discount", value: `${avgDiscount}%`, icon: Ticket, bgGradient: "from-cyan-50 to-blue-100 dark:from-cyan-950/50 dark:to-blue-900/30", borderColor: "border-cyan-200 dark:border-cyan-800", iconBg: "bg-cyan-500", textColor: "text-cyan-800 dark:text-cyan-200", valueColor: "text-cyan-900 dark:text-cyan-100" },
   ];
 
@@ -293,7 +298,7 @@ export default function AdminDeals() {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        <div className="grid md:grid-cols-6 gap-6 mb-8">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
