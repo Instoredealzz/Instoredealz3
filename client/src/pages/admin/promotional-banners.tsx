@@ -301,7 +301,7 @@ export default function PromotionalBanners() {
       {/* Header with Back Button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
+          <Link to="/" className="flex items-center text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-5 w-5 mr-2" />
             <span>Back to Home</span>
           </Link>

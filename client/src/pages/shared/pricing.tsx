@@ -169,7 +169,7 @@ export default function Pricing() {
                       {plan.name === "Basic" ? (
                         <span>{plan.buttonText}</span>
                       ) : (
-                        <Link href={isAuthenticated ? "/customer/dashboard" : "/signup"}>
+                        <Link to={isAuthenticated ? "/customer/dashboard" : "/signup"}>
                           {plan.buttonText}
                         </Link>
                       )}

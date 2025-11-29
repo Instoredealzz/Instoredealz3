@@ -115,14 +115,14 @@ export default function VendorProfileData() {
             </div>
             <div className="flex items-center space-x-3">
               {isApproved && (
-                <Link href="/vendor/deals">
+                <Link to="/vendor/deals">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Deal
                   </Button>
                 </Link>
               )}
-              <Link href="/vendor/dashboard">
+              <Link to="/vendor/dashboard">
                 <Button variant="outline">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Dashboard
@@ -305,13 +305,13 @@ export default function VendorProfileData() {
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-4">
-                    <Link href="/vendor/deals">
+                    <Link to="/vendor/deals">
                       <Button className="w-full" size="lg">
                         <Plus className="h-4 w-4 mr-2" />
                         Create Your First Deal
                       </Button>
                     </Link>
-                    <Link href="/vendor/profile">
+                    <Link to="/vendor/profile">
                       <Button variant="outline" className="w-full" size="lg">
                         <User className="h-4 w-4 mr-2" />
                         Update Profile
