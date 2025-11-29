@@ -497,35 +497,35 @@ export default function AdminReports() {
           
           {/* Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-card rounded-lg p-4 border border-gray-200">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 border border-blue-400 text-white shadow-lg">
               <div className="flex items-center">
-                <Activity className="h-5 w-5 text-blue-600 mr-2" />
-                <span className="text-sm font-medium text-muted-foreground">Last Updated</span>
+                <Activity className="h-5 w-5 text-blue-100 mr-2" />
+                <span className="text-sm font-medium text-blue-100">Last Updated</span>
               </div>
-              <p className="text-lg font-bold text-foreground mt-1">Just Now</p>
+              <p className="text-lg font-bold text-white mt-1">Just Now</p>
             </div>
-            <div className="bg-card rounded-lg p-4 border border-gray-200">
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-4 border border-green-400 text-white shadow-lg">
               <div className="flex items-center">
-                <TrendingUp className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-sm font-medium text-muted-foreground">Total Records</span>
+                <TrendingUp className="h-5 w-5 text-green-100 mr-2" />
+                <span className="text-sm font-medium text-green-100">Total Records</span>
               </div>
-              <p className="text-lg font-bold text-foreground mt-1">
+              <p className="text-lg font-bold text-white mt-1">
                 {((analyticsData?.totalUsers || 0) + (analyticsData?.totalVendors || 0) + (analyticsData?.totalDeals || 0) + (analyticsData?.totalClaims || 0)).toLocaleString()}
               </p>
             </div>
-            <div className="bg-card rounded-lg p-4 border border-gray-200">
+            <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg p-4 border border-purple-400 text-white shadow-lg">
               <div className="flex items-center">
-                <FileText className="h-5 w-5 text-purple-600 mr-2" />
-                <span className="text-sm font-medium text-muted-foreground">Report Types</span>
+                <FileText className="h-5 w-5 text-purple-100 mr-2" />
+                <span className="text-sm font-medium text-purple-100">Report Types</span>
               </div>
-              <p className="text-lg font-bold text-foreground mt-1">5</p>
+              <p className="text-lg font-bold text-white mt-1">6</p>
             </div>
-            <div className="bg-card rounded-lg p-4 border border-gray-200">
+            <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-lg p-4 border border-orange-400 text-white shadow-lg">
               <div className="flex items-center">
-                <Clock className="h-5 w-5 text-orange-600 mr-2" />
-                <span className="text-sm font-medium text-muted-foreground">Format</span>
+                <Clock className="h-5 w-5 text-orange-100 mr-2" />
+                <span className="text-sm font-medium text-orange-100">Format</span>
               </div>
-              <p className="text-lg font-bold text-foreground mt-1">CSV</p>
+              <p className="text-lg font-bold text-white mt-1">CSV</p>
             </div>
           </div>
         </div>
@@ -664,8 +664,15 @@ export default function AdminReports() {
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button 
-                          variant="outline" 
-                          className="flex-1"
+                          className={`flex-1 text-white`}
+                          style={{
+                            background: report.color.includes('blue') ? 'linear-gradient(to right, #3b82f6, #2563eb)' :
+                                       report.color.includes('green') ? 'linear-gradient(to right, #10b981, #059669)' :
+                                       report.color.includes('orange') ? 'linear-gradient(to right, #f97316, #ea580c)' :
+                                       report.color.includes('purple') ? 'linear-gradient(to right, #a855f7, #9333ea)' :
+                                       report.color.includes('red') ? 'linear-gradient(to right, #ef4444, #dc2626)' :
+                                       'linear-gradient(to right, #10b981, #059669)'
+                          }}
                           onClick={() => viewReport(report.id)}
                           disabled={viewingReport === report.id}
                         >
@@ -735,7 +742,15 @@ export default function AdminReports() {
 
                     {/* Download Button */}
                     <Button 
-                      className="flex-1"
+                      className="flex-1 text-white"
+                      style={{
+                        background: report.color.includes('blue') ? 'linear-gradient(to right, #2563eb, #1d4ed8)' :
+                                   report.color.includes('green') ? 'linear-gradient(to right, #059669, #047857)' :
+                                   report.color.includes('orange') ? 'linear-gradient(to right, #ea580c, #c2410c)' :
+                                   report.color.includes('purple') ? 'linear-gradient(to right, #9333ea, #7e22ce)' :
+                                   report.color.includes('red') ? 'linear-gradient(to right, #dc2626, #b91c1c)' :
+                                   'linear-gradient(to right, #059669, #047857)'
+                      }}
                       onClick={() => downloadReport(report.id)}
                       disabled={isDownloading}
                     >
@@ -754,8 +769,15 @@ export default function AdminReports() {
 
                     {/* Email Button */}
                     <Button 
-                      variant="outline"
-                      className="flex-1"
+                      className="flex-1 text-white"
+                      style={{
+                        background: report.color.includes('blue') ? 'linear-gradient(to right, #60a5fa, #3b82f6)' :
+                                   report.color.includes('green') ? 'linear-gradient(to right, #34d399, #10b981)' :
+                                   report.color.includes('orange') ? 'linear-gradient(to right, #fb923c, #f97316)' :
+                                   report.color.includes('purple') ? 'linear-gradient(to right, #c084fc, #a855f7)' :
+                                   report.color.includes('red') ? 'linear-gradient(to right, #f87171, #ef4444)' :
+                                   'linear-gradient(to right, #34d399, #10b981)'
+                      }}
                       onClick={() => emailReport(report.id)}
                       disabled={emailingReport === report.id}
                     >
@@ -779,10 +801,10 @@ export default function AdminReports() {
         </div>
 
         {/* Usage Instructions */}
-        <Card className="mt-8">
+        <Card className="mt-8 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-l-4 border-l-blue-500">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <FileText className="h-5 w-5 mr-2 text-muted-foreground" />
+              <FileText className="h-5 w-5 mr-2 text-blue-600" />
               Usage Instructions
             </CardTitle>
           </CardHeader>
