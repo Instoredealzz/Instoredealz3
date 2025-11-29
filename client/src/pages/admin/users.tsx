@@ -24,7 +24,8 @@ import {
   Phone,
   MoreHorizontal,
   UserCheck,
-  Loader2
+  Loader2,
+  Store
 } from "lucide-react";
 
 export default function AdminUsers() {
@@ -128,20 +129,20 @@ export default function AdminUsers() {
   const promotionalUsers = users?.filter((u: any) => u.isPromotionalUser).length || 0;
 
   const stats = [
-    { label: "Total Users", value: totalUsers, icon: Users, color: "text-primary" },
-    { label: "Customers", value: customerCount, icon: Users, color: "text-success" },
-    { label: "Vendors", value: vendorCount, icon: Users, color: "text-warning" },
-    { label: "Premium Members", value: premiumUsers, icon: Crown, color: "text-royal" },
+    { label: "Total Users", value: totalUsers, icon: Users, bgGradient: "from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30", borderColor: "border-blue-200 dark:border-blue-800", iconBg: "bg-blue-500", textColor: "text-blue-800 dark:text-blue-200", valueColor: "text-blue-900 dark:text-blue-100", subTextColor: "text-blue-600 dark:text-blue-300" },
+    { label: "Customers", value: customerCount, icon: Users, bgGradient: "from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-900/30", borderColor: "border-green-200 dark:border-green-800", iconBg: "bg-green-500", textColor: "text-green-800 dark:text-green-200", valueColor: "text-green-900 dark:text-green-100", subTextColor: "text-green-600 dark:text-green-300" },
+    { label: "Vendors", value: vendorCount, icon: Store, bgGradient: "from-amber-50 to-yellow-100 dark:from-amber-950/50 dark:to-yellow-900/30", borderColor: "border-amber-200 dark:border-amber-800", iconBg: "bg-amber-500", textColor: "text-amber-800 dark:text-amber-200", valueColor: "text-amber-900 dark:text-amber-100", subTextColor: "text-amber-600 dark:text-amber-300" },
+    { label: "Premium Members", value: premiumUsers, icon: Crown, bgGradient: "from-purple-50 to-violet-100 dark:from-purple-950/50 dark:to-violet-900/30", borderColor: "border-purple-200 dark:border-purple-800", iconBg: "bg-purple-500", textColor: "text-purple-800 dark:text-purple-200", valueColor: "text-purple-900 dark:text-purple-100", subTextColor: "text-purple-600 dark:text-purple-300" },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/50 via-background to-purple-50/50 dark:from-blue-950/20 dark:via-background dark:to-purple-950/20">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">User Management</h1>
           <p className="text-muted-foreground mt-1">
             Manage and monitor all platform users
           </p>
@@ -152,14 +153,16 @@ export default function AdminUsers() {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.label}>
+              <Card key={stat.label} className={`bg-gradient-to-br ${stat.bgGradient} ${stat.borderColor} shadow-md hover:shadow-lg transition-shadow`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">{stat.label}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                      <p className={`text-sm font-medium ${stat.textColor}`}>{stat.label}</p>
+                      <p className={`text-3xl font-bold ${stat.valueColor} mt-1`}>{stat.value}</p>
                     </div>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <div className={`${stat.iconBg} p-3 rounded-full`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -168,17 +171,17 @@ export default function AdminUsers() {
         </div>
 
         {/* Filters */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-slate-200 dark:border-slate-800">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-4 gap-4">
               <div className="md:col-span-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-blue-500" />
                   <Input
                     placeholder="Search users..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-white dark:bg-gray-900 border-blue-200 dark:border-blue-800 focus:border-blue-400"
                   />
                 </div>
               </div>
@@ -225,11 +228,11 @@ export default function AdminUsers() {
         </Card>
 
         {/* Users Table */}
-        <Card>
-          <CardHeader>
+        <Card className="bg-white dark:bg-gray-900 border-blue-100 dark:border-blue-900 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-950/30 dark:to-purple-950/30 border-b border-blue-100 dark:border-blue-900">
             <div className="flex items-center justify-between">
-              <CardTitle>Users ({filteredUsers.length})</CardTitle>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <CardTitle className="text-blue-800 dark:text-blue-200">Users ({filteredUsers.length})</CardTitle>
+              <div className="flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400">
                 <Calendar className="h-4 w-4" />
                 <span>Sorted by join date (newest first)</span>
               </div>

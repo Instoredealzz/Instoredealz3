@@ -273,20 +273,20 @@ export default function AdminDeals() {
     : 0;
 
   const stats = [
-    { label: "Pending Approval", value: totalPending, icon: Clock, color: "text-warning" },
-    { label: "High Discount (50%+)", value: highDiscountDeals, icon: TrendingUp, color: "text-success" },
-    { label: "Premium Deals", value: premiumDeals, icon: Tag, color: "text-royal" },
-    { label: "Avg Discount", value: `${avgDiscount}%`, icon: Ticket, color: "text-primary" },
+    { label: "Pending Approval", value: totalPending, icon: Clock, bgGradient: "from-orange-50 to-red-100 dark:from-orange-950/50 dark:to-red-900/30", borderColor: "border-orange-200 dark:border-orange-800", iconBg: "bg-orange-500", textColor: "text-orange-800 dark:text-orange-200", valueColor: "text-orange-900 dark:text-orange-100" },
+    { label: "High Discount (50%+)", value: highDiscountDeals, icon: TrendingUp, bgGradient: "from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-900/30", borderColor: "border-green-200 dark:border-green-800", iconBg: "bg-green-500", textColor: "text-green-800 dark:text-green-200", valueColor: "text-green-900 dark:text-green-100" },
+    { label: "Premium Deals", value: premiumDeals, icon: Tag, bgGradient: "from-purple-50 to-violet-100 dark:from-purple-950/50 dark:to-violet-900/30", borderColor: "border-purple-200 dark:border-purple-800", iconBg: "bg-purple-500", textColor: "text-purple-800 dark:text-purple-200", valueColor: "text-purple-900 dark:text-purple-100" },
+    { label: "Avg Discount", value: `${avgDiscount}%`, icon: Ticket, bgGradient: "from-cyan-50 to-blue-100 dark:from-cyan-950/50 dark:to-blue-900/30", borderColor: "border-cyan-200 dark:border-cyan-800", iconBg: "bg-cyan-500", textColor: "text-cyan-800 dark:text-cyan-200", valueColor: "text-cyan-900 dark:text-cyan-100" },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/50 via-background to-purple-50/50 dark:from-orange-950/20 dark:via-background dark:to-purple-950/20">
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Deal Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent">Deal Management</h1>
           <p className="text-muted-foreground mt-1">
             Review and approve deals submitted by vendors
           </p>
@@ -297,14 +297,16 @@ export default function AdminDeals() {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.label}>
+              <Card key={stat.label} className={`bg-gradient-to-br ${stat.bgGradient} ${stat.borderColor} shadow-md hover:shadow-lg transition-shadow`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">{stat.label}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                      <p className={`text-sm font-medium ${stat.textColor}`}>{stat.label}</p>
+                      <p className={`text-3xl font-bold ${stat.valueColor} mt-1`}>{stat.value}</p>
                     </div>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <div className={`${stat.iconBg} p-3 rounded-full`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -313,17 +315,17 @@ export default function AdminDeals() {
         </div>
 
         {/* Filters */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-slate-200 dark:border-slate-800">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-4 gap-4">
               <div className="md:col-span-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-orange-500" />
                   <Input
                     placeholder="Search deals..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-white dark:bg-gray-900 border-orange-200 dark:border-orange-800 focus:border-orange-400"
                   />
                 </div>
               </div>
@@ -386,9 +388,9 @@ export default function AdminDeals() {
         </Card>
 
         {/* Deals Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
+        <Card className="bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-900 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-orange-50/50 to-purple-50/50 dark:from-orange-950/30 dark:to-purple-950/30 border-b border-orange-100 dark:border-orange-900">
+            <CardTitle className="text-orange-800 dark:text-orange-200">
               {statusFilter === "pending" ? "Pending Deals" : 
                statusFilter === "approved" ? "Approved Deals" :
                statusFilter === "active" ? "Active Deals" : "All Deals"} ({filteredDeals.length})

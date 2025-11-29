@@ -146,20 +146,20 @@ export default function AdminVendors() {
     : "0.0";
 
   const stats = [
-    { label: "Total Vendors", value: totalVendors, icon: Store, color: "text-primary" },
-    { label: "Approved", value: approvedVendors, icon: CheckCircle, color: "text-success" },
-    { label: "Pending", value: pendingApprovals, icon: Clock, color: "text-warning" },
-    { label: "Avg Rating", value: avgRating, icon: Star, color: "text-royal" },
+    { label: "Total Vendors", value: totalVendors, icon: Store, bgGradient: "from-indigo-50 to-blue-100 dark:from-indigo-950/50 dark:to-blue-900/30", borderColor: "border-indigo-200 dark:border-indigo-800", iconBg: "bg-indigo-500", textColor: "text-indigo-800 dark:text-indigo-200", valueColor: "text-indigo-900 dark:text-indigo-100" },
+    { label: "Approved", value: approvedVendors, icon: CheckCircle, bgGradient: "from-emerald-50 to-green-100 dark:from-emerald-950/50 dark:to-green-900/30", borderColor: "border-emerald-200 dark:border-emerald-800", iconBg: "bg-emerald-500", textColor: "text-emerald-800 dark:text-emerald-200", valueColor: "text-emerald-900 dark:text-emerald-100" },
+    { label: "Pending", value: pendingApprovals, icon: Clock, bgGradient: "from-orange-50 to-amber-100 dark:from-orange-950/50 dark:to-amber-900/30", borderColor: "border-orange-200 dark:border-orange-800", iconBg: "bg-orange-500", textColor: "text-orange-800 dark:text-orange-200", valueColor: "text-orange-900 dark:text-orange-100" },
+    { label: "Avg Rating", value: avgRating, icon: Star, bgGradient: "from-yellow-50 to-amber-100 dark:from-yellow-950/50 dark:to-amber-900/30", borderColor: "border-yellow-200 dark:border-yellow-800", iconBg: "bg-yellow-500", textColor: "text-yellow-800 dark:text-yellow-200", valueColor: "text-yellow-900 dark:text-yellow-100" },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-background to-emerald-50/50 dark:from-indigo-950/20 dark:via-background dark:to-emerald-950/20">
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Vendor Management</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">Vendor Management</h1>
           <p className="text-muted-foreground mt-1">
             Review and manage vendor applications and accounts
           </p>
@@ -170,14 +170,16 @@ export default function AdminVendors() {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.label}>
+              <Card key={stat.label} className={`bg-gradient-to-br ${stat.bgGradient} ${stat.borderColor} shadow-md hover:shadow-lg transition-shadow`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-gray-500 text-sm">{stat.label}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                      <p className={`text-sm font-medium ${stat.textColor}`}>{stat.label}</p>
+                      <p className={`text-3xl font-bold ${stat.valueColor} mt-1`}>{stat.value}</p>
                     </div>
-                    <Icon className={`h-6 w-6 ${stat.color}`} />
+                    <div className={`${stat.iconBg} p-3 rounded-full`}>
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -186,17 +188,17 @@ export default function AdminVendors() {
         </div>
 
         {/* Filters */}
-        <Card className="mb-8">
+        <Card className="mb-8 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-slate-200 dark:border-slate-800">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-indigo-500" />
                   <Input
                     placeholder="Search vendors..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 bg-white dark:bg-gray-900 border-indigo-200 dark:border-indigo-800 focus:border-indigo-400"
                   />
                 </div>
               </div>
@@ -227,11 +229,11 @@ export default function AdminVendors() {
         </Card>
 
         {/* Vendors Table */}
-        <Card>
-          <CardHeader>
+        <Card className="bg-white dark:bg-gray-900 border-indigo-100 dark:border-indigo-900 shadow-sm">
+          <CardHeader className="bg-gradient-to-r from-indigo-50/50 to-emerald-50/50 dark:from-indigo-950/30 dark:to-emerald-950/30 border-b border-indigo-100 dark:border-indigo-900">
             <div className="flex items-center justify-between">
-              <CardTitle>Vendors ({filteredVendors.length})</CardTitle>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <CardTitle className="text-indigo-800 dark:text-indigo-200">Vendors ({filteredVendors.length})</CardTitle>
+              <div className="flex items-center space-x-2 text-sm text-indigo-600 dark:text-indigo-400">
                 <Calendar className="h-4 w-4" />
                 <span>Sorted by registration date (newest first)</span>
               </div>
