@@ -48,6 +48,21 @@ const companyTypes = [
   { id: "llp", name: "LLP (Limited Liability Partnership)" },
 ];
 
+// Store types
+const STORE_TYPES = [
+  { value: "electronics", label: "Electronics Store" },
+  { value: "fashion", label: "Fashion & Apparel" },
+  { value: "food", label: "Food & Beverage" },
+  { value: "travel", label: "Travel & Tourism" },
+  { value: "home", label: "Home & Furniture" },
+  { value: "fitness", label: "Fitness & Wellness" },
+  { value: "beauty", label: "Beauty & Personal Care" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "services", label: "Services" },
+  { value: "automotive", label: "Automotive" },
+  { value: "general", label: "General/Multi-Category" },
+];
+
 const vendorRegistrationSchema = z.object({
   businessName: z.string().min(2, "Business/Store name must be at least 2 characters"),
   companyType: z.string().min(1, "Please select a company type"),
@@ -58,6 +73,7 @@ const vendorRegistrationSchema = z.object({
   state: z.string().min(1, "Please select a state"),
   city: z.string().min(1, "Please select a city"),
   pincode: z.string().regex(/^[0-9]{6}$/, "Pin code must be exactly 6 digits"),
+  storeType: z.string().min(1, "Please select what your store sells"),
   hasGst: z.enum(["yes", "no"]),
   gstNumber: z.string().optional(),
   panNumber: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "PAN number must be in format ABCDE1234F"),
@@ -136,6 +152,7 @@ export default function VendorRegisterEnhanced() {
       state: user?.state || "",
       city: user?.city || "",
       pincode: "",
+      storeType: "",
       hasGst: "no",
       gstNumber: "",
       panNumber: "",
@@ -489,6 +506,36 @@ export default function VendorRegisterEnhanced() {
                           </FormControl>
                           <FormDescription>
                             Optional: Enter your company website URL
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="mt-6">
+                    <FormField
+                      control={form.control}
+                      name="storeType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Store Type *</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select what your store sells" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {STORE_TYPES.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription>
+                            Helps customers discover your store based on products/services you sell
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
