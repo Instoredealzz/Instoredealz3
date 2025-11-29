@@ -17,6 +17,20 @@ import { apiRequest } from "@/lib/queryClient";
 import { indianStates, getCitiesByState } from "@/lib/cities";
 import Navbar from "@/components/ui/navbar";
 
+const STORE_TYPES = [
+  { value: "electronics", label: "Electronics Store" },
+  { value: "fashion", label: "Fashion & Apparel" },
+  { value: "food", label: "Food & Beverage" },
+  { value: "travel", label: "Travel & Tourism" },
+  { value: "home", label: "Home & Furniture" },
+  { value: "fitness", label: "Fitness & Wellness" },
+  { value: "beauty", label: "Beauty & Personal Care" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "services", label: "Services" },
+  { value: "automotive", label: "Automotive" },
+  { value: "general", label: "General/Multi-Category" },
+];
+
 const updateVendorProfileSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters").optional(),
   gstNumber: z.string().optional(),
@@ -28,6 +42,8 @@ const updateVendorProfileSchema = z.object({
   state: z.string().optional(),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  storeType: z.string().optional(),
+  specialtyTags: z.array(z.string()).optional(),
 });
 
 type UpdateVendorProfile = z.infer<typeof updateVendorProfileSchema>;
@@ -59,6 +75,8 @@ export default function VendorProfile() {
       state: "",
       latitude: "",
       longitude: "",
+      storeType: "",
+      specialtyTags: [],
     },
   });
 
@@ -76,6 +94,8 @@ export default function VendorProfile() {
         state: (vendor as any).state || "",
         latitude: (vendor as any).latitude || "",
         longitude: (vendor as any).longitude || "",
+        storeType: (vendor as any).storeType || "",
+        specialtyTags: (vendor as any).specialtyTags || [],
       });
     }
   }, [vendor, form]);
@@ -108,7 +128,15 @@ export default function VendorProfile() {
   const onSubmit = (data: UpdateVendorProfile) => {
     // Filter out empty optional fields
     const filteredData = Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value && value.trim() !== "")
+      Object.entries(data).filter(([key, value]) => {
+        if (key === 'specialtyTags') {
+          return Array.isArray(value) && value.length > 0;
+        }
+        if (typeof value === 'string') {
+          return value && value.trim() !== "";
+        }
+        return value !== undefined && value !== null;
+      })
     );
     updateMutation.mutate(filteredData);
   };
@@ -293,6 +321,31 @@ export default function VendorProfile() {
 
                       <FormField
                         control={form.control}
+                        name="storeType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Store Type</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-store-type">
+                                  <SelectValue placeholder="Select what your store sells" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {STORE_TYPES.map((type) => (
+                                  <SelectItem key={type.value} value={type.value}>
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
                         name="description"
                         render={({ field }) => (
                           <FormItem>
@@ -306,6 +359,71 @@ export default function VendorProfile() {
                               />
                             </FormControl>
                             <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="specialtyTags"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Specialty Tags (2-3 items your store sells)</FormLabel>
+                            <div className="space-y-2">
+                              <div className="flex gap-2 mb-3">
+                                <Input
+                                  placeholder="Add a specialty tag (e.g., Smartphones, Italian Food)"
+                                  id="new-specialty"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const input = e.currentTarget;
+                                      const value = input.value.trim();
+                                      if (value && (field.value || []).length < 3) {
+                                        const newTags = [...(field.value || []), value];
+                                        field.onChange(newTags);
+                                        input.value = '';
+                                      }
+                                      e.preventDefault();
+                                    }
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const input = document.getElementById('new-specialty') as HTMLInputElement;
+                                    const value = input.value.trim();
+                                    if (value && (field.value || []).length < 3) {
+                                      const newTags = [...(field.value || []), value];
+                                      field.onChange(newTags);
+                                      input.value = '';
+                                    }
+                                  }}
+                                >
+                                  Add
+                                </Button>
+                              </div>
+                              <div className="flex gap-2 flex-wrap">
+                                {(field.value || []).map((tag, idx) => (
+                                  <Badge key={idx} variant="secondary" className="px-3 py-1">
+                                    {tag}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newTags = (field.value || []).filter((_, i) => i !== idx);
+                                        field.onChange(newTags);
+                                      }}
+                                      className="ml-2 hover:text-destructive"
+                                    >
+                                      ✕
+                                    </button>
+                                  </Badge>
+                                ))}
+                              </div>
+                              {(field.value || []).length === 0 && (
+                                <p className="text-xs text-muted-foreground">Add up to 3 specialties (e.g., Laptops, Tablets for electronics store)</p>
+                              )}
+                            </div>
                           </FormItem>
                         )}
                       />

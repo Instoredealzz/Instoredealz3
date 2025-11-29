@@ -53,6 +53,15 @@ export async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS pos_modules_config JSON DEFAULT '{"inventory": false, "gds": false, "billing": false}'::json
     `);
     console.log('[MIGRATION] POS modules config added to vendors table');
+    
+    // Add store type and specialty tags columns to vendors table
+    console.log('[MIGRATION] Adding store type and specialty tags to vendors table...');
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD COLUMN IF NOT EXISTS store_type TEXT,
+      ADD COLUMN IF NOT EXISTS specialty_tags TEXT[] DEFAULT '{}'::TEXT[]
+    `);
+    console.log('[MIGRATION] Store type and specialty tags added to vendors table');
 
     // Add store location columns to deals table
     console.log('[MIGRATION] Adding store location columns to deals table...');

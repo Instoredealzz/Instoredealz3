@@ -60,6 +60,8 @@ export const vendors = pgTable("vendors", {
   totalDeals: integer("total_deals").default(0),
   totalRedemptions: integer("total_redemptions").default(0),
   posModulesConfig: json("pos_modules_config").default({ inventory: false, gds: false, billing: false }), // POS module enablement
+  storeType: text("store_type"), // What type of store (electronics, fashion, food, etc.)
+  specialtyTags: text("specialty_tags").array().default([]), // 2-3 specialty tags (e.g., ["Smartphones", "Laptops", "Tablets"])
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -1209,6 +1211,8 @@ export const updateVendorProfileSchema = z.object({
   state: z.string().optional(),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  storeType: z.string().optional(),
+  specialtyTags: z.array(z.string()).optional(),
 });
 
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
