@@ -176,6 +176,26 @@ export default function AdminDashboard() {
 
   const stats = [
     {
+      title: "Total Sales",
+      value: `₹${(analyticsData?.totalSales || 0).toLocaleString('en-IN')}`,
+      change: "+18%",
+      changeType: "increase",
+      icon: DollarSign,
+      color: "text-success",
+      bgColor: "bg-success/10",
+      description: "Total bill amounts processed",
+    },
+    {
+      title: "Total Savings",
+      value: `₹${(analyticsData?.totalSavings || 0).toLocaleString('en-IN')}`,
+      change: "+22%",
+      changeType: "increase",
+      icon: TrendingUp,
+      color: "text-royal",
+      bgColor: "bg-royal/10",
+      description: "Savings delivered to customers",
+    },
+    {
       title: "Total Users",
       value: analyticsData?.totalUsers?.toLocaleString() || "0",
       change: "+12%",
@@ -190,26 +210,41 @@ export default function AdminDashboard() {
       change: "+8%",
       changeType: "increase",
       icon: Store,
-      color: "text-success",
-      bgColor: "bg-success/10",
-    },
-    {
-      title: "Total Deals",
-      value: analyticsData?.totalDeals?.toLocaleString() || "0",
-      change: "+15%",
-      changeType: "increase",
-      icon: Ticket,
       color: "text-warning",
       bgColor: "bg-warning/10",
     },
+  ];
+
+  // Additional financial stats for the second row
+  const financialStats = [
     {
-      title: "Revenue",
-      value: `₹${(analyticsData?.revenueEstimate || 0).toLocaleString('en-IN')}`,
-      change: "+22%",
-      changeType: "increase",
-      icon: DollarSign,
-      color: "text-royal",
-      bgColor: "bg-royal/10",
+      title: "Total Deals",
+      value: analyticsData?.totalDeals?.toLocaleString() || "0",
+      icon: Ticket,
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
+    },
+    {
+      title: "Completed Redemptions",
+      value: analyticsData?.completedRedemptions?.toLocaleString() || "0",
+      icon: CheckCircle,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+    },
+    {
+      title: "Platform Commission",
+      value: `₹${(analyticsData?.platformCommission || 0).toLocaleString('en-IN')}`,
+      icon: Crown,
+      color: "text-amber-600",
+      bgColor: "bg-amber-100",
+      description: "5% of total savings",
+    },
+    {
+      title: "Pending Approvals",
+      value: ((pendingVendorsData?.length || 0) + (pendingDealsData?.length || 0)).toString(),
+      icon: AlertTriangle,
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
     },
   ];
 
@@ -376,6 +411,31 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Financial Metrics Row */}
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          {financialStats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.title} className="bg-white dark:bg-gray-800 border shadow-sm hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-muted-foreground text-xs font-medium uppercase tracking-wider">{stat.title}</p>
+                      <p className="text-2xl font-bold text-foreground mt-1">{stat.value}</p>
+                      {stat.description && (
+                        <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+                      )}
+                    </div>
+                    <div className={`${stat.bgColor} p-3 rounded-full`}>
+                      <Icon className={`h-5 w-5 ${stat.color}`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>

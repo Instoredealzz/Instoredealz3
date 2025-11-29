@@ -1382,8 +1382,22 @@ export class MemStorage implements IStorage {
     const activeDeals = Array.from(this.deals.values()).filter(deal => deal.isActive).length;
     const pendingVendors = Array.from(this.vendors.values()).filter(vendor => !vendor.isApproved).length;
     const pendingDeals = Array.from(this.deals.values()).filter(deal => !deal.isApproved).length;
+    
+    // Calculate total savings from all claims (actual savings given to customers)
     const totalSavings = Array.from(this.dealClaims.values())
       .reduce((sum, claim) => sum + parseFloat(claim.actualSavings || claim.savingsAmount || "0"), 0);
+    
+    // Calculate total sales (sum of all bill amounts processed through the app)
+    const totalSales = Array.from(this.dealClaims.values())
+      .filter(claim => claim.billAmount && claim.status === 'used')
+      .reduce((sum, claim) => sum + parseFloat(claim.billAmount || "0"), 0);
+    
+    // Calculate completed redemptions count
+    const completedRedemptions = Array.from(this.dealClaims.values())
+      .filter(claim => claim.status === 'used').length;
+    
+    // Calculate platform commission (5% of savings)
+    const platformCommission = totalSavings * 0.05;
 
     return {
       ...analytics,
@@ -1391,7 +1405,10 @@ export class MemStorage implements IStorage {
       pendingVendors,
       pendingDeals,
       totalSavings,
-      monthlyRevenue: 0, // Can be calculated based on business logic
+      totalSales,
+      completedRedemptions,
+      platformCommission,
+      monthlyRevenue: platformCommission, // Platform earns commission on savings
       growthRate: 0, // Can be calculated based on historical data
     };
   }
