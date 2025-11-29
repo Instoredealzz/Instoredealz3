@@ -525,7 +525,19 @@ export default function VendorRegisterEnhanced() {
                         <FormItem>
                           <FormLabel>Mobile Number *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter mobile number" {...field} data-testid="input-mobile" />
+                            <Input 
+                              placeholder="10-digit Indian mobile number" 
+                              maxLength={10}
+                              {...field}
+                              onChange={(e) => {
+                                const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                                field.onChange(numericValue);
+                              }}
+                              onInput={(e) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
+                              }}
+                              data-testid="input-mobile" 
+                            />
                           </FormControl>
                           <FormDescription>
                             This will be saved to your user profile

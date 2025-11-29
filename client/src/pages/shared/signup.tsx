@@ -161,9 +161,16 @@ export default function Signup() {
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="10-digit Indian mobile number"
                   value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  maxLength={10}
+                  onChange={(e) => {
+                    const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                    handleInputChange("phone", numericValue);
+                  }}
+                  onInput={(e) => {
+                    e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, '');
+                  }}
                   disabled={isLoading}
                   required
                   className="w-full py-3 px-3 text-sm sm:text-base border rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
