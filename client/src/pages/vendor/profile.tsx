@@ -31,6 +31,20 @@ const STORE_TYPES = [
   { value: "general", label: "General/Multi-Category" },
 ];
 
+const STORE_DESCRIPTIONS: Record<string, string> = {
+  electronics: "Example: Premium electronics store specializing in smartphones, laptops, and accessories. We offer the latest tech gadgets with warranty and after-sales service.",
+  fashion: "Example: Trendy fashion boutique featuring designer clothing, footwear, and accessories for men and women. We offer quality fabrics and seasonal collections.",
+  food: "Example: Casual dining restaurant serving authentic Italian and Chinese cuisine. We offer family packages, catering services, and a cozy ambiance.",
+  travel: "Example: Travel agency providing domestic and international tour packages, hotel bookings, flight reservations, and visa assistance.",
+  home: "Example: Home furnishing store offering furniture, decor items, bedding, and home improvement solutions for modern living.",
+  fitness: "Example: Fitness center with state-of-the-art gym equipment, yoga classes, personal training, and nutrition counseling.",
+  beauty: "Example: Beauty salon offering haircuts, facials, massages, and beauty treatments using premium products.",
+  entertainment: "Example: Entertainment venue offering movies, gaming, arcade games, and event hosting for parties and gatherings.",
+  services: "Example: Professional services including plumbing, electrical, carpentry, cleaning, and home maintenance.",
+  automotive: "Example: Automotive service center providing car maintenance, repairs, spare parts, and accessories.",
+  general: "Example: Multi-category retail store offering a variety of products including groceries, household items, and general merchandise.",
+};
+
 const updateVendorProfileSchema = z.object({
   businessName: z.string().min(2, "Business name must be at least 2 characters").optional(),
   gstNumber: z.string().optional(),
@@ -142,6 +156,7 @@ export default function VendorProfile() {
   };
 
   const selectedState = form.watch("state");
+  const selectedStoreType = form.watch("storeType");
   const availableCities = selectedState ? getCitiesByState(selectedState) : [];
 
   const isLoading = vendorLoading || userLoading;
@@ -352,7 +367,11 @@ export default function VendorProfile() {
                             <FormLabel>Business Description</FormLabel>
                             <FormControl>
                               <Textarea 
-                                placeholder="Describe your business and what makes it special..."
+                                placeholder={
+                                  selectedStoreType && STORE_DESCRIPTIONS[selectedStoreType]
+                                    ? STORE_DESCRIPTIONS[selectedStoreType]
+                                    : "Describe your business and what makes it special..."
+                                }
                                 className="min-h-[80px]"
                                 {...field} 
                                 value={field.value || ""}
