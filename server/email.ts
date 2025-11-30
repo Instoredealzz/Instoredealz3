@@ -1,3 +1,4 @@
+// ok
 // @ts-expect-error - ZeptoMail package has types but they're not resolved correctly in package.json exports
 import { SendMailClient } from "zeptomail";
 
@@ -702,4 +703,3 @@ curl -X POST https://your-domain.com/api/v1/claims/verify \\<br>
     `,
   };
 }
-
