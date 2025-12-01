@@ -127,7 +127,7 @@ export default function DealCard({
 
   useEffect(() => {
     // Flash effect for high discount percentages
-    if (discountPercentage >= 1) {
+    if (discountPercentage >= 40) {
       const interval = setInterval(() => {
         setIsFlashing((prev) => !prev);
       }, 1000);

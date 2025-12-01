@@ -156,7 +156,7 @@ export default function DealDetail({ params }: DealDetailProps) {
 
   // Use secure deal data if available and successful, otherwise fall back to public deal data
   const currentDeal = isAuthenticated && secureDeal ? secureDeal : deal;
-  const currentLoading = isAuthenticated ? isSecureLoading && isPublicLoading : isPublicLoading;
+  const currentLoading = isAuthenticated ? isSecureLoading || isPublicLoading : isPublicLoading;
 
   useEffect(() => {
     if (wishlistCheck?.inWishlist) {
@@ -165,7 +165,7 @@ export default function DealDetail({ params }: DealDetailProps) {
   }, [wishlistCheck]);
 
   // Track if we've already incremented view count for this deal
-  const viewCountedRef = useRef<number | null>(null);
+  const viewCountedRef = useRef<string | null>(null);
 
   // Increment view count when component mounts (only once per deal)
   useEffect(() => {
@@ -408,8 +408,8 @@ export default function DealDetail({ params }: DealDetailProps) {
 
   // Enhanced back button handler
   const handleGoBack = () => {
-    // Always redirect to home page to ensure consistent navigation
-    setLocation('/');
+    // Navigate back to deals page
+    setLocation('/customer/deals');
   };
 
   // No authentication check needed for viewing deal details
